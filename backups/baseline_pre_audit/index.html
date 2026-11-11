@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ka" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deutsch A1 • გერმანული ენის სრული სასწავლო პლატფორმა</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Fira GO & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+GO:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Announcement Bar -->
+  <aside aria-label="ინფორმაციული ზოლი" class="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white text-xs font-semibold py-1.5 px-4 text-center tracking-wide">
+    🇩🇪 გერმანული A1 ქართველებისთვის • Schritte International Neu & Menschen აკადემიური პროგრამა
+  </aside>
+
+  <!-- Main Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Logo & Branding -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.DeutschApp.setTab('lessons')">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-2xl shadow-md shadow-blue-500/20">
+            🇩🇪
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Deutsch A1</span>
+              <button onclick="event.stopPropagation(); window.DeutschApp.openProModal()" class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 hover:scale-105 text-slate-950 rounded-md shadow-sm transition active:scale-95 flex items-center gap-1">
+                <span>💎 PRO</span>
+              </button>
+            </div>
+            <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">სრული სასწავლო სისტემა ქართულად</p>
+          </div>
+        </div>
+
+        <!-- Global Gamification Stats & Quick Controls -->
+        <div class="hidden lg:flex items-center gap-6">
+          <!-- Streak -->
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/60">
+            <span class="text-base">🔥</span>
+            <div>
+              <span class="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase block leading-none">სერია</span>
+              <span id="stat-streak" class="text-xs font-extrabold text-amber-900 dark:text-amber-200">1</span>
+            </div>
+          </div>
+
+          <!-- XP Points -->
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/60">
+            <span class="text-base">⭐</span>
+            <div>
+              <span class="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase block leading-none">XP ქულა</span>
+              <span id="stat-xp" class="text-xs font-extrabold text-blue-900 dark:text-blue-200">0</span>
+            </div>
+          </div>
+
+          <!-- A1 Overall Progress Bar -->
+          <div class="flex flex-col gap-1 w-32">
+            <div class="flex items-center justify-between text-[10px] font-bold text-slate-500">
+              <span>A1 პროგრესი</span>
+              <span id="stat-progress-text">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+              <div id="stat-progress-bar" class="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Audio Speed Selector -->
+          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700/60 p-1 rounded-xl text-xs font-bold">
+            <span class="text-[10px] text-slate-400 px-1.5">🔊</span>
+            <button onclick="window.DeutschApp.setSpeed(1.0)" data-speed="1" class="speed-btn px-2 py-1 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900">1x</button>
+            <button onclick="window.DeutschApp.setSpeed(0.85)" data-speed="0.85" class="speed-btn px-2 py-1 rounded-lg bg-blue-600 text-white shadow-sm">0.85x</button>
+            <button onclick="window.DeutschApp.setSpeed(0.7)" data-speed="0.7" class="speed-btn px-2 py-1 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900">0.7x</button>
+          </div>
+
+          <!-- Pro Modal Button -->
+          <button onclick="window.DeutschApp.openProModal()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-extrabold text-xs shadow-md shadow-amber-500/20 active:scale-95 transition">
+            <span>💎 PRO გამოწერა</span>
+          </button>
+
+          <!-- Dark Mode Toggle -->
+          <button onclick="window.DeutschApp.toggleTheme()" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="თემის შეცვლა">
+            🌓
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Navigation Tabs Bar -->
+      <nav class="flex space-x-1 overflow-x-auto pb-3 pt-1 scrollbar-none text-xs md:text-sm font-bold">
+        <button onclick="window.DeutschApp.setTab('lessons')" data-tab="lessons" class="nav-tab active px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+          <span>📚 გაკვეთილები</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('lexicon')" data-tab="lexicon" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>📖 ლექსიკონი</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('flashcards')" data-tab="flashcards" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>🗂️ ბარათები</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('article-trainer')" data-tab="article-trainer" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>🎯 der / die / das</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('sentence-builder')" data-tab="sentence-builder" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>🧩 Satzbau (სინტაქსი)</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('grammar')" data-tab="grammar" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>📊 გრამატიკის ცნობარი</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('exam')" data-tab="exam" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>🎓 A1 გამოცდა</span>
+        </button>
+        <button onclick="window.DeutschApp.setTab('profile')" data-tab="profile" class="nav-tab px-4 py-2.5 rounded-xl transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2 whitespace-nowrap">
+          <span>👤 პროფილი</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Viewport -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div id="main-content">
+      <!-- Injected dynamically by app.js -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-8 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
+      <div class="flex items-center justify-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+        <span>🇩🇪 Deutsch A1</span>
+        <span>•</span>
+        <span>სასწავლო სისტემა ქართულ ენაზე</span>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
+        დამზადებულია Schritte International Neu, Menschen და Netzwerk A1 საუნივერსიტეტო სტანდარტების მიხედვით.
+        მუშაობს ლოკალურად თქვენს კომპიუტერზე (localhost) აუდიო გაჟღერებითა და სრული ფუნქციონალით.
+      </p>
+      <p class="text-[11px] text-slate-400">
+        ლოკალური სერვერი: <code class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-blue-600 dark:text-blue-400">http://localhost:8000</code>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Modal Container for PRO Subscription & Popups -->
+  <div id="modal-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

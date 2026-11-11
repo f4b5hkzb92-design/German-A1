@@ -106,79 +106,115 @@
     recordedAudioUrl: null
   };
 
-  // --- Local Storage Management & State Persistence ---
+  // --- Local Calendar Date & Streak Calculations ---
+  function getLocalDateString(d = new Date()) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getCalendarDaysDiff(dateStr1, dateStr2) {
+    if (!dateStr1 || !dateStr2) return 0;
+    const [y1, m1, d1] = dateStr1.split('-').map(Number);
+    const [y2, m2, d2] = dateStr2.split('-').map(Number);
+    const utc1 = Date.UTC(y1, m1 - 1, d1);
+    const utc2 = Date.UTC(y2, m2 - 1, d2);
+    return Math.round((utc2 - utc1) / (1000 * 60 * 60 * 24));
+  }
+
+  function updateDailyStreak(data) {
+    const todayStr = getLocalDateString();
+    if (!data.lastActiveDate) {
+      data.lastActiveDate = todayStr;
+      data.streak = 1;
+      return;
+    }
+    if (data.lastActiveDate === todayStr) {
+      return; // Already recorded activity today
+    }
+    const diffDays = getCalendarDaysDiff(data.lastActiveDate, todayStr);
+    if (diffDays === 1) {
+      data.streak = (data.streak || 0) + 1;
+      data.lastActiveDate = todayStr;
+    } else if (diffDays > 1) {
+      data.streak = 1;
+      data.lastActiveDate = todayStr;
+    }
+  }
+
+  function getCleanDefaultUserData() {
+    return {
+      xp: 0,
+      streak: 1,
+      lastActiveDate: getLocalDateString(),
+      completedLessons: [],
+      lessonScores: {},
+      lessonSkillProgress: {}, // lessonId -> { grammarReviewed, vocabPracticed, mcScore, mcPassed, fibScore, fibPassed, lisScore, lisPassed }
+      masteredWords: [],
+      favoriteWords: [],
+      srsItems: {}, // wordId -> { interval, repetition, efactor, nextReviewDate }
+      mistakeWords: [],
+      claimedRewards: {}, // rewardKey -> timestamp
+      labScores: { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} },
+      examHistory: [], // [{ attempt, date, score, total, pct, passed }]
+      examPassed: false,
+      examScore: null,
+      examDate: null,
+      isPro: true,
+      subscriptionTier: 'pro_annual'
+    };
+  }
+
+  // --- Local Storage Management & State Persistence (Stage 8) ---
   const STORAGE_KEY = 'deutsch_a1_pro_v3';
+  const RESET_SENTINEL = 'deutsch_a1_reset_marker_v3';
 
   let userData = loadUserData();
 
   function loadUserData() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('deutsch_a1_pro_v2');
+      const wasReset = localStorage.getItem(RESET_SENTINEL);
+      let raw = localStorage.getItem(STORAGE_KEY);
+
+      // Only migrate legacy if user never explicitly clicked "Reset All Progress"
+      if (!raw && !wasReset) {
+        const v2 = localStorage.getItem('deutsch_a1_pro_v2') || localStorage.getItem('deutsch_a1_user_data_v1');
+        if (v2) {
+          raw = v2;
+          localStorage.removeItem('deutsch_a1_pro_v2');
+          localStorage.removeItem('deutsch_a1_user_data_v1');
+        }
+      }
+
       let data = raw ? JSON.parse(raw) : null;
       if (!data || typeof data !== 'object') {
-        data = {
-          xp: 0,
-          streak: 1,
-          lastActiveDate: new Date().toISOString().split('T')[0],
-          completedLessons: [],
-          lessonScores: {},
-          masteredWords: [],
-          favoriteWords: [],
-          srsItems: {}, // wordId -> { interval, repetition, efactor, nextReviewDate }
-          mistakeWords: [],
-          examPassed: false,
-          examScore: null,
-          examDate: null,
-          isPro: true,
-          subscriptionTier: 'pro_annual'
-        };
+        data = getCleanDefaultUserData();
       } else {
-        // Enforce schema integrity & defaults
-        data.xp = typeof data.xp === 'number' ? data.xp : 0;
-        data.streak = typeof data.streak === 'number' ? data.streak : 1;
-        data.completedLessons = Array.isArray(data.completedLessons) ? data.completedLessons : [];
+        // Enforce strict schema validation & defaults
+        data.xp = (typeof data.xp === 'number' && !isNaN(data.xp)) ? Math.max(0, data.xp) : 0;
+        data.streak = (typeof data.streak === 'number' && !isNaN(data.streak)) ? Math.max(1, data.streak) : 1;
+        data.completedLessons = Array.isArray(data.completedLessons) ? data.completedLessons.filter(n => typeof n === 'number') : [];
         data.lessonScores = (typeof data.lessonScores === 'object' && data.lessonScores !== null) ? data.lessonScores : {};
+        data.lessonSkillProgress = (typeof data.lessonSkillProgress === 'object' && data.lessonSkillProgress !== null) ? data.lessonSkillProgress : {};
         data.masteredWords = Array.isArray(data.masteredWords) ? data.masteredWords : [];
         data.favoriteWords = Array.isArray(data.favoriteWords) ? data.favoriteWords : [];
         data.srsItems = (typeof data.srsItems === 'object' && data.srsItems !== null) ? data.srsItems : {};
         data.mistakeWords = Array.isArray(data.mistakeWords) ? data.mistakeWords : [];
-        data.isPro = data.isPro !== undefined ? data.isPro : true;
+        data.claimedRewards = (typeof data.claimedRewards === 'object' && data.claimedRewards !== null) ? data.claimedRewards : {};
+        data.labScores = (typeof data.labScores === 'object' && data.labScores !== null) ? data.labScores : { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} };
+        data.examHistory = Array.isArray(data.examHistory) ? data.examHistory : [];
+        data.examPassed = Boolean(data.examPassed);
+        data.examScore = typeof data.examScore === 'number' ? data.examScore : null;
+        data.examDate = typeof data.examDate === 'string' ? data.examDate : null;
+        data.isPro = true;
 
-        // Timezone-aware streak verification
-        const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
-        if (!data.lastActiveDate) {
-          data.lastActiveDate = todayStr;
-          data.streak = 1;
-        } else if (data.lastActiveDate !== todayStr) {
-          const last = new Date(data.lastActiveDate);
-          const diffMs = now.getTime() - last.getTime();
-          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-          if (diffDays === 1) {
-            data.streak = (data.streak || 0) + 1;
-          } else if (diffDays > 1) {
-            data.streak = 1;
-          }
-          data.lastActiveDate = todayStr;
-        }
+        updateDailyStreak(data);
       }
       return data;
     } catch (e) {
-      console.error('Failed to load user data:', e);
-      return {
-        xp: 0,
-        streak: 1,
-        lastActiveDate: new Date().toISOString().split('T')[0],
-        completedLessons: [],
-        lessonScores: {},
-        masteredWords: [],
-        favoriteWords: [],
-        srsItems: {},
-        mistakeWords: [],
-        examPassed: false,
-        examScore: null,
-        isPro: true
-      };
+      console.error('Failed to load user data, restoring safe defaults:', e);
+      return getCleanDefaultUserData();
     }
   }
 
@@ -191,6 +227,28 @@
     }
   }
 
+  // --- Idempotent Reward Management (Fixes Priority 0 Defect 1: XP Exploits) ---
+  function grantRewardXP(rewardKey, amount, successMessage) {
+    userData.claimedRewards = userData.claimedRewards || {};
+
+    if (userData.claimedRewards[rewardKey]) {
+      // Reward already claimed: do not grant duplicate XP
+      if (successMessage) {
+        showToast(successMessage + ' (XP უკვე მიღებულია)');
+      }
+      saveUserData();
+      return false;
+    }
+
+    userData.claimedRewards[rewardKey] = new Date().toISOString();
+    userData.xp = (userData.xp || 0) + amount;
+    saveUserData();
+    playChime('success');
+    showToast((successMessage ? successMessage + ' ' : '') + `+${amount} XP! ⭐`);
+    updateHeaderStats();
+    return true;
+  }
+
   function addXP(amount) {
     userData.xp = (userData.xp || 0) + amount;
     saveUserData();
@@ -198,22 +256,67 @@
     showToast(`+${amount} XP! ⭐`);
   }
 
-  // --- Formal Mastery & Lesson Completion Engine (Fixes LOG-01) ---
-  function recordLessonProgress(lessonId, scorePct, passed) {
+  // --- Multi-Skill Lesson Mastery Tracker (Fixes Priority 0 Defect 3) ---
+  function recordSkillProgress(lessonId, skillKey, scorePct, passed) {
+    userData.lessonSkillProgress = userData.lessonSkillProgress || {};
     userData.lessonScores = userData.lessonScores || {};
-    userData.completedLessons = userData.completedLessons || [];
+    
+    let p = userData.lessonSkillProgress[lessonId] || {
+      grammarReviewed: false,
+      vocabPracticed: false,
+      mcScore: 0,
+      mcPassed: false,
+      fibScore: 0,
+      fibPassed: false,
+      lisScore: 0,
+      lisPassed: false
+    };
 
-    const previousScore = userData.lessonScores[lessonId] || 0;
-    if (scorePct > previousScore) {
-      userData.lessonScores[lessonId] = scorePct;
+    if (skillKey === 'grammar') {
+      p.grammarReviewed = true;
+    } else if (skillKey === 'vocab') {
+      p.vocabPracticed = true;
+    } else if (skillKey === 'mc') {
+      p.mcScore = Math.max(p.mcScore || 0, scorePct);
+      if (passed) p.mcPassed = true;
+    } else if (skillKey === 'fib') {
+      p.fibScore = Math.max(p.fibScore || 0, scorePct);
+      if (passed) p.fibPassed = true;
+    } else if (skillKey === 'lis') {
+      p.lisScore = Math.max(p.lisScore || 0, scorePct);
+      if (passed) p.lisPassed = true;
     }
 
-    if (passed && !userData.completedLessons.includes(lessonId)) {
+    userData.lessonSkillProgress[lessonId] = p;
+
+    // Overall composite lesson score (average of passed skills)
+    const testedSkills = [p.mcScore, p.fibScore, p.lisScore].filter(s => s > 0);
+    const avgScore = testedSkills.length ? Math.round(testedSkills.reduce((a, b) => a + b, 0) / testedSkills.length) : 0;
+    if (avgScore > (userData.lessonScores[lessonId] || 0)) {
+      userData.lessonScores[lessonId] = avgScore;
+    }
+
+    checkAndAwardLessonMastery(lessonId);
+  }
+
+  function checkAndAwardLessonMastery(lessonId) {
+    userData.completedLessons = userData.completedLessons || [];
+    const p = (userData.lessonSkillProgress && userData.lessonSkillProgress[lessonId]) || {};
+    
+    // Strict pedagogical criteria: Grammar reviewed, Vocab trained, and MC, FIB, Listening passed (>= 70%)
+    const isMastered = Boolean(
+      p.grammarReviewed &&
+      p.vocabPracticed &&
+      p.mcPassed &&
+      p.fibPassed &&
+      p.lisPassed
+    );
+
+    if (isMastered && !userData.completedLessons.includes(lessonId)) {
       userData.completedLessons.push(lessonId);
       userData.completedLessons.sort((a, b) => a - b);
-      addXP(50);
+      grantRewardXP('lesson_mastery_' + lessonId, 50, `გილოცავთ! გაკვეთილი ${lessonId} სრულად ათვისებულია (5-ვე უნარი)! 🎓`);
       playChime('fanfare');
-      showToast(`გილოცავთ! გაკვეთილი ${lessonId} წარმატებით ჩაითვალა (+50 XP)! 🎓`);
     } else {
       saveUserData();
     }
@@ -222,13 +325,12 @@
 
   // --- SM-2 Spaced Repetition Algorithm (SuperMemo-2) ---
   function updateSM2Item(wordId, quality) {
-    // quality: 0 (blackout) to 5 (perfect response)
     userData.srsItems = userData.srsItems || {};
     let item = userData.srsItems[wordId] || {
       interval: 1,
       repetition: 0,
       efactor: 2.5,
-      nextReviewDate: new Date().toISOString().split('T')[0]
+      nextReviewDate: getLocalDateString()
     };
 
     if (quality >= 3) {
@@ -240,26 +342,28 @@
         item.interval = Math.round(item.interval * item.efactor);
       }
       item.repetition += 1;
-      // Remove from mistakes if present
-      userData.mistakeWords = (userData.mistakeWords || []).filter(id => id !== wordId);
+      // Remove from mistakes if successfully remembered
+      if (userData.mistakeWords) {
+        userData.mistakeWords = userData.mistakeWords.filter(id => id !== wordId);
+      }
     } else {
       item.repetition = 0;
       item.interval = 1;
       // Add to mistakes queue
-      if (!(userData.mistakeWords || []).includes(wordId)) {
-        userData.mistakeWords = userData.mistakeWords || [];
+      userData.mistakeWords = userData.mistakeWords || [];
+      if (!userData.mistakeWords.includes(wordId)) {
         userData.mistakeWords.push(wordId);
       }
     }
 
-    // Update E-Factor: EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
+    // Calculate next ease factor
     item.efactor = item.efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (item.efactor < 1.3) item.efactor = 1.3;
 
-    // Calculate next review wall date
+    // Calculate next local review date
     const nextDate = new Date();
     nextDate.setDate(nextDate.getDate() + item.interval);
-    item.nextReviewDate = nextDate.toISOString().split('T')[0];
+    item.nextReviewDate = getLocalDateString(nextDate);
 
     userData.srsItems[wordId] = item;
     saveUserData();
@@ -933,6 +1037,10 @@
       activeBtn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
     }
 
+    if (tab === 'grammar' && state.selectedLessonId) {
+      recordSkillProgress(state.selectedLessonId, 'grammar', 100, true);
+    }
+
     ['grammar', 'dialogues', 'culture', 'vocab', 'exercises'].forEach(t => {
       const panel = document.getElementById(`lesson-panel-${t}`);
       if (panel) {
@@ -1093,10 +1201,12 @@
       const total = list.length;
       const score = state.mcScore;
       const pct = Math.round((score / total) * 100);
-      const passed = pct >= 60;
+      const passed = pct >= 70;
 
-      // Persist Lesson Progress (Fixed LOG-01)
-      recordLessonProgress(lesson.id, pct, passed);
+      // Track MC Skill Progress (Strict Pedagogical Criteria: >= 70%)
+      recordSkillProgress(lesson.id, 'mc', pct, passed);
+      const skillStatus = (userData.lessonSkillProgress && userData.lessonSkillProgress[lesson.id]) || {};
+      const lessonMastered = (userData.completedLessons || []).includes(lesson.id);
 
       container.innerHTML = `
         <div class="p-8 text-center space-y-6 animate-fadeIn bg-slate-50 dark:bg-slate-700/20 rounded-2xl border border-slate-200 dark:border-slate-700">
@@ -1109,9 +1219,27 @@
           </div>
           <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto">
             ${passed
-              ? 'შესანიშნავი შედეგია! თქვენ საფუძვლიანად აითვისეთ ამ გაკვეთილის გრამატიკული და ლექსიკური წესები.'
-              : 'სასურველია გადახედოთ გაკვეთილის გრამატიკის ნაწილს და სცადოთ ტესტი ხელახლა.'}
+              ? 'შესანიშნავი შედეგია! ტესტის ნაწილი ჩათვლილია (მინ. 70%).'
+              : 'სასურველია გადახედოთ გაკვეთილის გრამატიკის ნაწილს და სცადოთ ტესტი ხელახლა (გამსვლელია 70%).'}
           </p>
+
+          <!-- 5-Skill Lesson Mastery Checklist -->
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-left text-xs space-y-2 max-w-lg mx-auto">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
+              <span>გაკვეთილის 5-უნარის სტატუსი:</span>
+              <span class="${lessonMastered ? 'text-emerald-600 font-black' : 'text-slate-500'}">
+                ${lessonMastered ? '✓ გაკვეთილი სრულად ათვისებულია (+50 XP)' : 'საჭიროა 5-ვე უნარის ჩაბარება'}
+              </span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
+              <div class="p-1.5 rounded-lg ${skillStatus.grammarReviewed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">თეორია ${skillStatus.grammarReviewed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.vocabPracticed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ლექსიკა ${skillStatus.vocabPracticed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.mcPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ტესტი (${skillStatus.mcScore || 0}%) ${skillStatus.mcPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.fibPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">შევსება (${skillStatus.fibScore || 0}%) ${skillStatus.fibPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.lisPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">აუდიო (${skillStatus.lisScore || 0}%) ${skillStatus.lisPassed ? '✓' : '⏳'}</div>
+            </div>
+          </div>
+
           <div class="flex flex-wrap justify-center gap-3 pt-2">
             <button onclick="window.DeutschApp.restartMC(${lesson.id})" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 font-extrabold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
               🔄 თავიდან გავლა
@@ -1211,17 +1339,39 @@
       const total = list.length;
       const score = state.fibScore;
       const pct = Math.round((score / total) * 100);
-      const passed = pct >= 60;
+      const passed = pct >= 70;
 
-      // Persist Lesson Progress (Fixed LOG-01)
-      recordLessonProgress(lesson.id, pct, passed);
+      // Track FIB Skill Progress (Strict Pedagogical Criteria: >= 70%)
+      recordSkillProgress(lesson.id, 'fib', pct, passed);
+      const skillStatus = (userData.lessonSkillProgress && userData.lessonSkillProgress[lesson.id]) || {};
+      const lessonMastered = (userData.completedLessons || []).includes(lesson.id);
 
       container.innerHTML = `
         <div class="p-8 text-center space-y-6 animate-fadeIn bg-slate-50 dark:bg-slate-700/20 rounded-2xl border border-slate-200 dark:border-slate-700">
           <div class="text-6xl">✍️</div>
           <h3 class="text-2xl font-black text-slate-900 dark:text-white">Lückentext სავარჯიშო დასრულდა!</h3>
-          <div class="text-4xl font-black text-emerald-600">${score} / ${total} სწორი (${pct}%)</div>
-          <p class="text-xs text-slate-600 dark:text-slate-400">თქვენ წარმატებით გაიარეთ გამოტოვებული სიტყვების წერის ტრენერი.</p>
+          <div class="text-4xl font-black ${passed ? 'text-emerald-600' : 'text-amber-600'}">${score} / ${total} სწორი (${pct}%)</div>
+          <p class="text-xs text-slate-600 dark:text-slate-400">
+            ${passed ? 'შესანიშნავია! ტექსტის შევსების ნაწილი ჩათვლილია (მინ. 70%).' : 'გამსვლელი ზღვარია 70%. სცადეთ თავიდან.'}
+          </p>
+
+          <!-- 5-Skill Lesson Mastery Checklist -->
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-left text-xs space-y-2 max-w-lg mx-auto">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
+              <span>გაკვეთილის 5-უნარის სტატუსი:</span>
+              <span class="${lessonMastered ? 'text-emerald-600 font-black' : 'text-slate-500'}">
+                ${lessonMastered ? '✓ გაკვეთილი სრულად ათვისებულია (+50 XP)' : 'საჭიროა 5-ვე უნარის ჩაბარება'}
+              </span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
+              <div class="p-1.5 rounded-lg ${skillStatus.grammarReviewed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">თეორია ${skillStatus.grammarReviewed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.vocabPracticed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ლექსიკა ${skillStatus.vocabPracticed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.mcPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ტესტი (${skillStatus.mcScore || 0}%) ${skillStatus.mcPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.fibPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">შევსება (${skillStatus.fibScore || 0}%) ${skillStatus.fibPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.lisPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">აუდიო (${skillStatus.lisScore || 0}%) ${skillStatus.lisPassed ? '✓' : '⏳'}</div>
+            </div>
+          </div>
+
           <div class="flex flex-wrap justify-center gap-3 pt-2">
             <button onclick="window.DeutschApp.restartFIB(${lesson.id})" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 font-extrabold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
               🔄 თავიდან გავლა
@@ -1319,17 +1469,39 @@
       const total = list.length;
       const score = state.lisScore;
       const pct = Math.round((score / total) * 100);
-      const passed = pct >= 60;
+      const passed = pct >= 70;
 
-      // Persist Lesson Progress (Fixed LOG-01)
-      recordLessonProgress(lesson.id, pct, passed);
+      // Track Listening Skill Progress (Strict Pedagogical Criteria: >= 70%)
+      recordSkillProgress(lesson.id, 'lis', pct, passed);
+      const skillStatus = (userData.lessonSkillProgress && userData.lessonSkillProgress[lesson.id]) || {};
+      const lessonMastered = (userData.completedLessons || []).includes(lesson.id);
 
       container.innerHTML = `
         <div class="p-8 text-center space-y-6 animate-fadeIn bg-slate-50 dark:bg-slate-700/20 rounded-2xl border border-slate-200 dark:border-slate-700">
           <div class="text-6xl">🎧</div>
           <h3 class="text-2xl font-black text-slate-900 dark:text-white">მოსმენის გაგების ტესტი დასრულდა!</h3>
-          <div class="text-4xl font-black text-emerald-600">${score} / ${total} სწორი (${pct}%)</div>
-          <p class="text-xs text-slate-600 dark:text-slate-400">თქვენ წარმატებით შეამოწმეთ გერმანული საუბრის აღქმის უნარი.</p>
+          <div class="text-4xl font-black ${passed ? 'text-emerald-600' : 'text-amber-600'}">${score} / ${total} სწორი (${pct}%)</div>
+          <p class="text-xs text-slate-600 dark:text-slate-400">
+            ${passed ? 'შესანიშნავია! მოსმენის გაგების ნაწილი ჩათვლილია (მინ. 70%).' : 'გამსვლელი ზღვარია 70%. მოუსმინეთ აუდიოებს კიდევ ერთხელ და სცადეთ თავიდან.'}
+          </p>
+
+          <!-- 5-Skill Lesson Mastery Checklist -->
+          <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-left text-xs space-y-2 max-w-lg mx-auto">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200">
+              <span>გაკვეთილის 5-უნარის სტატუსი:</span>
+              <span class="${lessonMastered ? 'text-emerald-600 font-black' : 'text-slate-500'}">
+                ${lessonMastered ? '✓ გაკვეთილი სრულად ათვისებულია (+50 XP)' : 'საჭიროა 5-ვე უნარის ჩაბარება'}
+              </span>
+            </div>
+            <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
+              <div class="p-1.5 rounded-lg ${skillStatus.grammarReviewed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">თეორია ${skillStatus.grammarReviewed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.vocabPracticed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ლექსიკა ${skillStatus.vocabPracticed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.mcPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">ტესტი (${skillStatus.mcScore || 0}%) ${skillStatus.mcPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.fibPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">შევსება (${skillStatus.fibScore || 0}%) ${skillStatus.fibPassed ? '✓' : '⏳'}</div>
+              <div class="p-1.5 rounded-lg ${skillStatus.lisPassed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-500'}">აუდიო (${skillStatus.lisScore || 0}%) ${skillStatus.lisPassed ? '✓' : '⏳'}</div>
+            </div>
+          </div>
+
           <div class="flex justify-center pt-2">
             <button onclick="window.DeutschApp.restartListening(${lesson.id})" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 font-extrabold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
               🔄 თავიდან გავლა
@@ -2146,6 +2318,10 @@ ${escapeHtml(item.text_de)}
         </div>
 
         <!-- Rubric Checklist & Model Solution -->
+        <div class="p-3 bg-blue-50/70 dark:bg-slate-700/40 rounded-xl text-xs text-blue-900 dark:text-blue-200 font-medium">
+          ℹ️ <strong>პედაგოგიური შენიშვნა:</strong> წერითი მეილი ემსახურება თვითშეფასებას. დაწერეთ ტექსტი და შეადარეთ ეტალონურ ნიმუშს. პლატფორმა არ იყენებს ყალბ ავტომატურ შეფასებებს.
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-700/30 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
             <span class="font-bold text-slate-700 dark:text-slate-200 block">📋 შეფასების კრიტერიუმები (Rubric):</span>
@@ -2156,17 +2332,33 @@ ${escapeHtml(item.text_de)}
 
           <div class="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 text-xs space-y-2">
             <span class="font-bold text-amber-900 dark:text-amber-200 block">💡 ეტალონური ნიმუში (Musterlösung):</span>
-            <p class="text-amber-900 dark:text-amber-300 font-mono whitespace-pre-line text-[11px]">${escapeHtml(item.model_solution)}</p>
+            ${state.labSchreibenFormSubmitted ? `
+              <p class="text-amber-900 dark:text-amber-300 font-mono whitespace-pre-line text-[11px] animate-fadeIn">${escapeHtml(item.model_solution)}</p>
+            ` : `
+              <p class="text-slate-400 italic text-[11px]">ეტალონური ნიმუში გაიხსნება თქვენი წერილის ჩაბარების (მინ. ${item.min_words || 15} სიტყვა) შემდეგ.</p>
+            `}
           </div>
         </div>
       `;
     }
 
     html += `
-        <div class="flex justify-end pt-2">
-          <button onclick="window.DeutschApp.nextLabSchreiben(${tasks.length})" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
-            შემდეგი წერითი დავალება →
+        <div class="flex justify-between items-center pt-2">
+          <button onclick="window.DeutschApp.nextLabSchreiben(${tasks.length})" class="text-xs font-bold text-slate-500 hover:text-slate-700">
+            სხვა დავალებაზე გადასვლა →
           </button>
+
+          ${item.type !== 'form' ? `
+            ${!state.labSchreibenFormSubmitted ? `
+              <button onclick="window.DeutschApp.submitSchreibenLetter()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition">
+                ჩაბარება & ნიმუშის ნახვა (+15 XP) ✓
+              </button>
+            ` : `
+              <button onclick="window.DeutschApp.nextLabSchreiben(${tasks.length})" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition">
+                შემდეგი წერითი დავალება →
+              </button>
+            `}
+          ` : ''}
         </div>
       </div>
     `;
@@ -2187,6 +2379,10 @@ ${escapeHtml(item.text_de)}
 
         <h3 class="text-xl font-black text-slate-900 dark:text-white">${escapeHtml(item.title)}</h3>
         <p class="text-xs text-slate-500">${escapeHtml(item.instructions_ka)}</p>
+
+        <div class="p-3 bg-purple-50/70 dark:bg-slate-700/40 rounded-xl text-xs text-purple-900 dark:text-purple-200 font-medium">
+          ℹ️ <strong>პედაგოგიური შენიშვნა:</strong> მიკროფონის ჩანაწერი განკუთვნილია თვითშეფასებისთვის — მოუსმინეთ საკუთარ ხმას და შეადარეთ გერმანულ მოდელს. Deutsch A1 Pro არ იგონებს ცრუ AI ქულებს.
+        </div>
 
         <!-- Recording & Playback Studio Card -->
         <div class="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white text-center space-y-4 shadow-xl">
@@ -2575,6 +2771,28 @@ ${escapeHtml(item.text_de)}
             </div>
           </div>
         ` : ''}
+
+        <!-- Examination Attempt History -->
+        ${(userData.examHistory && userData.examHistory.length) ? `
+          <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <span>📊 საგამოცდო მცდელობების ისტორია:</span>
+            </h3>
+            <div class="divide-y divide-slate-100 dark:divide-slate-700 text-xs">
+              ${userData.examHistory.slice().reverse().map(h => `
+                <div class="py-2.5 flex items-center justify-between">
+                  <span class="font-extrabold text-slate-700 dark:text-slate-200">მცდელობა #${h.attempt} • ${h.localDate || (h.date ? h.date.split('T')[0] : '')}</span>
+                  <div class="flex items-center gap-3">
+                    <span class="font-black text-slate-900 dark:text-white">${h.score} / ${h.total || 25} (${h.pct}%)</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black ${h.passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'}">
+                      ${h.passed ? 'ჩაბარებულია' : 'ვერ ჩაბარდა'}
+                    </span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
 
@@ -2788,8 +3006,13 @@ ${escapeHtml(item.text_de)}
 
   // --- Public Interface for inline HTML events ---
   window.DeutschApp = {
+    state,
     setTab,
     speak: speakGerman,
+    recordSkillProgress,
+    getLocalDateString,
+    getCalendarDaysDiff,
+    loadUserData,
     speakSlow: function (text, btn) {
       const orig = state.speechRate;
       state.speechRate = 0.7;
@@ -2805,6 +3028,7 @@ ${escapeHtml(item.text_de)}
     // Lessons
     openLesson: function (id) {
       state.selectedLessonId = id;
+      recordSkillProgress(id, 'grammar', 100, true);
       setTab('lesson-detail');
     },
     switchLessonSubtab,
@@ -2812,6 +3036,7 @@ ${escapeHtml(item.text_de)}
     trainLessonFlashcards: function (lessonId) {
       state.flashcardMode = 'normal';
       state.flashcardLessonFilter = String(lessonId);
+      recordSkillProgress(Number(lessonId), 'vocab', 100, true);
       setTab('flashcards');
     },
     trainMistakesFlashcards: function () {
@@ -2877,7 +3102,7 @@ ${escapeHtml(item.text_de)}
       if (state.mcSelectedAnswer === q.answer) {
         state.mcScore += 1;
         playChime('success');
-        addXP(10);
+        grantRewardXP('mc_' + lessonId + '_' + (q.id || state.mcIndex), 10);
       } else {
         playChime('wrong');
       }
@@ -2922,7 +3147,7 @@ ${escapeHtml(item.text_de)}
       if (state.fibIsCorrect) {
         state.fibScore += 1;
         playChime('success');
-        addXP(10);
+        grantRewardXP('fib_' + lessonId + '_' + (item.id || state.fibIndex), 10);
       } else {
         playChime('wrong');
       }
@@ -2969,7 +3194,7 @@ ${escapeHtml(item.text_de)}
       if (state.lisSelectedAnswer === item.answer) {
         state.lisScore += 1;
         playChime('success');
-        addXP(10);
+        grantRewardXP('lis_' + lessonId + '_' + (item.id || state.lisIndex), 10);
       } else {
         playChime('wrong');
       }
@@ -3047,7 +3272,7 @@ ${escapeHtml(item.text_de)}
         userData.masteredWords = userData.masteredWords || [];
         if (!userData.masteredWords.includes(current.id)) {
           userData.masteredWords.push(current.id);
-          addXP(5);
+          grantRewardXP('mastered_word_' + current.id, 5);
         }
       }
       updateSM2Item(current.id, quality);
@@ -3066,7 +3291,7 @@ ${escapeHtml(item.text_de)}
         state.trainerScore += 1;
         state.trainerStreak += 1;
         playChime('success');
-        addXP(5);
+        grantRewardXP('art_guess_' + word.word, 5);
 
         speakGerman(`${word.article} ${word.word}`);
 
@@ -3120,9 +3345,8 @@ ${escapeHtml(item.text_de)}
 
       if (state.sbIsCorrect) {
         playChime('success');
-        addXP(15);
+        grantRewardXP('sb_' + (challenge.id || state.sbIndex), 15, 'წინადადება სრულიად სწორია!');
         speakGerman(userStr);
-        showToast('წინადადება სრულიად სწორია! 🎉');
       } else {
         playChime('wrong');
         showToast('სცადეთ თავიდან!');
@@ -3153,7 +3377,7 @@ ${escapeHtml(item.text_de)}
       if (state.labHoerenSelectedAnswer === item.answer) {
         state.labHoerenScore += 1;
         playChime('success');
-        addXP(15);
+        grantRewardXP('lab_hoeren_' + item.id, 15, 'მოსმენის გაგება: სწორია!');
       } else {
         playChime('wrong');
       }
@@ -3171,9 +3395,48 @@ ${escapeHtml(item.text_de)}
       renderLanguageLabs(document.getElementById('main-content'));
     },
     submitLabLesen: function () {
+      const tasks = (window.GERMAN_A1_DATA.language_labs || {}).lesen || [];
+      const item = tasks[state.labLesenIndex % tasks.length];
+      if (!item) return;
+
+      const totalQuestions = item.questions.length;
+      const answeredCount = Object.keys(state.labLesenAnswers).length;
+
+      if (answeredCount < totalQuestions) {
+        showToast(`გთხოვთ უპასუხოთ ყველა (${totalQuestions}) კითხვას შემოწმებამდე. დარჩენილია ${totalQuestions - answeredCount}.`);
+        return;
+      }
+
       state.labLesenSubmitted = true;
-      playChime('success');
-      addXP(15);
+      let correctCount = 0;
+      item.questions.forEach((q, idx) => {
+        if (state.labLesenAnswers[idx] === q.answer) {
+          correctCount += 1;
+        }
+      });
+
+      const pct = Math.round((correctCount / totalQuestions) * 100);
+      const passed = (pct >= 66);
+
+      userData.labScores = userData.labScores || {};
+      userData.labScores.lesen = userData.labScores.lesen || {};
+      userData.labScores.lesen[item.id] = {
+        score: correctCount,
+        total: totalQuestions,
+        pct: pct,
+        passed: passed,
+        date: getLocalDateString()
+      };
+
+      if (passed) {
+        playChime('success');
+        grantRewardXP('lab_lesen_' + item.id, 15, `წაკითხულის გაგება: ${correctCount}/${totalQuestions} სწორია (${pct}%)!`);
+      } else {
+        playChime('wrong');
+        showToast(`შედეგი: ${correctCount}/${totalQuestions} სწორია (${pct}%). გადახედეთ განმარტებებს და სცადეთ თავიდან.`);
+        saveUserData();
+      }
+
       renderLanguageLabs(document.getElementById('main-content'));
     },
     nextLabLesen: function (total) {
@@ -3186,9 +3449,52 @@ ${escapeHtml(item.text_de)}
       state.labSchreibenFormInputs[fieldId] = val;
     },
     submitSchreibenForm: function () {
+      const tasks = (window.GERMAN_A1_DATA.language_labs || {}).schreiben || [];
+      const item = tasks[state.labSchreibenTaskIndex % tasks.length];
+      if (!item || item.type !== 'form') return;
+
+      const requiredFields = (item.fields || []).filter(f => f.required !== false);
+      const missingFields = requiredFields.filter(f => !state.labSchreibenFormInputs[f.id] || !state.labSchreibenFormInputs[f.id].trim());
+
+      if (missingFields.length > 0) {
+        showToast(`გთხოვთ შეავსოთ ყველა სავალდებულო ველი ფორმაში (დარჩენილია ${missingFields.length})`);
+        return;
+      }
+
       state.labSchreibenFormSubmitted = true;
-      addXP(15);
-      playChime('success');
+      userData.labScores = userData.labScores || {};
+      userData.labScores.schreiben = userData.labScores.schreiben || {};
+      userData.labScores.schreiben[item.id] = {
+        completed: true,
+        date: getLocalDateString()
+      };
+
+      grantRewardXP('lab_schreiben_' + item.id, 15, 'სასტუმროს სარეგისტრაციო ბარათი წარმატებით ჩაბარდა!');
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    submitSchreibenLetter: function () {
+      const tasks = (window.GERMAN_A1_DATA.language_labs || {}).schreiben || [];
+      const item = tasks[state.labSchreibenTaskIndex % tasks.length];
+      if (!item) return;
+
+      const minWords = item.min_words || 15;
+      const wordsCount = (state.labSchreibenText.trim().match(/\S+/g) || []).length;
+
+      if (wordsCount < minWords) {
+        showToast(`გთხოვთ დაწეროთ მინიმუმ ${minWords} სიტყვა სანიმუშო პასუხის ნახვამდე (ამჟამად: ${wordsCount})`);
+        return;
+      }
+
+      state.labSchreibenFormSubmitted = true;
+      userData.labScores = userData.labScores || {};
+      userData.labScores.schreiben = userData.labScores.schreiben || {};
+      userData.labScores.schreiben[item.id] = {
+        wordsCount: wordsCount,
+        completed: true,
+        date: getLocalDateString()
+      };
+
+      grantRewardXP('lab_schreiben_' + item.id, 15, 'წერილი წარმატებით გაიგზავნა!');
       renderLanguageLabs(document.getElementById('main-content'));
     },
     onSchreibenTextInput: function (val) {
@@ -3246,7 +3552,7 @@ ${escapeHtml(item.text_de)}
           state.recordedAudioUrl = URL.createObjectURL(blob);
           renderLanguageLabs(document.getElementById('main-content'));
           playChime('success');
-          showToast('ჩანაწერი შენახულია! შეგიძლიათ მოუსმინოთ 🎧');
+          grantRewardXP('lab_sprechen_rec', 10, 'ჩანაწერი შენახულია! შეგიძლიათ მოუსმინოთ 🎧');
         };
         state.mediaRecorder.start();
         state.isRecording = true;
@@ -3270,32 +3576,54 @@ ${escapeHtml(item.text_de)}
       renderLanguageLabs(document.getElementById('main-content'));
     },
 
-    // Exam Handlers (Fixed LOG-02)
+    // Exam Handlers (Fixed Defect 8.5)
     onExamAnswer: function (qId, ansIdx) {
       state.examUserAnswers[qId] = ansIdx;
     },
     submitExam: function () {
       const questions = window.GERMAN_A1_DATA.final_exam_questions || [];
+      const total = questions.length;
+      const answeredCount = Object.keys(state.examUserAnswers).length;
+
+      if (answeredCount < total) {
+        showToast(`გთხოვთ უპასუხოთ ყველა (${total}) კითხვას გამოცდის დასრულებამდე. დარჩენილია ${total - answeredCount}.`);
+        return;
+      }
+
       let score = 0;
       questions.forEach(q => {
         if (state.examUserAnswers[q.id] === q.answer) {
           score += 1;
         }
       });
+
+      const pct = Math.round((score / total) * 100);
+      const passed = (pct >= 60);
+
       state.examScore = score;
       state.examSubmitted = true;
-      const pct = Math.round((score / questions.length) * 100);
 
-      // Persist Exam Results to userData (Fixed LOG-02)
+      userData.examHistory = userData.examHistory || [];
+      const attemptRecord = {
+        attempt: userData.examHistory.length + 1,
+        date: new Date().toISOString(),
+        localDate: getLocalDateString(),
+        score: score,
+        total: total,
+        pct: pct,
+        passed: passed
+      };
+      userData.examHistory.push(attemptRecord);
       userData.examScore = score;
-      userData.examPassed = (pct >= 60);
-      userData.examDate = new Date().toISOString();
+      userData.examPassed = passed;
+      userData.examDate = attemptRecord.date;
 
-      if (pct >= 60) {
+      if (passed) {
         playChime('fanfare');
-        addXP(100);
+        grantRewardXP('exam_first_passing_score', 100, `სადიაგნოსტიკო გამოცდა წარმატებით ჩაბარდა (${score}/${total}, ${pct}%)!`);
       } else {
         playChime('wrong');
+        showToast(`გამოცდა არ ჩაითვალა: ${score}/${total} (${pct}%). მინიმალური ზღვარია 60%.`);
         saveUserData();
       }
 
@@ -3309,24 +3637,18 @@ ${escapeHtml(item.text_de)}
       renderExam(document.getElementById('main-content'));
     },
 
-    // Profile & Reset
+    // Profile & Reset (Fixed Defect 8.6)
     resetAllProgress: function () {
-      if (confirm('ნამდვილად გსურთ მთლიანი პროგრესის წაშლა?')) {
+      if (confirm('ნამდვილად გსურთ მთლიანი პროგრესის წაშლა? ეს ქმედება შეუქცევადია.')) {
         localStorage.removeItem(STORAGE_KEY);
-        userData = {
-          xp: 0,
-          streak: 1,
-          completedLessons: [],
-          lessonScores: {},
-          masteredWords: [],
-          favoriteWords: [],
-          srsItems: {},
-          mistakeWords: [],
-          isPro: true
-        };
+        localStorage.removeItem('deutsch_a1_pro_v2');
+        localStorage.removeItem('deutsch_a1_user_data_v1');
+        localStorage.setItem(RESET_SENTINEL, 'true');
+
+        userData = getCleanDefaultUserData();
         saveUserData();
         setTab('profile');
-        showToast('პროგრესი გასუფთავდა.');
+        showToast('მთლიანი პროგრესი და ისტორია გასუფთავდა.');
       }
     },
 

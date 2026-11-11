@@ -6,36 +6,38 @@
   <title>Deutsch A1 • გერმანული ენის სრული სასწავლო პლატფორმა</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
   
-  <!-- Tailwind CSS CDN -->
+  <!-- Offline-First Local Stylesheet (Zero Network Dependency) -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Progressive Enhancement: Tailwind CSS CDN (Optional when online) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a',
+    if (typeof tailwind !== 'undefined') {
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              }
             }
           }
         }
-      }
+      };
     }
   </script>
 
-  <!-- Google Fonts: Fira GO & Inter -->
+  <!-- Google Fonts: Fira GO & Inter (Optional when online; system font fallback active) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+GO:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased">
 
@@ -172,6 +174,11 @@
       <p class="text-[11px] text-slate-400">
         ლოკალური სერვერი: <code class="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-blue-600 dark:text-blue-400">http://localhost:8000</code>
       </p>
+      <div class="pt-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200 dark:border-emerald-800">
+          <span>🟢</span> <span>100% ლოკალური და ოფლაინ-მზადყოფნა • ავტონომიური CSS & Web Audio</span>
+        </span>
+      </div>
     </div>
   </footer>
 

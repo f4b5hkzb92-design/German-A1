@@ -14878,37 +14878,37 @@ window.GERMAN_A1_DATA = {
         "audio_text": "Liebe Kundinnen und Kunden! Heute frisch eingetroffen: Bio-Äpfel aus der Region, das Kilo für nur ein Euro neunundneunzig. Greifen Sie zu!",
         "question": "რა პროდუქტია დღეს განსაკუთრებულ ფასად და რა ღირს?",
         "options": [
-          "ბიო-ვაშლი — 1,99 € / კილოგრამი",
-          "ახალი ბანანი — 0,99 € / კილოგრამი",
-          "გერმანული ყველი — 3,50 € / ცალი",
-          "ახალი პური — 2,50 € / ცალი"
+          "რეგიონალური ბიო-ვაშლი — 1,99 ევრო კილოგრამი",
+          "ბანანი — 2,50 ევრო კილოგრამი",
+          "ფორთოხალი — 0,99 ევრო კილოგრამი",
+          "გერმანული ყველი — 3,99 ევრო"
         ],
         "answer": 0,
-        "transcript_ka": "ძვირფასო მომხმარებლებო! დღეს ახალი მიღებულია: რეგიონული ბიო-ვაშლი, კილოგრამი მხოლოდ ერთ ევროდ და ოთხმოცდაცხრამეტ ცენტად. ისარგებლეთ შეთავაზებით!"
+        "transcript_ka": "ძვირფასო მომხმარებლებო! დღეს ახალი მიღებულია: ბიო-ვაშლი ჩვენი რეგიონიდან, კილოგრამი მხოლოდ ერთ ევროდ და ოთხმოცდაცხრამეტ ცენტად. ისარგებლეთ შეთავაზებით!"
       },
       {
         "id": "h_lab_4",
-        "title": "სასტუმროს ადმინისტრატორი (Hotel-Rezeption)",
-        "category": "სასტუმრო და მოგზაურობა",
-        "audio_text": "Guten Abend! Ihr Zimmer ist die Nummer 304 im dritten Stock. Der Aufzug ist links. Das Frühstücksbüfett steht ab sieben Uhr im Erdgeschoss für Sie bereit.",
-        "question": "სად მდებარეობს ოთახი და როდის იწყება საუზმე?",
+        "title": "სატელეფონო შეთანხმება: ბინის დათვალიერება",
+        "category": "ბინის ქირაობა და დრო",
+        "audio_text": "Hallo Herr Beridze, hier ist Weber Immobilien. Die Wohnungsbesichtigung findet morgen, am Freitag um siebzehn Uhr dreißig statt. Die Adresse ist Goethestraße zwölf. Bitte bestätigen Sie kurz per SMS.",
+        "question": "როდის და სად ტარდება ბინის დათვალიერება?",
         "options": [
-          "ოთახი 304 მე-3 სართულზე, საუზმე იწყება 07:00 საათზე 1-ელ სართულზე",
-          "ოთახი 204 მე-2 სართულზე, საუზმე იწყება 08:30 საათზე",
-          "ოთახი 104 პირველ სართულზე, საუზმე არ შედის ფასში",
-          "ოთახი 304 მე-4 სართულზე, საუზმე იწყება 09:00 საათზე"
+          "პარასკევს, 17:30 საათზე, გოეთეს ქუჩა 12-ში",
+          "შაბათს, 10:00 საათზე, ბაჰნჰოფის ქუჩა 5-ში",
+          "კვირას, 14:00 საათზე, შილერის ქუჩა 8-ში",
+          "ორშაბათს, 18:00 საათზე, ცენტრალურ მოედანზე"
         ],
         "answer": 0,
-        "transcript_ka": "საღამო მშვიდობისა! თქვენი ოთახია N304 მესამე სართულზე. ლიფტი მარცხნივაა. შვედური საუზმე დილის შვიდი საათიდან პირველ სართულზე (Erdgeschoss) მზად იქნება თქვენთვის."
+        "transcript_ka": "გამარჯობა ბატონო ბერიძე, აქ არის ვებერის უძრავი ქონება. ბინის დათვალიერება გაიმართება ხვალ, პარასკევს ჩვიდმეტ საათსა და ოცდაათ წუთზე. მისამართია გოეთეს ქუჩა თორმეტი. გთხოვთ მოკლედ დამიდასტუროთ SMS-ით."
       }
     ],
     "lesen": [
       {
         "id": "l_lab_1",
         "title": "მეგობრის წერილი: დაბადების დღეზე დაპატიჟება",
-        "category": "პირადი წერილი / E-Mail",
-        "text_de": "Liebe Nino,\n\nam nächsten Samstag feiere ich meinen Geburtstag! Die Party beginnt um 19 Uhr bei mir zu Hause in der Goethestraße 12.\nWir wollen grillen und Musik hören. Kannst du bitte einen Salat oder einen Kuchen mitbringen?\nGib mir bitte bis Donnerstag Bescheid, ob du kommen kannst.\n\nIch freue mich auf dich!\nLiebe Grüße,\nSarah",
-        "text_ka_summary": "ზარას წერილი ნინოსადმი: დაბადების დღის წვეულება შაბათს, 19:00 საათზე, გოეთეს ქუჩაზე.",
+        "category": "პირადი მიმოწერა (E-Mail)",
+        "text_de": "Liebe Freunde,\n\nam nächsten Samstag habe ich Geburtstag! Ich werde 25 Jahre alt und möchte das gerne mit euch feiern.\nDie Party beginnt um 19:00 Uhr bei mir zu Hause in der Kantstraße 15.\nEs gibt leckeres Essen, Musik und Getränke. Wenn ihr möchtet, könnt ihr einen Nachtisch oder Salat mitbringen.\n\nBitte gebt mir bis Donnerstag Bescheid, ob ihr kommt.\n\nIch freue mich sehr auf euch!\nLiebe Grüße,\nSara",
+        "text_ka_summary": "ზარას წერილი მეგობრებისადმი, სადაც ის მათ დაბადების დღის წვეულებაზე ეპატიჟება.",
         "questions": [
           {
             "q": "როდის იწყება ზარას დაბადების დღის წვეულება?",
@@ -14919,71 +14919,60 @@ window.GERMAN_A1_DATA = {
               "კვირას დილით"
             ],
             "answer": 0,
-            "explanation": "'Die Party beginnt um 19 Uhr am nächsten Samstag'."
+            "explanation": "'Die Party beginnt um 19:00 Uhr am nächsten Samstag'."
           },
           {
-            "q": "რა სთხოვა ზარამ ნინოს წვეულებისთვის?",
+            "q": "რა შეუძლიათ მოიტანონ სტუმრებმა სურვილის შემთხვევაში?",
             "options": [
-              "სალათის ან ნამცხვრის მოტანა",
-              "მუსიკალური დისკების მოტანა",
-              "ხორცის ყიდვა",
-              "არაფრის მოტანა არ არის საჭირო"
+              "დესერტი ან სალათი (Nachtisch oder Salat)",
+              "მხოლოდ მუსიკალური დისკები",
+              "ძვირფასი საჩუქრები",
+              "სასმელები და ჭურჭელი"
             ],
             "answer": 0,
-            "explanation": "'Kannst du bitte einen Salat oder einen Kuchen mitbringen?'"
+            "explanation": "'Wenn ihr möchtet, könnt ihr einen Nachtisch oder Salat mitbringen'."
           },
           {
-            "q": "როდემდე უნდა შეატყობინოს ნინომ პასუხი?",
+            "q": "როდისთვის უნდა აცნობონ ზარას მოსვლის შესახებ?",
             "options": [
               "ხუთშაბათამდე (bis Donnerstag)",
-              "შაბათამდე",
-              "პარასკევ საღამომდე",
-              "დაუყოვნებლივ"
+              "პარასკევს საღამოს",
+              "შაბათს წვეულების წინ",
+              "დღესვე დაუყოვნებლივ"
             ],
             "answer": 0,
-            "explanation": "'Gib mir bitte bis Donnerstag Bescheid'."
+            "explanation": "'Bitte gebt mir bis Donnerstag Bescheid'."
           }
         ]
       },
       {
         "id": "l_lab_2",
-        "title": "ენის სკოლის განცხადება (Aushang an der Sprachschule)",
-        "category": "ოფიციალური განცხადება / აფიშა",
-        "text_de": "WICHTIGE INFORMATION FÜR KURSTEILNEHMER!\n\nWegen Renovierungsarbeiten finden die Deutschkurse der Niveaustufe A1 ab Montag, den 15. November, nicht im Raum 102 statt.\nDer neue Unterrichtsraum ist Raum 205 im zweiten Stock.\nDie Unterrichtszeiten bleiben unverändert: Montag bis Donnerstag, jeweils von 9:00 bis 12:30 Uhr.\n\nDas Schulsekretariat",
-        "text_ka_summary": "სკოლის ადმინისტრაციის განცხადება რემონტისა და აუდიტორიის შეცვლის შესახებ.",
+        "title": "განცხადება ენის სკოლის დაფაზე (Aushang Sprachschule)",
+        "category": "ოფიციალური განცხადება",
+        "text_de": "ACHTUNG KURSTEILNEHMER!\n\nWegen Renovierungsarbeiten findet der Deutschkurs A1.2 ab Montag, dem 15. November, im Raum 204 (2. Stock) statt.\nDer Unterricht beginnt wie gewohnt um 09:00 Uhr und endet um 12:15 Uhr.\n\nDie Cafeteria im Erdgeschoss ist von Montag bis Freitag von 08:30 bis 14:00 Uhr geöffnet.\n\nDie Schulleitung",
+        "text_ka_summary": "განცხადება ენების სკოლის სტუდენტებისთვის აუდიტორიის შეცვლის შესახებ.",
         "questions": [
           {
-            "q": "რატომ იცვლება გაკვეთილების ჩატარების ადგილი?",
+            "q": "სად ჩატარდება გაკვეთილები 15 ნოემბრიდან?",
             "options": [
-              "სარემონტო სამუშაოების გამო (Renovierungsarbeiten)",
-              "მასწავლებლის ავადმყოფობის გამო",
-              "სტუდენტების სიმრავლის გამო",
-              "სკოლის დაკეტვის გამო"
+              "204-ე აუდიტორიაში, მე-2 სართულზე",
+              "101-ე აუდიტორიაში, პირველ სართულზე",
+              "კაფეტერიაში",
+              "სკოლის ეზოში"
             ],
             "answer": 0,
-            "explanation": "'Wegen Renovierungsarbeiten...' - სარემონტო სამუშაოების გამო."
+            "explanation": "'im Raum 204 (2. Stock) statt'."
           },
           {
-            "q": "რომელ ოთახში ჩატარდება გაკვეთილები?",
+            "q": "შეიცვალა თუ არა გაკვეთილების დაწყების დრო?",
             "options": [
-              "ოთახ 205-ში (მე-2 სართულზე)",
-              "ოთახ 102-ში",
-              "სარდაფში",
-              "ბიბლიოთეკაში"
+              "არა, იწყება ჩვეულებრივად 09:00 საათზე ('wie gewohnt um 09:00 Uhr')",
+              "დიახ, იწყება 08:30 საათზე",
+              "დიახ, იწყება 10:00 საათზე",
+              "გაკვეთილები გადაიდო საღამოსთვის"
             ],
             "answer": 0,
-            "explanation": "'Der neue Unterrichtsraum ist Raum 205 im zweiten Stock'."
-          },
-          {
-            "q": "იცვლება თუ არა მეცადინეობის განრიგი და საათები?",
-            "options": [
-              "არა, საათები უცვლელია (09:00-12:30)",
-              "დიახ, საღამოს 18:00 საათზე გადადის",
-              "დიახ, მხოლოდ პარასკევს ჩატარდება",
-              "გაკვეთილები 2 კვირით გადაიდო"
-            ],
-            "answer": 0,
-            "explanation": "'Die Unterrichtszeiten bleiben unverändert' - დრო უცვლელი რჩება."
+            "explanation": "'wie gewohnt um 09:00 Uhr' ნიშნავს: ჩვეულებრივად 09:00 საათზე."
           }
         ]
       },
@@ -15017,6 +15006,48 @@ window.GERMAN_A1_DATA = {
             "explanation": "Käsespätzle მითითებულია როგორც 'Vegetarisch'."
           }
         ]
+      },
+      {
+        "id": "l_lab_4",
+        "title": "შეტყობინება ექიმისგან: ანალიზების პასუხი და ვიზიტი",
+        "category": "ჯანმრთელობა და პირადი შეტყობინება",
+        "text_de": "Praxis Dr. Weber\nInternist & Allgemeinmedizin\nHauptstraße 14, 80331 München\n\nLieber Herr Beridze,\n\nIhre Laborergebnisse sind da. Alle Werte sind weitgehend in Ordnung, aber Dr. Weber möchte die Blutwerte kurz persönlich mit Ihnen besprechen.\n\nBitte vereinbaren Sie online oder telefonisch einen Termin für nächsten Dienstag oder Mittwoch zwischen 14:00 und 17:00 Uhr.\n\nBringen Sie bitte Ihre Versichertenkarte mit.\n\nMit freundlichen Grüßen,\nPraxisteam Dr. Weber\nTel: 089 2345678",
+        "text_ka_summary": "ექიმის შეტყობინება პაციენტისადმი ანალიზების პასუხისა და შეხვედრის დანიშვნის შესახებ.",
+        "questions": [
+          {
+            "q": "რატომ უნდა მივიდეს პაციენტი ექიმთან?",
+            "options": [
+              "ექიმს სურს ანალიზების პასუხების პირადად განხილვა",
+              "პაციენტი სასწრაფოდ საავადმყოფოში უნდა დაწვეს",
+              "ანალიზები დაიკარგა და თავიდანაა ჩასაბარებელი",
+              "ექიმი შვებულებაში გადის"
+            ],
+            "answer": 0,
+            "explanation": "'Dr. Weber möchte die Blutwerte kurz persönlich mit Ihnen besprechen' - ექიმს სურს ანალიზების პირადად განხილვა."
+          },
+          {
+            "q": "რომელ დღეებში და საათებშია შესაძლებელი ვიზიტის დანიშვნა?",
+            "options": [
+              "სამშაბათს ან ოთხშაბათს, 14:00-დან 17:00 საათამდე",
+              "ორშაბათს დილით 09:00 საათზე",
+              "მხოლოდ პარასკევს საღამოს",
+              "შაბათ-კვირას ნებისმიერ დროს"
+            ],
+            "answer": 0,
+            "explanation": "'nächsten Dienstag oder Mittwoch zwischen 14:00 und 17:00 Uhr'."
+          },
+          {
+            "q": "რა დოკუმენტი უნდა წაიღოს პაციენტმა თან?",
+            "options": [
+              "სადაზღვევო ბარათი (Versichertenkarte)",
+              "პასპორტი და დაბადების მოწმობა",
+              "მართვის მოწმობა",
+              "არაფერი არ არის საჭირო"
+            ],
+            "answer": 0,
+            "explanation": "'Bringen Sie bitte Ihre Versichertenkarte mit' - სადაზღვევო ბარათი."
+          }
+        ]
       }
     ],
     "schreiben": [
@@ -15024,49 +15055,55 @@ window.GERMAN_A1_DATA = {
         "id": "s_lab_1",
         "title": "ფორმა: სასტუმროს რეგისტრაციის ბარათი (Hotel-Anmeldeformular)",
         "type": "form",
-        "instructions_ka": "შეავსეთ სასტუმროს სარეგისტრაციო ბარათი თქვენი რეალური ან სავარჯიშო მონაცემებით გერმანულად:",
+        "instructions_ka": "შეავსეთ სასტუმროს სარეგისტრაციო ბარათი თქვენი რეალური ან სავარჯიშო მონაცემებით გერმანულად. ყველა ველი სავალდებულოა:",
         "fields": [
           {
             "id": "fn",
             "label_de": "Vorname",
             "label_ka": "სახელი",
             "placeholder": "z.B. Giorgi",
-            "example": "Giorgi"
+            "example": "Giorgi",
+            "required": true
           },
           {
             "id": "ln",
             "label_de": "Familienname / Nachname",
             "label_ka": "გვარი",
             "placeholder": "z.B. Beridze",
-            "example": "Beridze"
+            "example": "Beridze",
+            "required": true
           },
           {
             "id": "bd",
             "label_de": "Geburtsdatum (TT.MM.JJJJ)",
             "label_ka": "დაბადების თარიღი",
             "placeholder": "15.05.1998",
-            "example": "15.05.1998"
+            "example": "15.05.1998",
+            "required": true
           },
           {
             "id": "nat",
             "label_de": "Staatsangehörigkeit",
             "label_ka": "მოქალაქეობა",
             "placeholder": "georgisch",
-            "example": "georgisch"
+            "example": "georgisch",
+            "required": true
           },
           {
             "id": "addr",
             "label_de": "Straße & Hausnummer",
             "label_ka": "ქუჩა და სახლის ნომერი",
             "placeholder": "Rustaveli Ave. 10",
-            "example": "Rustaveli Ave. 10"
+            "example": "Rustaveli Ave. 10",
+            "required": true
           },
           {
             "id": "city",
             "label_de": "PLZ & Wohnort",
             "label_ka": "საფოსტო ინდექსი და ქალაქი",
             "placeholder": "0108 Tiflis",
-            "example": "0108 Tiflis"
+            "example": "0108 Tiflis",
+            "required": true
           }
         ]
       },
@@ -15075,7 +15112,8 @@ window.GERMAN_A1_DATA = {
         "title": "მეგობრული წერილი: კინოში დაპატიჟებაზე პასუხი",
         "type": "free_text",
         "instructions_ka": "თქვენმა მეგობარმა ლუკასმა მოგწერათ და გეპატიჟებათ კინოში შაბათ საღამოს.\nმისწერეთ მას მოკლე წერილი (დაახლოებით 20-30 სიტყვა):\n1. გადაუხადეთ მადლობა მიწვევისთვის.\n2. აუხსენით, რომ შაბათს არ გცალიათ (მიზეზი: მუშაობთ ან გამოცდისთვის სწავლობთ).\n3. შესთავაზეთ შეხვედრა კვირას.",
-        "suggested_length": "20-30 სიტყვა",
+        "suggested_length": "20-30 სიტყვა (მინიმუმ 15 სიტყვა)",
+        "min_words": 15,
         "model_solution": "Lieber Lukas,\n\nvielen Dank für deine Einladung!\nAm Samstag kann ich leider nicht kommen, weil ich für eine Prüfung lernen muss.\nHast du vielleicht am Sonntag Zeit? Wir können am Sonntagabend ins Kino gehen.\n\nLiebe Grüße,\n[Dein Name]",
         "rubrics": [
           "მისალმება მეგობრულად (Lieber Lukas, / Hallo Lukas,)",
@@ -15090,7 +15128,8 @@ window.GERMAN_A1_DATA = {
         "title": "ოფიციალური მეილი: ენის კურსზე ინფორმაციის მოთხოვნა",
         "type": "free_text",
         "instructions_ka": "გსურთ გერმანული ენის A1 კურსზე ჩაწერა ბერლინში. მისწერეთ ენების სკოლას ოფიციალური წერილი (დაახლოებით 25-35 სიტყვა):\n1. ოფიციალური თავაზიანი მისალმება (Sehr geehrte Damen und Herren,).\n2. მიუთითეთ, რომ გსურთ A1 კურსის გავლა ივლისში.\n3. იკითხეთ ფასი და გაკვეთილების განრიგი.\n4. ოფიციალური დამშვიდობება.",
-        "suggested_length": "25-35 სიტყვა",
+        "suggested_length": "25-35 სიტყვა (მინიმუმ 15 სიტყვა)",
+        "min_words": 15,
         "model_solution": "Sehr geehrte Damen und Herren,\n\nich möchte im Juli einen Deutschkurs A1 an Ihrer Sprachschule besuchen.\nKönnen Sie mir bitte Informationen über die Kurstermine und die Preise schicken?\n\nVielen Dank im Voraus für Ihre Hilfe.\n\nMit freundlichen Grüßen,\n[Vorname Nachname]",
         "rubrics": [
           "ოფიციალური მიმართვა (Sehr geehrte Damen und Herren,)",
@@ -15098,6 +15137,22 @@ window.GERMAN_A1_DATA = {
           "კითხვა ფასსა და განრიგზე (Preise und Kurstermine)",
           "მადლობა წინასწარ (Vielen Dank im Voraus)",
           "ოფიციალური დამშვიდობება (Mit freundlichen Grüßen, [სრული სახელი და გვარი])"
+        ]
+      },
+      {
+        "id": "s_lab_4",
+        "title": "ბინის განცხადებაზე გამოხმაურება (Wohnungsanfrage)",
+        "type": "free_text",
+        "instructions_ka": "გაზეთში ნახეთ განცხადება 2-ოთახიან ბინაზე მიუნხენში. მისწერეთ მეპატრონეს (Frau Schneider) მოკლე მეილი (დაახლოებით 25-35 სიტყვა):\n1. თავაზიანი მიმართვა (Sehr geehrte Frau Schneider,).\n2. აუხსენით, რომ დაინტერესებული ხართ ბინით.\n3. იკითხეთ, როდის არის შესაძლებელი ბინის დათვალიერება (Besichtigungstermin).\n4. მიუთითეთ თქვენი საკონტაქტო ტელეფონის ნომერი.\n5. ოფიციალური დამშვიდობება (Mit freundlichen Grüßen,).",
+        "suggested_length": "25-35 სიტყვა (მინიმუმ 15 სიტყვა)",
+        "min_words": 15,
+        "model_solution": "Sehr geehrte Frau Schneider,\n\nich habe Ihre Anzeige für die 2-Zimmer-Wohnung gelesen und habe großes Interesse.\nWann ist eine Wohnungsbesichtigung möglich?\nSie erreichen mich telefonisch unter 0176 1234567.\n\nMit freundlichen Grüßen,\n[Vorname Nachname]",
+        "rubrics": [
+          "თავაზიანი მიმართვა გვარით (Sehr geehrte Frau Schneider,)",
+          "ინტერესის გამოხატვა ბინის მიმართ (Ich habe großes Interesse)",
+          "დათვალიერების თარიღის კითხვა (Wann ist eine Besichtigung möglich?)",
+          "საკონტაქტო ნომრის მითითება (Sie erreichen mich unter...)",
+          "ოფიციალური დამშვიდობება (Mit freundlichen Grüßen, [სახელი გვარი])"
         ]
       }
     ],

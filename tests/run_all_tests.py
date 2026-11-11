@@ -25,12 +25,14 @@ def main():
 
     test1 = BASE_DIR / "tests" / "test_curriculum_integrity.py"
     test2 = BASE_DIR / "tests" / "test_runtime_jscore.py"
+    test3 = BASE_DIR / "tests" / "test_stage8_verification.py"
 
     p1 = run_suite("Curriculum & Data Integrity Suite", test1)
     p2 = run_suite("Safari / WebKit JavaScriptCore Runtime Suite", test2)
+    p3 = run_suite("Stage 8 Verification & QA Harness", test3)
 
     print("\n" + "="*65)
-    if p1 and p2:
+    if p1 and p2 and p3:
         print("  🎉 ALL TEST SUITES PASSED PERFECTLY (100% SUCCESS)!")
         print("="*65)
         sys.exit(0)
