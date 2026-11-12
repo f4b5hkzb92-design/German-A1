@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deutsch A1 • გერმანული ენის სრული სასწავლო პლატფორმა</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
   
   <!-- Standalone 100% Offline Stylesheet (Zero Network Dependency) -->
   <link rel="stylesheet" href="css/style.css">
@@ -158,5 +160,12 @@
   <!-- Scripts -->
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

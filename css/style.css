@@ -649,3 +649,37 @@ html.dark .toast {
   background-color: #ffffff;
   color: var(--slate-900);
 }
+
+/* Mic pulse animation */
+@keyframes micPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.85; }
+}
+.mic-pulse {
+  animation: micPulse 1.2s infinite ease-in-out;
+}
+
+/* Certificate Print Stylesheet */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #certificate-print-area, #certificate-print-area * {
+    visibility: visible;
+  }
+  #certificate-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 2.5rem;
+    box-shadow: none !important;
+    border: 8px double #0f172a !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  header, nav, #toast-container, button, .no-print {
+    display: none !important;
+  }
+}
