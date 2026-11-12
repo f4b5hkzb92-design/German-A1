@@ -80,8 +80,8 @@
     </div>
   </div>
 
-  <script src="../js/data.js"></script>
-  <script src="../js/app.js"></script>
+  <script src="../js/data.js?v=stage10_p3"></script>
+  <script src="../js/app.js?v=stage10_p3"></script>
 
   <script>
     async function runSafariBrowserSuite() {
@@ -107,7 +107,20 @@
 
       // Clean test isolation for deterministic QA runs
       localStorage.clear();
+      if ('serviceWorker' in navigator) {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (let r of regs) { await r.unregister(); }
+        } catch(e) {}
+      }
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys();
+          for (let k of keys) { await caches.delete(k); }
+        } catch(e) {}
+      }
 
+      try {
       // 1. App Boot & Lessons View
       const app = window.DeutschApp;
       logItem(Boolean(window.GERMAN_A1_DATA && window.DeutschApp), "1. Application Boot & Engine Initialization");
@@ -213,6 +226,27 @@
       const afterSecondToggle = document.documentElement.classList.contains('dark');
       const restoredSuccessfully = (afterSecondToggle === wasDark);
       logItem(toggledSuccessfully && restoredSuccessfully, "11. Dark Mode / Light Mode Theme Switching Operational");
+
+      // 12. Roleplay Chat Simulator (Stage 10 Part 3)
+      app.switchLabTab('roleplay');
+      await sleep(100);
+      app.chooseRoleplayOption(0);
+      app.chooseRoleplayOption(0);
+      app.chooseRoleplayOption(0);
+      app.chooseRoleplayOption(0);
+      app.chooseRoleplayOption(0);
+      await sleep(150);
+      const uAfterRoleplay = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{"xp":0}');
+      const roleplayCompleted = uAfterRoleplay.labScores && uAfterRoleplay.labScores.roleplay && uAfterRoleplay.labScores.roleplay['rp_cafe'];
+      logItem(Boolean(roleplayCompleted && roleplayCompleted.completed === true && roleplayCompleted.score === 100), "12. Roleplay Chat Simulator Conversation Flow & Idempotent Scoring");
+      } catch (suiteErr) {
+        failed++;
+        testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });
+        const el = document.createElement('div');
+        el.className = "p-2 rounded-xl bg-rose-950/40 border border-rose-800/50 text-rose-300";
+        el.innerHTML = `<span>Error: ${suiteErr.message}</span> <strong class="font-black">✕ FAIL</strong>`;
+        log.appendChild(el);
+      }
 
       // Final Summary (Stage 9.1: Dynamic Status Calculation based on real counts)
       const allPassed = (failed === 0 && passed > 0);

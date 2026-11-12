@@ -28,15 +28,17 @@ def main():
     test3 = BASE_DIR / "tests" / "test_stage8_verification.py"
     test4 = BASE_DIR / "tests" / "test_stage9_verification.py"
     test5 = BASE_DIR / "tests" / "test_stage9_1_verification.py"
+    test6 = BASE_DIR / "tests" / "test_stage10_part3_roleplay.py"
 
     p1 = run_suite("Curriculum & Data Integrity Suite", test1)
     p2 = run_suite("Safari / WebKit JavaScriptCore Runtime Suite", test2)
     p3 = run_suite("Stage 8 Verification & QA Harness", test3)
     p4 = run_suite("Stage 9 Verification & QA Harness", test4)
     p5 = run_suite("Stage 9.1 Verification & QA Harness", test5)
+    p6 = run_suite("Stage 10 Part 3 (Roleplay Chat Simulator) Suite", test6)
 
     print("\n" + "="*65)
-    if p1 and p2 and p3 and p4 and p5:
+    if p1 and p2 and p3 and p4 and p5 and p6:
         print("  🎉 ALL TEST SUITES PASSED PERFECTLY (100% SUCCESS)!")
         print("="*65)
         sys.exit(0)

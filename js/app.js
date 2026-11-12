@@ -119,7 +119,14 @@
     // Daily SRS state
     isDailySRSActive: false,
     dailySRSTotal: 0,
-    dailySRSCompleted: 0
+    dailySRSCompleted: 0,
+    // Roleplay Chat Simulator (Stage 10 Part 3)
+    labRoleplayIndex: 0,
+    roleplayStep: 0,
+    roleplayHistory: [],
+    roleplayPoints: 0,
+    roleplayShowTranslations: {},
+    roleplayCompleted: false
   };
 
   // --- Local Calendar Date & Streak Calculations ---
@@ -172,7 +179,7 @@
       srsItems: {}, // wordId -> { interval, repetition, efactor, nextReviewDate }
       mistakeWords: [],
       claimedRewards: {}, // rewardKey -> timestamp
-      labScores: { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} },
+      labScores: { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {}, roleplay: {} },
       writingDrafts: {}, // taskId -> draftText (Stage 9.1: Draft Persistence)
       learnerName: 'საქართველოს გერმანული ენის სტუდენტი',
       examHistory: [], // [{ attempt, date, score, total, pct, passed }]
@@ -221,7 +228,8 @@
         data.srsItems = (typeof data.srsItems === 'object' && data.srsItems !== null) ? data.srsItems : {};
         data.mistakeWords = Array.isArray(data.mistakeWords) ? data.mistakeWords : [];
         data.claimedRewards = (typeof data.claimedRewards === 'object' && data.claimedRewards !== null) ? data.claimedRewards : {};
-        data.labScores = (typeof data.labScores === 'object' && data.labScores !== null) ? data.labScores : { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} };
+        data.labScores = (typeof data.labScores === 'object' && data.labScores !== null) ? data.labScores : { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {}, roleplay: {} };
+        data.labScores.roleplay = (typeof data.labScores.roleplay === 'object' && data.labScores.roleplay !== null) ? data.labScores.roleplay : {};
         data.writingDrafts = (typeof data.writingDrafts === 'object' && data.writingDrafts !== null && !Array.isArray(data.writingDrafts)) ? data.writingDrafts : {};
         data.learnerName = (typeof data.learnerName === 'string' && data.learnerName.trim()) ? data.learnerName : 'საქართველოს გერმანული ენის სტუდენტი';
         data.examHistory = Array.isArray(data.examHistory) ? data.examHistory : [];
@@ -2263,7 +2271,7 @@
   }
 
   // ==========================================================================
-  // TAB 6: FOUR CORE LANGUAGE LABS (HÖREN, LESEN, SCHREIBEN, SPRECHEN - STAGE 2)
+  // TAB 6: CORE LANGUAGE LABS (HÖREN, LESEN, SCHREIBEN, SPRECHEN & DIALOG-CHAT)
   // ==========================================================================
   function renderLanguageLabs(container) {
     const labs = window.GERMAN_A1_DATA.language_labs || {};
@@ -2274,25 +2282,28 @@
         
         <div class="text-center space-y-2">
           <span class="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-xs font-black tracking-wider uppercase">
-            CEFR A1 ოთხი ძირითადი უნარი
+            CEFR A1 ენობრივი ლაბორატორიები & ინტერაქტიული სიმულატორი
           </span>
-          <h1 class="text-3xl font-black text-slate-900 dark:text-white">4 ენობრივი ლაბორატორია</h1>
-          <p class="text-xs text-slate-500">Hören (მოსმენა), Lesen (კითხვა), Schreiben (წერა), Sprechen (საუბარი)</p>
+          <h1 class="text-3xl font-black text-slate-900 dark:text-white">ენობრივი ლაბორატორიები & დიალოგ-ჩატი</h1>
+          <p class="text-xs text-slate-500">Hören (მოსმენა), Lesen (კითხვა), Schreiben (წერა), Sprechen (საუბარი), Dialog-Chat (სასაუბრო სიმულატორი)</p>
         </div>
 
         <!-- Labs Navigation Pills -->
         <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black">
-          <button onclick="window.DeutschApp.switchLabTab('hoeren')" class="flex-1 py-3 px-3 rounded-xl transition text-center ${active === 'hoeren' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
-            🎧 1. HÖREN (მოსმენა)
+          <button onclick="window.DeutschApp.switchLabTab('hoeren')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'hoeren' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            🎧 1. HÖREN
           </button>
-          <button onclick="window.DeutschApp.switchLabTab('lesen')" class="flex-1 py-3 px-3 rounded-xl transition text-center ${active === 'lesen' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
-            📖 2. LESEN (კითხვა)
+          <button onclick="window.DeutschApp.switchLabTab('lesen')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'lesen' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            📖 2. LESEN
           </button>
-          <button onclick="window.DeutschApp.switchLabTab('schreiben')" class="flex-1 py-3 px-3 rounded-xl transition text-center ${active === 'schreiben' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
-            ✍️ 3. SCHREIBEN (წერა)
+          <button onclick="window.DeutschApp.switchLabTab('schreiben')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'schreiben' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            ✍️ 3. SCHREIBEN
           </button>
-          <button onclick="window.DeutschApp.switchLabTab('sprechen')" class="flex-1 py-3 px-3 rounded-xl transition text-center ${active === 'sprechen' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
-            🗣️ 4. SPRECHEN (საუბარი)
+          <button onclick="window.DeutschApp.switchLabTab('sprechen')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'sprechen' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            🗣️ 4. SPRECHEN
+          </button>
+          <button onclick="window.DeutschApp.switchLabTab('roleplay')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'roleplay' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            💬 5. DIALOG-CHAT
           </button>
         </div>
 
@@ -2307,6 +2318,8 @@
       html += renderSchreibenLab(labs.schreiben || []);
     } else if (active === 'sprechen') {
       html += renderSprechenLab(labs.sprechen || []);
+    } else if (active === 'roleplay') {
+      html += renderRoleplayLab(labs.roleplay || []);
     }
 
     html += `
@@ -2786,6 +2799,233 @@ ${escapeHtml(item.text_de)}
             შემდეგი სასაუბრო მოდული →
           </button>
         </div>
+      </div>
+    `;
+
+    return html;
+  }
+
+  // --- 5. ROLEPLAY LAB (Stage 10 Part 3 - Chat Simulator) ---
+  function renderRoleplayLab(scenarios) {
+    if (!scenarios || scenarios.length === 0) {
+      return `<p class="text-xs text-slate-500">სასაუბრო სცენარები არ მოიძებნა.</p>`;
+    }
+
+    const scIdx = state.labRoleplayIndex % scenarios.length;
+    const sc = scenarios[scIdx];
+    const totalSteps = (sc.steps && sc.steps.length) || 0;
+    const maxPoints = totalSteps * 10;
+    const isCompleted = state.roleplayCompleted || state.roleplayStep >= totalSteps;
+    const savedScore = (userData.labScores && userData.labScores.roleplay && userData.labScores.roleplay[sc.id]) ? userData.labScores.roleplay[sc.id] : null;
+
+    let html = `
+      <div class="space-y-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm animate-fadeIn">
+        
+        <!-- Scenarios Selection Bar -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-400">
+            <span>სასაუბრო სცენარები (${scenarios.length} თემა)</span>
+            <span class="text-purple-600 dark:text-purple-400 font-bold">A1 რეალური ყოველდღიური დიალოგები</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${scenarios.map((s, idx) => {
+              const isActive = (idx === scIdx);
+              const rec = (userData.labScores && userData.labScores.roleplay && userData.labScores.roleplay[s.id]);
+              return `
+                <button onclick="window.DeutschApp.switchRoleplayScenario(${idx})" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition ${isActive ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                  <span>${s.avatar || '💬'}</span>
+                  <span class="truncate max-w-[150px]">${escapeHtml(s.title.split('(')[0].trim())}</span>
+                  ${rec ? `<span class="px-1.5 py-0.2 rounded-full text-[10px] ${rec.score >= 60 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black' : 'bg-amber-500/20 text-amber-600 font-bold'}">✓ ${rec.score}%</span>` : ''}
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Scenario Context Banner -->
+        <div class="p-4 md:p-5 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white space-y-3 shadow-md">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">${sc.avatar || '🤵'}</span>
+              <div>
+                <h3 class="font-black text-base md:text-lg">${escapeHtml(sc.title)}</h3>
+                <p class="text-xs text-purple-200">${escapeHtml(sc.partner_name)} • ${escapeHtml(sc.partner_role)}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-500/30 text-purple-200 border border-purple-400/30">
+                ${isCompleted ? 'სტატუსი: დასრულებული' : `ნაბიჯი: ${Math.min(state.roleplayStep + 1, totalSteps)} / ${totalSteps}`}
+              </span>
+              <span class="px-3 py-1 rounded-full text-xs font-black bg-white/10 text-white">
+                ქულა: ${state.roleplayPoints} / ${maxPoints}
+              </span>
+              <button onclick="window.DeutschApp.restartRoleplayScenario()" class="px-3 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition" title="თავიდან დაწყება">
+                🔄 თავიდან
+              </button>
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed border-t border-purple-500/20 pt-2.5">
+            📍 <strong>სიტუაცია:</strong> ${escapeHtml(sc.situation_ka)}
+          </p>
+        </div>
+
+        <!-- Chat Stream Area -->
+        <div id="roleplay-chat-stream" class="space-y-4 max-h-[520px] overflow-y-auto p-4 md:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/80">
+          
+          <div class="text-center">
+            <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+              💬 საუბრის დასაწყისი • გაესაუბრეთ პარტნიორს გერმანულად
+            </span>
+          </div>
+
+          <!-- History items -->
+          ${state.roleplayHistory.map((h, hIdx) => {
+            const showTranslation = state.roleplayShowTranslations['hist_' + hIdx];
+            return `
+              <!-- Partner Turn -->
+              <div class="flex items-start gap-3 max-w-[85%] md:max-w-[75%]">
+                <span class="text-2xl flex-shrink-0">${sc.avatar || '🤵'}</span>
+                <div class="space-y-1">
+                  <span class="text-[11px] font-bold text-slate-400">${escapeHtml(sc.partner_name)}</span>
+                  <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl rounded-tl-sm p-3.5 shadow-sm space-y-2">
+                    <p class="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">${escapeHtml(h.partner_de)}</p>
+                    <div class="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-700">
+                      <button onclick="window.DeutschApp.speak('${h.partner_de.replace(/'/g, "\\'")}', this)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-purple-600 text-xs font-bold transition flex items-center gap-1" title="მოსმენა">
+                        <span>🔊 მოუსმინე</span>
+                      </button>
+                      <button onclick="window.DeutschApp.toggleRoleplayTranslation('hist_${hIdx}')" class="px-2 py-1 rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition">
+                        💡 ${showTranslation ? 'თარგმანის დამალვა' : 'ქართულად'}
+                      </button>
+                    </div>
+                    ${showTranslation ? `<p class="text-xs text-purple-800 dark:text-purple-300 italic pt-1">${escapeHtml(h.partner_ka)}</p>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <!-- User Response -->
+              <div class="flex items-start justify-end gap-3 max-w-[85%] md:max-w-[75%] ml-auto">
+                <div class="space-y-1 text-right w-full">
+                  <div class="flex items-center justify-end gap-2">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${h.chosen.points >= 9 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : (h.chosen.points >= 6 ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300')}">
+                      +${h.chosen.points} / 10 ქულა
+                    </span>
+                    <span class="text-[11px] font-bold text-slate-400">თქვენ</span>
+                  </div>
+                  <div class="bg-purple-600 text-white rounded-2xl rounded-tr-sm p-3.5 shadow-sm text-left">
+                    <p class="text-sm font-bold leading-relaxed">${escapeHtml(h.chosen.text_de)}</p>
+                  </div>
+                  <!-- Pedagogical Feedback Card -->
+                  <div class="bg-purple-50 dark:bg-slate-800/90 border border-purple-200 dark:border-purple-900/60 rounded-xl p-2.5 text-left text-xs space-y-1">
+                    <p class="text-purple-950 dark:text-purple-200 font-medium">💡 <strong>შეფასება:</strong> ${escapeHtml(h.chosen.feedback_ka)}</p>
+                    <p class="text-slate-500 dark:text-slate-400 text-[11px] italic">ქართულად: "${escapeHtml(h.chosen.text_ka)}"</p>
+                  </div>
+                </div>
+                <span class="text-2xl flex-shrink-0">🧑‍🎓</span>
+              </div>
+            `;
+          }).join('')}
+
+          <!-- Current Active Step (Partner prompt) -->
+          ${(!isCompleted && sc.steps && sc.steps[state.roleplayStep]) ? (() => {
+            const curStep = sc.steps[state.roleplayStep];
+            const showTranslation = state.roleplayShowTranslations['cur_' + state.roleplayStep];
+            return `
+              <div class="flex items-start gap-3 max-w-[85%] md:max-w-[75%] animate-fadeIn">
+                <span class="text-2xl flex-shrink-0">${sc.avatar || '🤵'}</span>
+                <div class="space-y-1">
+                  <span class="text-[11px] font-bold text-slate-400">${escapeHtml(sc.partner_name)}</span>
+                  <div class="bg-white dark:bg-slate-800 border-2 border-purple-200 dark:border-purple-800/60 rounded-2xl rounded-tl-sm p-3.5 shadow-sm space-y-2">
+                    <p class="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">${escapeHtml(curStep.partner_de)}</p>
+                    <div class="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-700">
+                      <button onclick="window.DeutschApp.speak('${curStep.partner_de.replace(/'/g, "\\'")}', this)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-purple-600 text-xs font-bold transition flex items-center gap-1" title="მოსმენა">
+                        <span>🔊 მოუსმინე</span>
+                      </button>
+                      <button onclick="window.DeutschApp.toggleRoleplayTranslation('cur_${state.roleplayStep}')" class="px-2 py-1 rounded-lg text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition">
+                        💡 ${showTranslation ? 'თარგმანის დამალვა' : 'ქართულად'}
+                      </button>
+                    </div>
+                    ${showTranslation ? `<p class="text-xs text-purple-800 dark:text-purple-300 italic pt-1">${escapeHtml(curStep.partner_ka)}</p>` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
+          })() : ''}
+
+        </div>
+
+        <!-- Reply / Completion Section -->
+        ${!isCompleted && sc.steps && sc.steps[state.roleplayStep] ? (() => {
+          const curStep = sc.steps[state.roleplayStep];
+          return `
+            <div class="space-y-3 pt-2 animate-fadeIn">
+              <div class="flex items-center justify-between text-xs font-black text-slate-500">
+                <span>💬 თქვენი ჯერია — აირჩიეთ საუკეთესო პასუხი (ნაბიჯი ${state.roleplayStep + 1}/${totalSteps}):</span>
+                <span class="text-[11px] text-purple-600 dark:text-purple-400 font-bold">ყურადღება მიაქციეთ ეტიკეტსა და გრამატიკას</span>
+              </div>
+              <div class="space-y-2.5">
+                ${curStep.options.map((opt, oIdx) => `
+                  <div onclick="window.DeutschApp.chooseRoleplayOption(${oIdx})" class="w-full text-left p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-400 bg-white dark:bg-slate-800 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition cursor-pointer group shadow-sm flex items-start justify-between gap-3 active:scale-[0.99]">
+                    <div class="space-y-1 flex-1">
+                      <p class="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition">
+                        ${escapeHtml(opt.text_de)}
+                      </p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">
+                        ${escapeHtml(opt.text_ka)}
+                      </p>
+                    </div>
+                    <button onclick="event.stopPropagation(); window.DeutschApp.speak('${opt.text_de.replace(/'/g, "\\'")}', this)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 hover:text-purple-600 hover:bg-purple-100 text-xs font-bold transition flex-shrink-0" title="გამოთქმის მოსმენა">
+                      🔊
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        })() : ''}
+
+        <!-- Completed Scenario Summary Card -->
+        ${isCompleted ? (() => {
+          const pct = Math.round((state.roleplayPoints / maxPoints) * 100);
+          const stars = (pct >= 85) ? '⭐⭐⭐' : ((pct >= 60) ? '⭐⭐' : '⭐');
+          const claimedKey = 'roleplay_' + sc.id;
+          const claimed = (userData.claimedRewards && userData.claimedRewards[claimedKey]);
+          return `
+            <div class="space-y-5 p-6 rounded-3xl bg-gradient-to-br from-purple-50 via-indigo-50 to-white dark:from-slate-800 dark:via-slate-850 dark:to-slate-900 border border-purple-200 dark:border-purple-800 text-center animate-fadeIn">
+              <div class="space-y-2">
+                <span class="text-3xl">${stars}</span>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white">სასაუბრო სცენარი წარმატებით დასრულდა!</h3>
+                <p class="text-xs text-slate-500 font-medium">თქვენ მიიღეთ <strong>${state.roleplayPoints}</strong> ქულა <strong>${maxPoints}</strong>-დან (${pct}%)</p>
+              </div>
+
+              <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl ${pct >= 60 ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' : 'bg-amber-100 text-amber-800'} text-xs font-black shadow-sm">
+                <span>${pct >= 60 ? '✓ დიალოგი წარმატებით ჩაითვალა' : 'საჭიროებს გამეორებას'}</span>
+                <span>•</span>
+                <span>${claimed ? 'XP უკვე მიღებულია (+25 XP)' : '+25 XP დაგერიცხათ!'}</span>
+              </div>
+
+              <!-- Cultural Tip Card (Landeskunde) -->
+              <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-amber-300/80 dark:border-amber-700/60 shadow-sm text-left space-y-2">
+                <div class="flex items-center gap-2 text-xs font-black text-amber-700 dark:text-amber-400">
+                  <span>🇩🇪</span>
+                  <span>გერმანული ეტიკეტი და კულტურა (Landeskunde):</span>
+                </div>
+                <p class="text-xs md:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                  ${escapeHtml(sc.cultural_tip)}
+                </p>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                <button onclick="window.DeutschApp.restartRoleplayScenario()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                  🔄 სცენარის თავიდან გავლა
+                </button>
+                <button onclick="window.DeutschApp.switchRoleplayScenario(${(scIdx + 1) % scenarios.length})" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition">
+                  შემდეგი სასაუბრო სცენარი →
+                </button>
+              </div>
+            </div>
+          `;
+        })() : ''}
+
       </div>
     `;
 
@@ -4124,6 +4364,103 @@ ${escapeHtml(item.text_de)}
       state.dailySRSCompleted = 0;
       setTab('flashcards');
       showToast(`🧠 დღიური გამეორების სესია გააქტიურდა (${state.flashcardList.length} სიტყვა)`);
+    },
+
+    // Roleplay Chat Simulator Handlers (Stage 10 Part 3)
+    chooseRoleplayOption: function (optionIdx) {
+      const scenarios = (window.GERMAN_A1_DATA && window.GERMAN_A1_DATA.language_labs && window.GERMAN_A1_DATA.language_labs.roleplay) || [];
+      if (scenarios.length === 0) return;
+      const sc = scenarios[state.labRoleplayIndex % scenarios.length];
+      if (!sc || !sc.steps || state.roleplayCompleted || state.roleplayStep >= sc.steps.length) return;
+
+      const curStep = sc.steps[state.roleplayStep];
+      const opt = curStep.options[optionIdx];
+      if (!opt) return;
+
+      state.roleplayPoints += (opt.points || 0);
+      state.roleplayHistory.push({
+        stepIdx: state.roleplayStep,
+        partner_de: curStep.partner_de,
+        partner_ka: curStep.partner_ka,
+        chosen: opt
+      });
+
+      state.roleplayStep += 1;
+
+      if (state.roleplayStep >= sc.steps.length) {
+        state.roleplayCompleted = true;
+        const maxPoints = sc.steps.length * 10;
+        const pct = Math.round((state.roleplayPoints / maxPoints) * 100);
+
+        userData.labScores = userData.labScores || {};
+        userData.labScores.roleplay = userData.labScores.roleplay || {};
+        userData.labScores.roleplay[sc.id] = {
+          completed: true,
+          score: pct,
+          points: state.roleplayPoints,
+          maxPoints: maxPoints,
+          date: getLocalDateString()
+        };
+
+        if (pct >= 60) {
+          playChime('success');
+          grantRewardXP('roleplay_' + sc.id, 25, `სასაუბრო სცენარი წარმატებით გაიარეთ (${pct}%)!`);
+        } else {
+          playChime('wrong');
+          showToast(`სცენარი დასრულდა (${pct}%). სასურველია კიდევ ერთხელ გავლა.`);
+        }
+        saveUserData();
+      } else {
+        playChime('click');
+        const nextStep = sc.steps[state.roleplayStep];
+        if (nextStep && nextStep.partner_de) {
+          speakGerman(nextStep.partner_de);
+        }
+      }
+
+      renderLanguageLabs(document.getElementById('main-content'));
+      setTimeout(() => {
+        const chatBox = document.getElementById('roleplay-chat-stream');
+        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+      }, 50);
+    },
+
+    switchRoleplayScenario: function (scIdx) {
+      const scenarios = (window.GERMAN_A1_DATA && window.GERMAN_A1_DATA.language_labs && window.GERMAN_A1_DATA.language_labs.roleplay) || [];
+      if (scenarios.length === 0) return;
+      state.labRoleplayIndex = scIdx % scenarios.length;
+      state.roleplayStep = 0;
+      state.roleplayHistory = [];
+      state.roleplayPoints = 0;
+      state.roleplayShowTranslations = {};
+      state.roleplayCompleted = false;
+
+      const sc = scenarios[state.labRoleplayIndex];
+      if (sc && sc.steps && sc.steps[0] && sc.steps[0].partner_de) {
+        speakGerman(sc.steps[0].partner_de);
+      }
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+
+    restartRoleplayScenario: function () {
+      const scenarios = (window.GERMAN_A1_DATA && window.GERMAN_A1_DATA.language_labs && window.GERMAN_A1_DATA.language_labs.roleplay) || [];
+      if (scenarios.length === 0) return;
+      state.roleplayStep = 0;
+      state.roleplayHistory = [];
+      state.roleplayPoints = 0;
+      state.roleplayShowTranslations = {};
+      state.roleplayCompleted = false;
+
+      const sc = scenarios[state.labRoleplayIndex % scenarios.length];
+      if (sc && sc.steps && sc.steps[0] && sc.steps[0].partner_de) {
+        speakGerman(sc.steps[0].partner_de);
+      }
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+
+    toggleRoleplayTranslation: function (key) {
+      state.roleplayShowTranslations[key] = !state.roleplayShowTranslations[key];
+      renderLanguageLabs(document.getElementById('main-content'));
     },
 
     // Learner Name Update for Certificate (Stage 10)
