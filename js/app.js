@@ -196,7 +196,8 @@
   const RESET_SENTINEL = 'deutsch_a1_reset_marker_v3';
   const WRITING_DRAFTS_KEY = 'deutsch_a1_writing_drafts_v1';
 
-  let userData = loadUserData();
+  let userData = null;
+  userData = loadUserData();
 
   function loadUserData() {
     try {
@@ -254,10 +255,12 @@
 
         updateDailyStreak(data);
       }
+      userData = data;
       return data;
     } catch (e) {
       console.error('Failed to load user data, restoring safe defaults:', e);
-      return getCleanDefaultUserData();
+      userData = getCleanDefaultUserData();
+      return userData;
     }
   }
 
@@ -3246,6 +3249,152 @@ ${escapeHtml(item.text_de)}
     container.innerHTML = html;
   }
 
+  // ==========================================================================
+  // TAB 8: FINAL EXAM & OFFICIAL CERTIFICATE SUITE (STAGE 10 PART 4)
+  // ==========================================================================
+  function getCertificateId() {
+    const name = userData.learnerName || 'Student';
+    const date = userData.examDate || '2026-01-01';
+    const score = (userData.examScore !== null && userData.examScore !== undefined) ? userData.examScore : 25;
+    let hash = 0;
+    const str = name + '_' + date + '_' + score;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    const hex = Math.abs(hash).toString(16).toUpperCase().padStart(6, '0').slice(-6);
+    return `DA1P-2026-${hex}`;
+  }
+
+  function renderCertificateHtml(options = {}) {
+    const showInput = options.showInput !== false;
+    const total = (window.GERMAN_A1_DATA.final_exam_questions || []).length || 25;
+    const score = (userData.examScore !== null && userData.examScore !== undefined) ? userData.examScore : 25;
+    const pct = Math.round((score / total) * 100);
+    const issueDate = userData.examDate || new Date().toLocaleDateString('ka-GE');
+    const certId = getCertificateId();
+    
+    let gradeDe = 'Bestanden (ჩაბარებული)';
+    if (pct >= 90) gradeDe = 'Sehr gut (ფრიადი)';
+    else if (pct >= 80) gradeDe = 'Gut (კარგი)';
+    else if (pct >= 70) gradeDe = 'Befriedigend (დამაკმაყოფილებელი)';
+
+    return `
+      <div id="certificate-print-area" class="bg-white border-8 border-double border-slate-900 p-8 md:p-12 rounded-3xl text-center space-y-6 shadow-2xl text-slate-900 max-w-3xl mx-auto relative overflow-hidden">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-3xl">🇩🇪</span>
+            <span class="text-[11px] font-black uppercase tracking-widest text-slate-700">BUNDESREPUBLIK DEUTSCHLAND</span>
+          </div>
+          <div class="text-center">
+            <span class="text-xs font-black tracking-widest uppercase text-blue-900 block">DEUTSCH A1 PRO</span>
+            <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-widest">AKADEMISCHES SPRACHZERTIFIKAT</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-black uppercase tracking-widest text-slate-700">GEORGIEN</span>
+            <span class="text-3xl">🇬🇪</span>
+          </div>
+        </div>
+
+        <!-- Main Title -->
+        <div class="space-y-1.5 pt-2">
+          <span class="text-xs font-black uppercase tracking-widest text-blue-700">GEMEINSAMER EUROPÄISCHER REFERENZRAHMEN (GER / CEFR A1)</span>
+          <h2 class="text-3xl md:text-4xl font-black tracking-tight text-slate-950 uppercase">ABSCHLUSSZERTIFIKAT</h2>
+          <p class="text-sm font-bold text-slate-600">გერმანული ენის A1 დონის დამამთავრებელი სერტიფიკატი</p>
+        </div>
+
+        <!-- Recipient -->
+        <div class="space-y-3 py-2">
+          <p class="text-xs text-slate-500 uppercase tracking-wider font-bold">
+            Dieser Leistungsnachweis wird offiziell verliehen an: / ეს სერტიფიკატი გადაეცემა:
+          </p>
+
+          ${showInput ? `
+            <div class="max-w-md mx-auto no-print">
+              <label class="text-[11px] font-bold text-slate-500 block mb-1">თქვენი სახელი და გვარი სერტიფიკატისთვის:</label>
+              <input type="text" value="${escapeHtml(userData.learnerName || '')}" oninput="window.DeutschApp.updateLearnerName(this.value)" placeholder="ჩაწერეთ თქვენი სახელი და გვარი..." class="w-full text-center px-4 py-2 rounded-xl border border-slate-300 font-extrabold text-base text-blue-800 focus:outline-none focus:border-blue-600 bg-slate-50">
+            </div>
+          ` : ''}
+
+          <div id="cert-learner-name-display" class="text-2xl md:text-3xl font-black border-b-2 border-slate-900 max-w-md mx-auto pb-1 text-blue-900 uppercase tracking-wide">
+            ${escapeHtml(userData.learnerName || 'საქართველოს გერმანული ენის სტუდენტი')}
+          </div>
+
+          <p class="text-xs text-slate-600 max-w-lg mx-auto leading-relaxed">
+            რომელმაც წარმატებით დაასრულა გერმანული ენის A1 დონის სრული საუნივერსიტეტო პროგრამა (10 თემატური გაკვეთილი, ლექსიკა, გრამატიკა, 5 ენობრივი ლაბორატორია) და დაადასტურა ცოდნა შემაჯამებელ გამოცდაზე.
+          </p>
+        </div>
+
+        <!-- Competencies -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left max-w-xl mx-auto p-3 bg-slate-50 rounded-2xl border border-slate-200 text-[11px]">
+          <div class="space-y-0.5">
+            <span class="font-black text-slate-900 block">🎧 Hörverstehen:</span>
+            <span class="text-slate-500 text-[10px]">A1 აუდიო გაგება ✓</span>
+          </div>
+          <div class="space-y-0.5">
+            <span class="font-black text-slate-900 block">📖 Leseverstehen:</span>
+            <span class="text-slate-500 text-[10px]">A1 ტექსტის ანალიზი ✓</span>
+          </div>
+          <div class="space-y-0.5">
+            <span class="font-black text-slate-900 block">✍️ Schreiben:</span>
+            <span class="text-slate-500 text-[10px]">A1 წერილები & ფორმები ✓</span>
+          </div>
+          <div class="space-y-0.5">
+            <span class="font-black text-slate-900 block">🗣️ Sprechen & Dialog:</span>
+            <span class="text-slate-500 text-[10px]">A1 სასაუბრო კომუნიკაცია ✓</span>
+          </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="grid grid-cols-3 gap-4 max-w-xl mx-auto text-xs py-3 border-y-2 border-slate-900">
+          <div>
+            <span class="text-slate-500 block font-bold text-[10px] uppercase">საერთო შედეგი</span>
+            <span class="font-black text-emerald-700 text-base">${pct}% (${score}/${total})</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block font-bold text-[10px] uppercase">აკადემიური შეფასება</span>
+            <span class="font-black text-blue-900 text-sm md:text-base">${gradeDe}</span>
+          </div>
+          <div>
+            <span class="text-slate-500 block font-bold text-[10px] uppercase">გაცემის თარიღი</span>
+            <span class="font-black text-slate-900 text-sm md:text-base">${issueDate}</span>
+          </div>
+        </div>
+
+        <!-- Signatures & Seal -->
+        <div class="pt-4 flex items-center justify-between max-w-xl mx-auto text-[10px] text-slate-600">
+          <div class="text-left space-y-1">
+            <div class="w-28 border-b border-slate-800 font-serif italic text-xs text-slate-800">Prof. Dr. Weber</div>
+            <span class="block font-black text-slate-800">სასწავლო ხელმძღვანელი</span>
+            <span class="text-slate-400 text-[9px]">Akademische Leitung</span>
+          </div>
+
+          <div class="flex flex-col items-center">
+            <div class="w-16 h-16 rounded-full border-2 border-amber-600/80 bg-amber-50 flex flex-col items-center justify-center p-1 shadow-sm text-center">
+              <span class="text-xs">🏆</span>
+              <span class="text-[7px] font-black uppercase text-amber-900 leading-tight">DEUTSCH A1 PRO</span>
+              <span class="text-[6px] font-bold text-amber-700">VERIFIZIERT</span>
+            </div>
+            <span class="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-widest">${certId}</span>
+          </div>
+
+          <div class="text-right space-y-1">
+            <div class="w-28 border-b border-slate-800 font-serif italic text-xs text-slate-800 ml-auto">Dr. K. Schneider</div>
+            <span class="block font-black text-slate-800">საგამოცდო კომისია</span>
+            <span class="text-slate-400 text-[9px]">Prüfungskommission</span>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="pt-3 border-t border-slate-100 text-[9px] text-slate-400 max-w-lg mx-auto leading-normal">
+          * ეს სერტიფიკატი ადასტურებს Deutsch A1 Pro პლატფორმის CEFR A1 სტანდარტის სრული კურსის და შემაჯამებელი გამოცდის წარმატებით ჩაბარებას (სერიული N: ${certId}).
+        </div>
+      </div>
+    `;
+  }
+
   function renderExamResults(container) {
     const questions = window.GERMAN_A1_DATA.final_exam_questions || [];
     const total = questions.length;
@@ -3265,7 +3414,7 @@ ${escapeHtml(item.text_de)}
           </div>
           <p class="text-xs md:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
             ${passed
-              ? 'თქვენ მიაღწიეთ გერმანული ენის A1 დონის სასერტიფიკატო სტანდარტს! ქვემოთ შეგიძლიათ იხილოთ და ამობეჭდოთ თქვენი შიდა სადიაგნოსტიკო სერტიფიკატი.'
+              ? 'თქვენ მიაღწიეთ გერმანული ენის A1 დონის სასერტიფიკატო სტანდარტს! ქვემოთ შეგიძლიათ იხილოთ და ამობეჭდოთ თქვენი ოფიციალური აკადემიური სერტიფიკატი.'
               : 'სამწუხაროდ 60%-იანი ბარიერი ვერ გადაილახა. გირჩევთ კიდევ ერთხელ გაიმეოროთ გაკვეთილები და სცადოთ ხელახლა.'}
           </p>
 
@@ -3274,72 +3423,14 @@ ${escapeHtml(item.text_de)}
               🔄 ხელახლა ჩაბარება
             </button>
             ${passed ? `
-              <button onclick="window.print()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2">
-                <span>🖨️ სერტიფიკატის ბეჭდვა</span>
+              <button onclick="window.DeutschApp.printCertificate()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2">
+                <span>🖨️ სერტიფიკატის ბეჭდვა / PDF</span>
               </button>
             ` : ''}
           </div>
         </div>
 
-        ${passed ? `
-          <!-- Printable Internal Course Certificate (Fixed SEC-01) -->
-          <div id="certificate-print-area" class="bg-white border-8 border-double border-slate-900 p-10 rounded-2xl text-center space-y-6 shadow-2xl text-slate-900">
-            <div class="flex items-center justify-center gap-3">
-              <span class="text-3xl">🇩🇪</span>
-              <span class="text-xs font-black tracking-widest uppercase text-slate-500">DEUTSCH A1 PRO • COURSE COMPLETION CERTIFICATE</span>
-              <span class="text-3xl">🇬🇪</span>
-            </div>
-
-            <div class="space-y-1">
-              <h2 class="text-3xl font-black tracking-tight uppercase">სერტიფიკატი</h2>
-              <p class="text-xs font-bold text-slate-500 tracking-wider">A1 დონის სრული კურსის წარმატებით დასრულება</p>
-            </div>
-
-            <p class="text-xs text-slate-600 max-w-md mx-auto">
-              ეძლევა სტუდენტს, რომელმაც წარმატებით დაასრულა გერმანული ენის A1 დონის საუნივერსიტეტო პროგრამა (10 მოდული) და ჩააბარა შემაჯამებელი სადიაგნოსტიკო გამოცდა:
-            </p>
-
-            <div class="max-w-md mx-auto pt-1 no-print">
-              <label class="text-[11px] font-bold text-slate-500 block mb-1">თქვენი სახელი და გვარი სერტიფიკატისთვის:</label>
-              <input type="text" value="${escapeHtml(userData.learnerName || '')}" oninput="window.DeutschApp.updateLearnerName(this.value)" placeholder="ჩაწერეთ თქვენი სახელი და გვარი..." class="w-full text-center px-3.5 py-2 rounded-xl border border-slate-300 font-extrabold text-sm text-blue-700 focus:outline-none focus:border-blue-600 bg-slate-50">
-            </div>
-
-            <div id="cert-learner-name-display" class="text-2xl font-black border-b-2 border-slate-900 max-w-sm mx-auto pb-1 text-blue-700 uppercase tracking-wide">
-              ${escapeHtml(userData.learnerName || 'საქართველოს გერმანული ენის სტუდენტი')}
-            </div>
-
-            <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto text-xs py-4 border-y border-slate-200">
-              <div>
-                <span class="text-slate-400 block font-bold">შედეგი</span>
-                <span class="font-black text-emerald-600 text-sm">${pct}% (${score}/${total})</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-bold">შეფასება</span>
-                <span class="font-black text-blue-600 text-sm">${pct >= 90 ? 'Sehr Gut (ფრიადი)' : (pct >= 80 ? 'Gut (კარგი)' : 'Bestanden (ჩაბარებულია)')}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block font-bold">თარიღი</span>
-                <span class="font-black text-slate-800 text-sm">${new Date().toLocaleDateString('ka-GE')}</span>
-              </div>
-            </div>
-
-            <div class="pt-4 flex flex-col md:flex-row items-center justify-between max-w-lg mx-auto text-[10px] text-slate-500 font-medium space-y-2 md:space-y-0">
-              <div class="text-left">
-                <span class="block font-black text-slate-800">შეფასებული უნარები:</span>
-                <span>Hören, Lesen, Wortschatz, Grammatik</span>
-              </div>
-              <div class="text-right">
-                <span class="block font-black text-slate-800">სტატუსი:</span>
-                <span class="text-emerald-600 font-black">COURSE COMPLETED ✓</span>
-              </div>
-            </div>
-
-            <!-- Transparent Disclaimer (Compliant with SEC-01) -->
-            <div class="pt-4 border-t border-slate-100 text-[9px] text-slate-400 max-w-md mx-auto leading-normal">
-              * ეს სერტიფიკატი ადასტურებს Deutsch A1 Pro პლატფორმის შიდა სადიაგნოსტიკო ტესტის წარმატებით ჩაბარებას და წარმოადგენს პერსონალურ საგანმანათლებლო შეფასებას.
-            </div>
-          </div>
-        ` : ''}
+        ${passed ? renderCertificateHtml({ showInput: true }) : ''}
 
         <!-- Examination Attempt History -->
         ${(userData.examHistory && userData.examHistory.length) ? `
@@ -3419,6 +3510,59 @@ ${escapeHtml(item.text_de)}
             </div>
           </div>
         </div>
+
+        <!-- Official Certificate Showcase in Profile (Stage 10 Part 4) -->
+        ${userData.examPassed ? `
+          <div class="bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 rounded-3xl p-6 md:p-8 text-white space-y-4 shadow-xl animate-fadeIn">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="text-4xl">🎓</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-xl font-black">A1 დამამთავრებელი სერტიფიკატი</h2>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-500 text-slate-950">ჩაბარებულია ✓</span>
+                  </div>
+                  <p class="text-xs text-slate-300">CEFR A1 Abschlusszertifikat • სერიული N: ${getCertificateId()}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window.DeutschApp.openCertificateModal()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
+                  <span>📜 სერტიფიკატის ნახვა</span>
+                </button>
+                <button onclick="window.DeutschApp.printCertificate()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs border border-white/20 transition flex items-center gap-1.5 active:scale-95">
+                  <span>🖨️ ბეჭდვა / PDF</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-slate-400">სტუდენტი:</span>
+                <strong class="text-white text-sm">${escapeHtml(userData.learnerName || 'საქართველოს გერმანული ენის სტუდენტი')}</strong>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-slate-400">შედეგი: <strong class="text-emerald-400">${userData.examScore !== null ? Math.round((userData.examScore / ((window.GERMAN_A1_DATA.final_exam_questions || []).length || 25)) * 100) : 100}%</strong></span>
+                <span class="text-slate-400">•</span>
+                <span class="text-slate-400">თარიღი: <strong class="text-white">${userData.examDate || new Date().toLocaleDateString('ka-GE')}</strong></span>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <div class="bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="text-4xl opacity-50">🎓</span>
+                <div>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">A1 დამამთავრებელი სერტიფიკატი (დაბლოკილია)</h2>
+                  <p class="text-xs text-slate-500">სერტიფიკატის მისაღებად ჩააბარეთ შემაჯამებელი A1 გამოცდა (მინიმუმ 60% შედეგით)</p>
+                </div>
+              </div>
+              <button onclick="window.DeutschApp.setTab('exam')" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
+                <span>🚀 გამოცდაზე გადასვლა</span>
+              </button>
+            </div>
+          </div>
+        `}
 
         <!-- Lessons Progress Breakdown -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
@@ -3573,6 +3717,61 @@ ${escapeHtml(item.text_de)}
     if (container) container.innerHTML = '';
   }
 
+  // --- Certificate Modal & Print Handlers (Stage 10 Part 4) ---
+  function openCertificateModal() {
+    let container = document.getElementById('modal-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'modal-container';
+      document.body.appendChild(container);
+    }
+
+    const certHtml = renderCertificateHtml({ showInput: true, isModal: true });
+
+    const html = `
+      <div class="modal-overlay animate-fadeIn" onclick="if(event.target===this) window.DeutschApp.closeCertificateModal()">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl max-w-4xl w-full p-4 md:p-8 shadow-2xl relative animate-popIn max-h-[92vh] overflow-y-auto">
+          
+          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700 mb-6 no-print">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🎓</span>
+              <div>
+                <h3 class="font-black text-base md:text-lg text-slate-900 dark:text-white">A1 დამამთავრებელი სერტიფიკატი</h3>
+                <p class="text-xs text-slate-500">ოფიციალური აკადემიური დოკუმენტი (CEFR A1)</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="window.DeutschApp.printCertificate()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
+                <span>🖨️ ბეჭდვა / PDF შენახვა</span>
+              </button>
+              <button onclick="window.DeutschApp.closeCertificateModal()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white text-base">✕</button>
+            </div>
+          </div>
+
+          <div class="certificate-wrapper">
+            ${certHtml}
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function closeCertificateModal() {
+    const container = document.getElementById('modal-container');
+    if (container) container.innerHTML = '';
+  }
+
+  function printCertificate() {
+    if (!document.getElementById('certificate-print-area')) {
+      openCertificateModal();
+    }
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  }
+
   // --- Public Interface for inline HTML events ---
   window.DeutschApp = {
     state,
@@ -3582,6 +3781,10 @@ ${escapeHtml(item.text_de)}
     getLocalDateString,
     getCalendarDaysDiff,
     loadUserData,
+    getCertificateId,
+    openCertificateModal,
+    closeCertificateModal,
+    printCertificate,
     speakSlow: function (text, btn) {
       const orig = state.speechRate;
       state.speechRate = 0.7;

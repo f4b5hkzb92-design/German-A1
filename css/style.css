@@ -660,7 +660,18 @@ html.dark .toast {
 }
 
 /* Certificate Print Stylesheet */
+@page {
+  size: A4 portrait;
+  margin: 1cm;
+}
+
 @media print {
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -671,15 +682,19 @@ html.dark .toast {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 2.5rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 2rem !important;
     box-shadow: none !important;
     border: 8px double #0f172a !important;
     background: #ffffff !important;
     color: #0f172a !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  header, nav, #toast-container, button, .no-print {
+  header, nav, footer, #toast-container, button, input, .no-print, .modal-overlay {
     display: none !important;
   }
 }

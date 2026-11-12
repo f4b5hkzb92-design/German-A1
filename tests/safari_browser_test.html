@@ -59,6 +59,7 @@
   <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8"></main>
 
   <div id="toast-container"></div>
+  <div id="modal-container"></div>
 
   <!-- QA HUD Overlay -->
   <div id="qa-overlay">
@@ -80,8 +81,8 @@
     </div>
   </div>
 
-  <script src="../js/data.js?v=stage10_p3"></script>
-  <script src="../js/app.js?v=stage10_p3"></script>
+  <script src="../js/data.js?v=stage10_p4_2"></script>
+  <script src="../js/app.js?v=stage10_p4_2"></script>
 
   <script>
     async function runSafariBrowserSuite() {
@@ -239,6 +240,14 @@
       const uAfterRoleplay = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{"xp":0}');
       const roleplayCompleted = uAfterRoleplay.labScores && uAfterRoleplay.labScores.roleplay && uAfterRoleplay.labScores.roleplay['rp_cafe'];
       logItem(Boolean(roleplayCompleted && roleplayCompleted.completed === true && roleplayCompleted.score === 100), "12. Roleplay Chat Simulator Conversation Flow & Idempotent Scoring");
+
+      // 13. Official Certificate Modal & Profile Integration (Stage 10 Part 4)
+      app.openCertificateModal();
+      await sleep(100);
+      const certModalArea = document.getElementById('certificate-print-area');
+      const certRendered = Boolean(certModalArea && certModalArea.innerHTML.indexOf('ABSCHLUSSZERTIFIKAT') !== -1);
+      app.closeCertificateModal();
+      logItem(certRendered, "13. Official CEFR A1 Abschlusszertifikat Generator & Modal Preview");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });
