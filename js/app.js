@@ -98,12 +98,20 @@
     labSchreibenFormInputs: {},
     labSchreibenText: '',
     labSchreibenFormSubmitted: false,
+    labSchreibenDrafts: {},
+    labSchreibenSubmittedTasks: {},
+    labSchreibenRubricChecks: {},
     // Sprechen Lab
     labSprechenPromptIndex: 0,
     isRecording: false,
     mediaRecorder: null,
     recordedAudioChunks: [],
-    recordedAudioUrl: null
+    recordedAudioUrl: null,
+    // Grammar CCQ state (Stage 9)
+    lessonGrammarAnswers: {},
+    lessonGrammarSubmitted: {},
+    // Vocabulary active session state (Stage 9)
+    lessonVocabSession: null
   };
 
   // --- Local Calendar Date & Streak Calculations ---
@@ -273,9 +281,11 @@
     };
 
     if (skillKey === 'grammar') {
-      p.grammarReviewed = true;
+      p.grammarScore = Math.max(p.grammarScore || 0, scorePct || 0);
+      if (passed) p.grammarReviewed = true;
     } else if (skillKey === 'vocab') {
-      p.vocabPracticed = true;
+      p.vocabScore = Math.max(p.vocabScore || 0, scorePct || 0);
+      if (passed) p.vocabPracticed = true;
     } else if (skillKey === 'mc') {
       p.mcScore = Math.max(p.mcScore || 0, scorePct);
       if (passed) p.mcPassed = true;
@@ -803,6 +813,14 @@
         .replace(/\n• /g, '<li class="ml-4 list-disc mt-1.5 font-medium">')
         .replace(/^> (.*$)/gim, '<div class="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-950/30 p-3.5 rounded-r-xl my-3 text-amber-900 dark:text-amber-200 text-xs md:text-sm font-medium">$1</div>');
 
+      const savedCheck = (userData.grammarChecks && userData.grammarChecks[lesson.id]) || {};
+      let userAns = state.lessonGrammarAnswers[sec.id];
+      if (userAns === undefined && savedCheck.answers && savedCheck.answers[sec.id] !== undefined) {
+        userAns = savedCheck.answers[sec.id];
+      }
+      const isSubmitted = Boolean(state.lessonGrammarSubmitted[lesson.id] || savedCheck.passed);
+      const isCorrect = isSubmitted && sec.check && (userAns === sec.check.answer);
+
       html += `
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm">
           <h3 class="text-lg md:text-xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2.5">
@@ -812,12 +830,89 @@
           <div class="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed space-y-3 font-normal">
             <p>${formattedContent}</p>
           </div>
+
+          ${sec.check ? `
+            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                  <span>🧠</span> <strong>თეორიის გაგების შემოწმება:</strong>
+                </span>
+                ${isSubmitted ? (isCorrect ? `
+                  <span class="text-emerald-600 font-extrabold flex items-center gap-1">✓ სწორია</span>
+                ` : `
+                  <span class="text-rose-600 font-extrabold flex items-center gap-1">✕ შეცდომა</span>
+                `) : `
+                  <span class="text-slate-400 text-[11px]">აირჩიეთ სწორი პასუხი</span>
+                `}
+              </div>
+              <p class="text-xs md:text-sm font-black text-slate-900 dark:text-white">${escapeHtml(sec.check.question)}</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                ${sec.check.options.map((opt, oIdx) => {
+                  let btnCls = "bg-slate-50 dark:bg-slate-700/40 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-slate-600";
+                  if (userAns === oIdx) {
+                    btnCls = "bg-blue-600 text-white border-blue-600 shadow-sm font-bold";
+                  }
+                  if (isSubmitted) {
+                    if (oIdx === sec.check.answer) {
+                      btnCls = "bg-emerald-600 text-white border-emerald-600 font-black shadow-sm";
+                    } else if (userAns === oIdx && !isCorrect) {
+                      btnCls = "bg-rose-600 text-white border-rose-600 font-bold";
+                    } else {
+                      btnCls = "opacity-50 border-slate-200 dark:border-slate-700";
+                    }
+                  }
+                  return `
+                    <button onclick="window.DeutschApp.onSelectGrammarCheckOption('${sec.id}', ${oIdx}, ${lesson.id})" class="p-2.5 rounded-xl border text-xs text-left transition ${btnCls}" ${isSubmitted ? 'disabled' : ''}>
+                      ${String.fromCharCode(65 + oIdx)}. ${escapeHtml(opt)}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+              ${isSubmitted ? `
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 italic mt-1 font-medium">💡 ${escapeHtml(sec.check.explanation)}</p>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
       `;
     });
 
+    const grammarStatus = (userData.lessonSkillProgress && userData.lessonSkillProgress[lesson.id]) || {};
+    const grammarPassed = grammarStatus.grammarReviewed === true;
+
     html += `
+        <!-- Grammar Comprehension Mastery Bar (Stage 9) -->
+        <div class="p-6 rounded-3xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white space-y-4 shadow-lg animate-fadeIn">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/30 text-blue-200 text-[10px] font-black uppercase tracking-wider">
+                  CEFR A1 თეორიის ათვისება
+                </span>
+                ${grammarPassed ? `
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">
+                    ✓ ჩათვლილია (${grammarStatus.grammarScore || 100}%)
+                  </span>
+                ` : `
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
+                    საჭიროა შემოწმება (მინ. 70%)
+                  </span>
+                `}
+              </div>
+              <h4 class="text-base md:text-lg font-black">გაკვეთილის გრამატიკული დაუფლების შემოწმება</h4>
+              <p class="text-xs text-blue-200">
+                ${grammarPassed ? 'შესანიშნავია! ამ გაკვეთილის გრამატიკული წესები წარმატებით ათვისებულია.' : 'უპასუხეთ ზემოთ მოცემულ ყველა შეკითხვას და დააჭირეთ შემოწმებას.'}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="window.DeutschApp.submitGrammarCheck(${lesson.id})" class="px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 flex items-center gap-1.5 whitespace-nowrap">
+                <span>თეორიის შემოწმება ✓</span>
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
 
         <!-- TAB CONTENT 2: Dialogues (Fixed BUG-01) -->
         <div id="lesson-panel-dialogues" class="hidden space-y-6">
@@ -1824,6 +1919,25 @@
             <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: ${((state.flashcardIndex + 1) / total) * 100}%"></div>
           </div>
 
+          ${state.lessonVocabSession && state.lessonVocabSession.lessonId ? (() => {
+            const sess = state.lessonVocabSession;
+            const reviewed = sess.reviewedIds.length;
+            const minReq = Math.min(5, total);
+            const acc = reviewed > 0 ? Math.round((sess.correctCount / reviewed) * 100) : 0;
+            const isPassed = reviewed >= minReq && acc >= 70;
+            return `
+              <div class="p-3 rounded-2xl bg-white dark:bg-slate-800 border ${isPassed ? 'border-emerald-500 bg-emerald-50/50' : 'border-blue-200'} text-xs flex items-center justify-between shadow-sm animate-fadeIn">
+                <span class="font-extrabold ${isPassed ? 'text-emerald-700 dark:text-emerald-300' : 'text-blue-700 dark:text-blue-300'} flex items-center gap-1.5">
+                  <span>🎯 გაკვეთილი ${sess.lessonId} ლექსიკა:</span>
+                  <span>${reviewed} / ${minReq} სიტყვა (სიზუსტე: ${acc}%)</span>
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${isPassed ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                  ${isPassed ? '✓ ათვისებულია' : 'მინ. 5 სიტყვა (≥70%)'}
+                </span>
+              </div>
+            `;
+          })() : ''}
+
           ${(() => {
             const current = state.flashcardList[state.flashcardIndex];
             let badgeClass = 'bg-slate-100 text-slate-700';
@@ -2296,7 +2410,12 @@ ${escapeHtml(item.text_de)}
         ` : ''}
       `;
     } else {
+      const isSubmitted = Boolean(state.labSchreibenSubmittedTasks[item.id]);
+      const savedScore = (userData.labScores && userData.labScores.schreiben && userData.labScores.schreiben[item.id]) || {};
+      const isSelfReviewed = savedScore.state === 'self_reviewed' || savedScore.completed === true;
+      const rubricsState = state.labSchreibenRubricChecks[item.id] || {};
       const wordsCount = (state.labSchreibenText.trim().match(/\S+/g) || []).length;
+
       html += `
         <!-- German character helper keys -->
         <div class="flex flex-wrap gap-1.5 pt-2">
@@ -2317,9 +2436,9 @@ ${escapeHtml(item.text_de)}
           </span>
         </div>
 
-        <!-- Rubric Checklist & Model Solution -->
+        <!-- 4-Stage Pedagogical Audit Disclaimer -->
         <div class="p-3 bg-blue-50/70 dark:bg-slate-700/40 rounded-xl text-xs text-blue-900 dark:text-blue-200 font-medium">
-          ℹ️ <strong>პედაგოგიური შენიშვნა:</strong> წერითი მეილი ემსახურება თვითშეფასებას. დაწერეთ ტექსტი და შეადარეთ ეტალონურ ნიმუშს. პლატფორმა არ იყენებს ყალბ ავტომატურ შეფასებებს.
+          ℹ️ <strong>პედაგოგიური სტანდარტი (Stage 9):</strong> წერითი დავალების გაგზავნა ხსნის ეტალონურ ნიმუშს. ქულა (+15 XP) გაიცემა მხოლოდ მას შემდეგ, რაც დაასრულებთ 4-პუნქტიან თვითშეფასების რუბრიკას. სისტემა არ გასცემს შეფასებას მხოლოდ სიმბოლოების რაოდენობაზე დაყრდნობით.
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -2332,12 +2451,51 @@ ${escapeHtml(item.text_de)}
 
           <div class="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 text-xs space-y-2">
             <span class="font-bold text-amber-900 dark:text-amber-200 block">💡 ეტალონური ნიმუში (Musterlösung):</span>
-            ${state.labSchreibenFormSubmitted ? `
+            ${(isSubmitted || isSelfReviewed) ? `
               <p class="text-amber-900 dark:text-amber-300 font-mono whitespace-pre-line text-[11px] animate-fadeIn">${escapeHtml(item.model_solution)}</p>
             ` : `
-              <p class="text-slate-400 italic text-[11px]">ეტალონური ნიმუში გაიხსნება თქვენი წერილის ჩაბარების (მინ. ${item.min_words || 15} სიტყვა) შემდეგ.</p>
+              <p class="text-slate-400 italic text-[11px]">ეტალონური ნიმუში გაიხსნება თქვენი წერილის გაგზავნის (მინ. ${item.min_words || 15} სიტყვა) შემდეგ.</p>
             `}
           </div>
+
+          ${(isSubmitted || isSelfReviewed) ? `
+            <!-- Interactive 4-Point Self-Assessment Rubric (Stage 9) -->
+            <div class="md:col-span-2 p-4 rounded-2xl bg-blue-50/70 dark:bg-slate-700/30 border border-blue-200 dark:border-slate-700 text-xs space-y-3 animate-fadeIn">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-blue-900 dark:text-blue-200 block">
+                  📋 თვითშეფასების რუბრიკა (შეადარეთ თქვენი ტექსტი ეტალონურ ნიმუშს):
+                </span>
+                ${isSelfReviewed ? `
+                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px]">
+                    ✓ თვითშეფასება დადასტურებულია (+15 XP)
+                  </span>
+                ` : `
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px]">
+                    საჭიროებს რუბრიკის მონიშვნას (მინ. 3 პუნქტი)
+                  </span>
+                `}
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                ${(item.rubrics || []).map((r, rIdx) => {
+                  const isChecked = Boolean(rubricsState[rIdx] || isSelfReviewed);
+                  return `
+                    <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer hover:border-blue-400 transition">
+                      <input type="checkbox" onchange="window.DeutschApp.onToggleSchreibenRubric('${item.id}', ${rIdx})" ${isChecked ? 'checked' : ''} ${isSelfReviewed ? 'disabled' : ''} class="mt-0.5 rounded text-blue-600">
+                      <span class="text-slate-700 dark:text-slate-200 font-medium">${escapeHtml(r)}</span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+
+              ${!isSelfReviewed ? `
+                <div class="flex justify-end pt-2">
+                  <button onclick="window.DeutschApp.confirmSchreibenSelfReview('${item.id}')" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition active:scale-95">
+                    თვითშეფასების დადასტურება (+15 XP) ✓
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
       `;
     }
@@ -2349,9 +2507,9 @@ ${escapeHtml(item.text_de)}
           </button>
 
           ${item.type !== 'form' ? `
-            ${!state.labSchreibenFormSubmitted ? `
+            ${!state.labSchreibenSubmittedTasks[item.id] && !(userData.labScores && userData.labScores.schreiben && userData.labScores.schreiben[item.id] && userData.labScores.schreiben[item.id].completed) ? `
               <button onclick="window.DeutschApp.submitSchreibenLetter()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition">
-                ჩაბარება & ნიმუშის ნახვა (+15 XP) ✓
+                წერილის გაგზავნა თვითშეფასებისთვის →
               </button>
             ` : `
               <button onclick="window.DeutschApp.nextLabSchreiben(${tasks.length})" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition">
@@ -3028,7 +3186,6 @@ ${escapeHtml(item.text_de)}
     // Lessons
     openLesson: function (id) {
       state.selectedLessonId = id;
-      recordSkillProgress(id, 'grammar', 100, true);
       setTab('lesson-detail');
     },
     switchLessonSubtab,
@@ -3036,7 +3193,11 @@ ${escapeHtml(item.text_de)}
     trainLessonFlashcards: function (lessonId) {
       state.flashcardMode = 'normal';
       state.flashcardLessonFilter = String(lessonId);
-      recordSkillProgress(Number(lessonId), 'vocab', 100, true);
+      state.lessonVocabSession = {
+        lessonId: Number(lessonId),
+        reviewedIds: [],
+        correctCount: 0
+      };
       setTab('flashcards');
     },
     trainMistakesFlashcards: function () {
@@ -3276,6 +3437,26 @@ ${escapeHtml(item.text_de)}
         }
       }
       updateSM2Item(current.id, quality);
+
+      // Track active lesson vocabulary mastery session (Stage 9)
+      if (state.lessonVocabSession && state.lessonVocabSession.lessonId) {
+        const sess = state.lessonVocabSession;
+        if (!sess.reviewedIds.includes(current.id)) {
+          sess.reviewedIds.push(current.id);
+        }
+        if (quality >= 3) {
+          sess.correctCount += 1;
+        }
+        const lessonWords = window.GERMAN_A1_DATA.dictionary.filter(w => w.lesson_id === sess.lessonId);
+        const minRequired = Math.min(5, lessonWords.length);
+        const accuracy = Math.round((sess.correctCount / sess.reviewedIds.length) * 100);
+
+        if (sess.reviewedIds.length >= minRequired && accuracy >= 70) {
+          recordSkillProgress(sess.lessonId, 'vocab', accuracy, true);
+          grantRewardXP('vocab_mastery_' + sess.lessonId, 20, 'ლექსიკის ბარათები ჩათვლილია (+20 XP)!');
+        }
+      }
+
       state.flashcardFlipped = false;
       state.flashcardIndex = (state.flashcardIndex + 1) % state.flashcardList.length;
       renderFlashcards(document.getElementById('main-content'));
@@ -3485,17 +3666,92 @@ ${escapeHtml(item.text_de)}
         return;
       }
 
+      state.labSchreibenSubmittedTasks[item.id] = true;
       state.labSchreibenFormSubmitted = true;
+      state.labSchreibenDrafts[item.id] = state.labSchreibenText;
+
+      showToast('წერილი გაიგზავნა! შეადარეთ ნიმუშს და შეავსეთ თვითშეფასების რუბრიკა.');
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    onToggleSchreibenRubric: function (taskId, rubricIdx) {
+      state.labSchreibenRubricChecks[taskId] = state.labSchreibenRubricChecks[taskId] || {};
+      state.labSchreibenRubricChecks[taskId][rubricIdx] = !state.labSchreibenRubricChecks[taskId][rubricIdx];
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    confirmSchreibenSelfReview: function (taskId) {
+      const checks = state.labSchreibenRubricChecks[taskId] || {};
+      const checkedCount = Object.values(checks).filter(Boolean).length;
+
+      if (checkedCount < 3) {
+        showToast('გთხოვთ მონიშნოთ მინიმუმ 3 რუბრიკის კრიტერიუმი თვითშეფასების დასადასტურებლად.');
+        return;
+      }
+
       userData.labScores = userData.labScores || {};
       userData.labScores.schreiben = userData.labScores.schreiben || {};
-      userData.labScores.schreiben[item.id] = {
+      const wordsCount = (state.labSchreibenText.trim().match(/\S+/g) || []).length;
+      userData.labScores.schreiben[taskId] = {
+        state: 'self_reviewed',
         wordsCount: wordsCount,
+        checkedRubrics: checkedCount,
         completed: true,
         date: getLocalDateString()
       };
 
-      grantRewardXP('lab_schreiben_' + item.id, 15, 'წერილი წარმატებით გაიგზავნა!');
+      grantRewardXP('lab_schreiben_' + taskId, 15, 'თვითშეფასება წარმატებით დასრულდა (+15 XP)!');
       renderLanguageLabs(document.getElementById('main-content'));
+    },
+    onSelectGrammarCheckOption: function (secId, optionIdx, lessonId) {
+      if (state.lessonGrammarSubmitted[lessonId]) return;
+      state.lessonGrammarAnswers[secId] = optionIdx;
+      renderLessonDetail(document.getElementById('main-content'), lessonId);
+    },
+    submitGrammarCheck: function (lessonId) {
+      const lesson = window.GERMAN_A1_DATA.lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      const sections = lesson.grammar_sections || [];
+      const sectionsWithChecks = sections.filter(s => s.check);
+      const totalChecks = sectionsWithChecks.length;
+
+      const answeredCount = sectionsWithChecks.filter(s => state.lessonGrammarAnswers[s.id] !== undefined).length;
+      if (answeredCount < totalChecks) {
+        showToast(`გთხოვთ უპასუხოთ ყველა (${totalChecks}) გრამატიკულ შეკითხვას შემოწმებამდე.`);
+        return;
+      }
+
+      let correctCount = 0;
+      sectionsWithChecks.forEach(s => {
+        if (state.lessonGrammarAnswers[s.id] === s.check.answer) {
+          correctCount += 1;
+        }
+      });
+
+      const pct = Math.round((correctCount / totalChecks) * 100);
+      const passed = pct >= 70;
+
+      userData.grammarChecks = userData.grammarChecks || {};
+      userData.grammarChecks[lessonId] = {
+        passed: passed,
+        score: pct,
+        answers: { ...state.lessonGrammarAnswers },
+        date: getLocalDateString()
+      };
+
+      recordSkillProgress(lessonId, 'grammar', pct, passed);
+
+      if (passed) {
+        state.lessonGrammarSubmitted[lessonId] = true;
+        playChime('success');
+        grantRewardXP('grammar_mastery_' + lessonId, 20, `თეორიის გაგება დადასტურებულია: ${correctCount}/${totalChecks} სწორია (${pct}%)!`);
+      } else {
+        state.lessonGrammarSubmitted[lessonId] = false;
+        playChime('wrong');
+        showToast(`შედეგი: ${correctCount}/${totalChecks} (${pct}%). გამსვლელი ზღვარია 70%. გადახედეთ წესებს და სცადეთ თავიდან.`);
+        saveUserData();
+      }
+
+      renderLessonDetail(document.getElementById('main-content'), lessonId);
     },
     onSchreibenTextInput: function (val) {
       state.labSchreibenText = val;

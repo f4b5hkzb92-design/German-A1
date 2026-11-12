@@ -403,6 +403,14 @@ grammar_tables = {
     }
 }
 
+from data_grammar_checks import GRAMMAR_CHECKS
+
+for lesson in ALL_DEEP_LESSONS:
+    for sec in lesson.get("grammar_sections", []):
+        sec_id = str(sec.get("id"))
+        if sec_id in GRAMMAR_CHECKS:
+            sec["check"] = GRAMMAR_CHECKS[sec_id]
+
 # Master compile
 master_data = {
     "lessons": ALL_DEEP_LESSONS,
