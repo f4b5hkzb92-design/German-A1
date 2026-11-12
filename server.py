@@ -26,6 +26,29 @@ class CustomHTTPHandler(http.server.SimpleHTTPRequestHandler):
             return
         super().do_GET()
 
+    def do_POST(self):
+        if self.path == '/api/qa-results':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            results_dir = os.path.join(DIR, "tests")
+            os.makedirs(results_dir, exist_ok=True)
+            results_file = os.path.join(results_dir, "_safari_qa_results.json")
+            with open(results_file, "wb") as f:
+                f.write(post_data)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok"}')
+            return
+        self.send_response(404)
+        self.end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
     def end_headers(self):
         # Enable CORS and caching headers
         self.send_header('Access-Control-Allow-Origin', '*')

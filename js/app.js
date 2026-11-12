@@ -165,6 +165,7 @@
       mistakeWords: [],
       claimedRewards: {}, // rewardKey -> timestamp
       labScores: { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} },
+      writingDrafts: {}, // taskId -> draftText (Stage 9.1: Draft Persistence)
       examHistory: [], // [{ attempt, date, score, total, pct, passed }]
       examPassed: false,
       examScore: null,
@@ -174,9 +175,10 @@
     };
   }
 
-  // --- Local Storage Management & State Persistence (Stage 8) ---
+  // --- Local Storage Management & State Persistence (Stage 8 & Stage 9.1) ---
   const STORAGE_KEY = 'deutsch_a1_pro_v3';
   const RESET_SENTINEL = 'deutsch_a1_reset_marker_v3';
+  const WRITING_DRAFTS_KEY = 'deutsch_a1_writing_drafts_v1';
 
   let userData = loadUserData();
 
@@ -211,11 +213,26 @@
         data.mistakeWords = Array.isArray(data.mistakeWords) ? data.mistakeWords : [];
         data.claimedRewards = (typeof data.claimedRewards === 'object' && data.claimedRewards !== null) ? data.claimedRewards : {};
         data.labScores = (typeof data.labScores === 'object' && data.labScores !== null) ? data.labScores : { hoeren: {}, lesen: {}, schreiben: {}, sprechen: {} };
+        data.writingDrafts = (typeof data.writingDrafts === 'object' && data.writingDrafts !== null && !Array.isArray(data.writingDrafts)) ? data.writingDrafts : {};
         data.examHistory = Array.isArray(data.examHistory) ? data.examHistory : [];
         data.examPassed = Boolean(data.examPassed);
         data.examScore = typeof data.examScore === 'number' ? data.examScore : null;
         data.examDate = typeof data.examDate === 'string' ? data.examDate : null;
         data.isPro = true;
+
+        // Versioned Writing Drafts Safe Recovery (Stage 9.1: Draft Persistence)
+        try {
+          const rawDrafts = localStorage.getItem(WRITING_DRAFTS_KEY);
+          if (rawDrafts) {
+            const parsedDrafts = JSON.parse(rawDrafts);
+            if (parsedDrafts && typeof parsedDrafts === 'object' && !Array.isArray(parsedDrafts)) {
+              data.writingDrafts = Object.assign({}, data.writingDrafts, parsedDrafts);
+            }
+          }
+        } catch (eDraft) {
+          console.warn('Recovered safely from corrupted writing drafts storage:', eDraft);
+          data.writingDrafts = {};
+        }
 
         updateDailyStreak(data);
       }
@@ -233,6 +250,18 @@
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
+  }
+
+  function saveWritingDraft(taskId, text) {
+    if (!taskId) return;
+    userData.writingDrafts = userData.writingDrafts || {};
+    userData.writingDrafts[taskId] = text;
+    try {
+      localStorage.setItem(WRITING_DRAFTS_KEY, JSON.stringify(userData.writingDrafts));
+    } catch (e) {
+      console.warn('Failed to persist writing draft to localStorage:', e);
+    }
+    saveUserData();
   }
 
   // --- Idempotent Reward Management (Fixes Priority 0 Defect 1: XP Exploits) ---
@@ -1132,9 +1161,8 @@
       activeBtn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400');
     }
 
-    if (tab === 'grammar' && state.selectedLessonId) {
-      recordSkillProgress(state.selectedLessonId, 'grammar', 100, true);
-    }
+    // Critical Fix 1 (Stage 9.1): Do NOT automatically award grammar mastery on tab switch.
+    // Grammar mastery is only granted by passing submitGrammarCheck() CCQs with >= 70% score.
 
     ['grammar', 'dialogues', 'culture', 'vocab', 'exercises'].forEach(t => {
       const panel = document.getElementById(`lesson-panel-${t}`);
@@ -2410,6 +2438,12 @@ ${escapeHtml(item.text_de)}
         ` : ''}
       `;
     } else {
+      // Stage 9.1: Restore persistent draft if current text is empty
+      if (!state.labSchreibenText) {
+        state.labSchreibenText = (userData.writingDrafts && userData.writingDrafts[item.id]) || state.labSchreibenDrafts[item.id] || '';
+        state.labSchreibenDrafts[item.id] = state.labSchreibenText;
+      }
+
       const isSubmitted = Boolean(state.labSchreibenSubmittedTasks[item.id]);
       const savedScore = (userData.labScores && userData.labScores.schreiben && userData.labScores.schreiben[item.id]) || {};
       const isSelfReviewed = savedScore.state === 'self_reviewed' || savedScore.completed === true;
@@ -3195,6 +3229,7 @@ ${escapeHtml(item.text_de)}
       state.flashcardLessonFilter = String(lessonId);
       state.lessonVocabSession = {
         lessonId: Number(lessonId),
+        ratings: {}, // wordId -> latestQuality (Stage 9.1: Latest-attempt policy per unique word)
         reviewedIds: [],
         correctCount: 0
       };
@@ -3438,20 +3473,27 @@ ${escapeHtml(item.text_de)}
       }
       updateSM2Item(current.id, quality);
 
-      // Track active lesson vocabulary mastery session (Stage 9)
+      // Track active lesson vocabulary mastery session with Latest-Attempt Policy per Unique Word (Stage 9.1)
       if (state.lessonVocabSession && state.lessonVocabSession.lessonId) {
         const sess = state.lessonVocabSession;
-        if (!sess.reviewedIds.includes(current.id)) {
-          sess.reviewedIds.push(current.id);
-        }
-        if (quality >= 3) {
-          sess.correctCount += 1;
-        }
-        const lessonWords = window.GERMAN_A1_DATA.dictionary.filter(w => w.lesson_id === sess.lessonId);
-        const minRequired = Math.min(5, lessonWords.length);
-        const accuracy = Math.round((sess.correctCount / sess.reviewedIds.length) * 100);
+        sess.ratings = sess.ratings || {};
+        sess.ratings[current.id] = quality; // Latest rating for this unique word
 
-        if (sess.reviewedIds.length >= minRequired && accuracy >= 70) {
+        const uniqueWordIds = Object.keys(sess.ratings);
+        const uniqueCount = uniqueWordIds.length;
+        const uniqueCorrect = uniqueWordIds.filter(id => sess.ratings[id] >= 3).length;
+
+        // Maintain backward compatibility for state inspection
+        sess.reviewedIds = uniqueWordIds.map(Number);
+        sess.correctCount = uniqueCorrect;
+
+        const lessonWords = window.GERMAN_A1_DATA.dictionary.filter(w => w.lesson_id === sess.lessonId);
+        // Scaled requirement reflecting deck size (Stage 9.1):
+        // Minimum 8 words (or full deck if < 8), 20% of deck, capped at 25 words
+        const minRequired = Math.min(lessonWords.length, Math.max(8, Math.min(25, Math.ceil(lessonWords.length * 0.2))));
+        const accuracy = uniqueCount > 0 ? Math.round((uniqueCorrect / uniqueCount) * 100) : 0;
+
+        if (uniqueCount >= minRequired && accuracy >= 70) {
           recordSkillProgress(sess.lessonId, 'vocab', accuracy, true);
           grantRewardXP('vocab_mastery_' + sess.lessonId, 20, 'ლექსიკის ბარათები ჩათვლილია (+20 XP)!');
         }
@@ -3669,6 +3711,7 @@ ${escapeHtml(item.text_de)}
       state.labSchreibenSubmittedTasks[item.id] = true;
       state.labSchreibenFormSubmitted = true;
       state.labSchreibenDrafts[item.id] = state.labSchreibenText;
+      saveWritingDraft(item.id, state.labSchreibenText);
 
       showToast('წერილი გაიგზავნა! შეადარეთ ნიმუშს და შეავსეთ თვითშეფასების რუბრიკა.');
       renderLanguageLabs(document.getElementById('main-content'));
@@ -3755,6 +3798,12 @@ ${escapeHtml(item.text_de)}
     },
     onSchreibenTextInput: function (val) {
       state.labSchreibenText = val;
+      const tasks = (window.GERMAN_A1_DATA.language_labs || {}).schreiben || [];
+      const item = tasks[state.labSchreibenTaskIndex % tasks.length];
+      if (item && item.type !== 'form') {
+        state.labSchreibenDrafts[item.id] = val;
+        saveWritingDraft(item.id, val);
+      }
       const wordsCount = (val.trim().match(/\S+/g) || []).length;
       const cntEl = document.querySelector('#schreiben-textarea + span strong');
       if (cntEl) cntEl.textContent = wordsCount;
@@ -3769,8 +3818,18 @@ ${escapeHtml(item.text_de)}
       }
     },
     nextLabSchreiben: function (total) {
+      const tasks = (window.GERMAN_A1_DATA.language_labs || {}).schreiben || [];
+      const curItem = tasks[state.labSchreibenTaskIndex % tasks.length];
+      if (curItem && curItem.type !== 'form' && state.labSchreibenText) {
+        saveWritingDraft(curItem.id, state.labSchreibenText);
+      }
       state.labSchreibenTaskIndex = (state.labSchreibenTaskIndex + 1) % total;
-      state.labSchreibenText = '';
+      const nextItem = tasks[state.labSchreibenTaskIndex % tasks.length];
+      if (nextItem && nextItem.type !== 'form') {
+        state.labSchreibenText = (userData.writingDrafts && userData.writingDrafts[nextItem.id]) || state.labSchreibenDrafts[nextItem.id] || '';
+      } else {
+        state.labSchreibenText = '';
+      }
       state.labSchreibenFormInputs = {};
       state.labSchreibenFormSubmitted = false;
       renderLanguageLabs(document.getElementById('main-content'));
@@ -3893,15 +3952,19 @@ ${escapeHtml(item.text_de)}
       renderExam(document.getElementById('main-content'));
     },
 
-    // Profile & Reset (Fixed Defect 8.6)
+    // Profile & Reset (Fixed Defect 8.6 & Stage 9.1 Drafts Purge)
     resetAllProgress: function () {
       if (confirm('ნამდვილად გსურთ მთლიანი პროგრესის წაშლა? ეს ქმედება შეუქცევადია.')) {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(WRITING_DRAFTS_KEY);
         localStorage.removeItem('deutsch_a1_pro_v2');
         localStorage.removeItem('deutsch_a1_user_data_v1');
         localStorage.setItem(RESET_SENTINEL, 'true');
 
         userData = getCleanDefaultUserData();
+        userData.writingDrafts = {};
+        state.labSchreibenDrafts = {};
+        state.labSchreibenText = '';
         saveUserData();
         setTab('profile');
         showToast('მთლიანი პროგრესი და ისტორია გასუფთავდა.');

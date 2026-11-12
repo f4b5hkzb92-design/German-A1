@@ -27,6 +27,13 @@ var window = {
 };
 var globalThis = window;
 
+var console = {
+  log: function() {},
+  warn: function() {},
+  error: function() {},
+  info: function() {}
+};
+
 var document = {
   getElementById: function(id) { 
     return { 
@@ -225,10 +232,10 @@ app.flashcardSM2Action(5);
 var u2 = localStorage.getItem('deutsch_a1_pro_v3');
 var vocabUnderMin = (u2 !== null && JSON.parse(u2).lessonSkillProgress && JSON.parse(u2).lessonSkillProgress[1] && JSON.parse(u2).lessonSkillProgress[1].vocabPracticed);
 
-// Action C: Complete required minimum (5 unique words) with correct recall
-app.flashcardSM2Action(5);
-app.flashcardSM2Action(5);
-app.flashcardSM2Action(5);
+// Action C: Complete required scaled minimum (25 unique words for Lesson 1) with correct recall
+for (var i = 0; i < 23; i++) {
+  app.flashcardSM2Action(5);
+}
 var u3 = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3'));
 var vocabMastered = u3.lessonSkillProgress && u3.lessonSkillProgress[1] && u3.lessonSkillProgress[1].vocabPracticed === true;
 var vocabXP = u3.xp;

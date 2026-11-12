@@ -92,9 +92,11 @@
 
       let passed = 0;
       let failed = 0;
+      const testDetails = [];
 
       function logItem(ok, title) {
         if (ok) passed++; else failed++;
+        testDetails.push({ ok: Boolean(ok), title });
         const el = document.createElement('div');
         el.className = `p-2 rounded-xl flex items-center justify-between ${ok ? 'bg-emerald-950/40 border border-emerald-800/50 text-emerald-300' : 'bg-rose-950/40 border border-rose-800/50 text-rose-300'}`;
         el.innerHTML = `<span>${title}</span> <strong class="font-black">${ok ? '✓ PASS' : '✕ FAIL'}</strong>`;
@@ -102,6 +104,9 @@
       }
 
       await sleep(300);
+
+      // Clean test isolation for deterministic QA runs
+      localStorage.clear();
 
       // 1. App Boot & Lessons View
       const app = window.DeutschApp;
@@ -173,11 +178,17 @@
       const lesenRecorded = uAfterLesen.labScores && uAfterLesen.labScores.lesen && uAfterLesen.labScores.lesen['l_lab_1'];
       logItem(Boolean(lesenRecorded), "7. Reading Lab (Lesen) Genuine Scoring & Storage");
 
-      // 8. Core Language Labs (Schreiben 4-Stage Rubric)
+      // 8. Core Language Labs (Schreiben 4-Stage Rubric & Draft Persistence)
       app.switchLabTab('schreiben');
       app.nextLabSchreiben(4); // Task 2 letter
       await sleep(150);
-      app.onSchreibenTextInput("Lieber Peter, ich habe am Samstag Geburtstag und lade dich herzlich ein. Die Party beginnt um 18 Uhr.");
+      const testDraft = "Lieber Peter, ich habe am Samstag Geburtstag und lade dich herzlich ein. Die Party beginnt um 18 Uhr.";
+      app.onSchreibenTextInput(testDraft);
+      const draftsRaw = localStorage.getItem('deutsch_a1_writing_drafts_v1');
+      const draftsObj = draftsRaw ? JSON.parse(draftsRaw) : {};
+      const draftPersisted = Boolean(draftsObj['s_lab_2'] && draftsObj['s_lab_2'] === testDraft);
+      logItem(draftPersisted, "8. Writing Draft Persistence to Versioned Storage (deutsch_a1_writing_drafts_v1)");
+
       app.submitSchreibenLetter();
       await sleep(100);
       app.onToggleSchreibenRubric('s_lab_2', 0);
@@ -188,25 +199,45 @@
       await sleep(150);
       const uAfterSchreiben = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{"xp":0}');
       const schreibenCompleted = uAfterSchreiben.labScores && uAfterSchreiben.labScores.schreiben && uAfterSchreiben.labScores.schreiben['s_lab_2'];
-      logItem(Boolean(schreibenCompleted && schreibenCompleted.state === 'self_reviewed'), "8. Writing Lab 4-Stage Lifecycle & Rubric Confirmation");
+      logItem(Boolean(schreibenCompleted && schreibenCompleted.state === 'self_reviewed'), "9. Writing Lab 4-Stage Lifecycle & Rubric Confirmation");
 
-      // 9. Speech Synthesizer Speed Toggles
-      logItem(typeof window.speechSynthesis !== 'undefined', "9. Web Speech API Synthesizer Available in Safari");
+      // 10. Speech Synthesizer Speed Toggles
+      logItem(typeof window.speechSynthesis !== 'undefined', "10. Web Speech API Synthesizer Available in Safari");
 
-      // 10. Theme Toggling
+      // 11. Theme Toggling (Verify bidirectional toggle & state synchronization)
+      const wasDark = document.documentElement.classList.contains('dark');
       app.toggleTheme();
-      const isDark = document.documentElement.classList.contains('dark');
+      const afterFirstToggle = document.documentElement.classList.contains('dark');
+      const toggledSuccessfully = (afterFirstToggle !== wasDark);
       app.toggleTheme();
-      logItem(isDark, "10. Dark Mode / Light Mode Theme Switching Operational");
+      const afterSecondToggle = document.documentElement.classList.contains('dark');
+      const restoredSuccessfully = (afterSecondToggle === wasDark);
+      logItem(toggledSuccessfully && restoredSuccessfully, "11. Dark Mode / Light Mode Theme Switching Operational");
 
-      // Final Summary
-      badge.textContent = "100% PASS";
-      badge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-slate-950";
-      summary.textContent = `სრული წარმატება: ${passed} გავლილია, ${failed} შეცდომა`;
+      // Final Summary (Stage 9.1: Dynamic Status Calculation based on real counts)
+      const allPassed = (failed === 0 && passed > 0);
+      badge.textContent = allPassed ? "100% PASS" : `${failed} FAILED`;
+      badge.className = allPassed
+        ? "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-slate-950"
+        : "px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white";
+      summary.textContent = allPassed
+        ? `სრული წარმატება: ${passed} გავლილია, ${failed} შეცდომა`
+        : `დაფიქსირდა შეცდომა: ${passed} გავლილია, ${failed} შეცდომა`;
 
       // Set global flag for external testers
-      window.__SAFARI_QA_PASSED__ = (failed === 0);
-      window.__SAFARI_QA_RESULTS__ = { passed, failed };
+      window.__SAFARI_QA_PASSED__ = allPassed;
+      window.__SAFARI_QA_RESULTS__ = { passed, failed, success: allPassed };
+
+      // Dispatch machine-readable results to local server (Stage 9.1)
+      try {
+        await fetch('/api/qa-results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passed, failed, success: allPassed, details: testDetails, timestamp: new Date().toISOString() })
+        });
+      } catch (postErr) {
+        console.warn('Could not POST QA results to server:', postErr);
+      }
 
       // Return to main lessons view to display full interface
       app.setTab('lessons');

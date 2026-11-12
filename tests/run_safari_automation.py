@@ -1,25 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Real Safari Browser Automation & Screenshot Capturer for macOS
-Opens Safari to local test suite and captures visual evidence.
+Real Safari Browser Automation & Screenshot Capturer for macOS (Stage 9.1)
+Opens Safari to local test suite, retrieves machine-readable test results,
+asserts 100% pass rate, and exits with a non-zero code on any test failure.
 """
 
 import subprocess
 import time
+import json
+import sys
 from pathlib import Path
 
 BASE_DIR = Path("/Users/shotachitaishvili/Documents/German A1")
 SCREENSHOTS_DIR = BASE_DIR / "tests" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
+RESULTS_FILE = BASE_DIR / "tests" / "_safari_qa_results.json"
 
 def run_applescript(script_str):
     return subprocess.run(["osascript", "-e", script_str], capture_output=True, text=True)
 
 def main():
     print("="*65)
-    print("       SAFARI REAL BROWSER AUTOMATION & SCREENSHOT HARNESS")
+    print("  SAFARI REAL BROWSER AUTOMATION & MACHINE-READABLE QA (Stage 9.1)")
     print("="*65)
+
+    # 0. Clean prior machine-readable results
+    if RESULTS_FILE.exists():
+        try:
+            RESULTS_FILE.unlink()
+        except Exception:
+            pass
 
     # 1. Activate Safari and open QA Runner
     test_url = "http://localhost:8000/tests/safari_browser_test.html"
@@ -27,9 +38,23 @@ def main():
     run_applescript('tell application "Safari" to activate')
     time.sleep(1)
     run_applescript(f'tell application "Safari" to open location "{test_url}"')
-    
-    print("2. Allowing 3.5 seconds for Safari to render DOM and execute tests...")
-    time.sleep(3.5)
+
+    # 2. Poll for machine-readable results posted by safari_browser_test.html
+    print("2. Waiting for Safari test execution and machine-readable results...")
+    max_wait = 12.0
+    start_time = time.time()
+    qa_results = None
+
+    while (time.time() - start_time) < max_wait:
+        if RESULTS_FILE.exists():
+            try:
+                content = RESULTS_FILE.read_text(encoding="utf-8")
+                if content.strip():
+                    qa_results = json.loads(content)
+                    break
+            except Exception:
+                pass
+        time.sleep(0.5)
 
     # 3. Capture Screenshot 1: QA Dashboard in Safari
     shot1 = SCREENSHOTS_DIR / "safari_qa_dashboard.png"
@@ -51,9 +76,33 @@ def main():
     if shot2.exists():
         print(f"   ✓ Captured: {shot2} ({shot2.stat().st_size:,} bytes)")
 
+    # 6. Verify machine-readable results and enforce exit code
+    print("\n" + "="*65)
+    if not qa_results:
+        print("  ❌ ERROR: No machine-readable QA results received from Safari!")
+        print("  Safari browser test timed out or failed to reach the server.")
+        print("="*65)
+        sys.exit(1)
+
+    passed = qa_results.get("passed", 0)
+    failed = qa_results.get("failed", 0)
+    success = qa_results.get("success", False)
+    details = qa_results.get("details", [])
+
+    print(f"  SAFARI TEST RESULTS: {passed} PASSED, {failed} FAILED (Success: {success})")
+    for item in details:
+        status_tag = "[PASS]" if item.get("ok") else "[FAIL]"
+        print(f"    {status_tag} {item.get('title')}")
     print("="*65)
-    print("  🎉 REAL BROWSER TESTING COMPLETE! EVIDENCE SAVED.")
+
+    if not success or failed > 0 or passed == 0:
+        print(f"  ❌ SAFARI QA FAILED: {failed} test(s) failed!")
+        print("  Exiting with non-zero status code.")
+        sys.exit(1)
+
+    print("  🎉 ALL REAL SAFARI BROWSER TESTS PASSED (100% SUCCESS)!")
     print("="*65)
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
