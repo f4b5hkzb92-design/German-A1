@@ -806,7 +806,7 @@
                 <span>🚀 Lektion 1-ის დაწყება</span>
               </button>
               <button onclick="window.DeutschApp.setTab('labs')" class="bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-3 rounded-2xl backdrop-blur-md transition flex items-center gap-2 text-sm border border-white/20">
-                <span>🎙️ 4 ენობრივი ლაბორატორია (Labs)</span>
+                <span>🎙️ 7 ენობრივი ლაბორატორია (Labs)</span>
               </button>
               <button onclick="window.DeutschApp.openProModal()" class="bg-amber-400/90 hover:bg-amber-400 text-slate-950 font-bold px-4 py-3 rounded-2xl transition flex items-center gap-1.5 text-sm">
                 <span>💎 PRO რეჟიმის მართვა</span>
@@ -4577,7 +4577,7 @@ ${escapeHtml(item.text_de)}
           </div>
 
           <p class="text-xs text-slate-600 max-w-lg mx-auto leading-relaxed">
-            რომელმაც წარმატებით დაასრულა გერმანული ენის A1 დონის სრული საუნივერსიტეტო პროგრამა (10 თემატური გაკვეთილი, ლექსიკა, გრამატიკა, 5 ენობრივი ლაბორატორია) და დაადასტურა ცოდნა შემაჯამებელ გამოცდაზე.
+            რომელმაც წარმატებით დაასრულა გერმანული ენის A1 დონის სრული საუნივერსიტეტო პროგრამა (10 თემატური გაკვეთილი, ლექსიკა, გრამატიკა, 7 ენობრივი ლაბორატორია) და დაადასტურა ცოდნა შემაჯამებელ გამოცდაზე.
           </p>
         </div>
 
@@ -5137,7 +5137,7 @@ ${escapeHtml(item.text_de)}
                 <div class="text-2xl font-black text-slate-900 dark:text-white mb-2">ყველაფერი ჩართულია</div>
                 <ul class="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 text-left mb-4 font-medium">
                   <li>✓ 734+ A1 ლექსიკონი</li>
-                  <li>✓ 4 ენობრივი ლაბორატორია</li>
+                  <li>✓ 7 ენობრივი ლაბორატორია</li>
                   <li>✓ SM-2 ინტერვალური გამეორება</li>
                   <li>✓ der / die / das ტრენერი (431)</li>
                   <li>✓ Satzbau სინტაქსი</li>

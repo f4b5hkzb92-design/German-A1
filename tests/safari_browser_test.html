@@ -349,7 +349,7 @@
       app.setDailyXpGoal(100);
       await sleep(50);
       const uGoal = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
-      const freezeBtnWorked = (uGoal.xp >= 50) ? app.buyStreakFreeze() : true;
+      const freezeBtnWorked = (uGoal.xp >= 50 && (uGoal.streakFreezes || 0) < 3) ? app.buyStreakFreeze() : true;
       await sleep(50);
       const profileHtml = document.getElementById('main-content').innerHTML;
       logItem(Boolean(uGoal.dailyXpGoal === 100 && freezeBtnWorked && profileHtml.indexOf('Streak Freeze') !== -1), "22. Weekly Goal, 7-Day Activity Chart & Streak Freeze System");

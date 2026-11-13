@@ -105,8 +105,9 @@ def main():
     except Exception:
         pass
 
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", port), CustomHTTPHandler) as httpd:
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    socketserver.ThreadingTCPServer.daemon_threads = True
+    with socketserver.ThreadingTCPServer(("127.0.0.1", port), CustomHTTPHandler) as httpd:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

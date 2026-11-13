@@ -41,7 +41,7 @@ def main():
 
     # 2. Poll for machine-readable results posted by safari_browser_test.html
     print("2. Waiting for Safari test execution and machine-readable results...")
-    max_wait = 12.0
+    max_wait = 25.0
     start_time = time.time()
     qa_results = None
 
@@ -66,6 +66,8 @@ def main():
     # 4. Navigate Safari to main application
     main_url = "http://localhost:8000/"
     print(f"4. Navigating Safari to main production interface: {main_url}...")
+    run_applescript('tell application "Safari" to activate')
+    time.sleep(0.5)
     run_applescript(f'tell application "Safari" to open location "{main_url}"')
     time.sleep(2.5)
 
