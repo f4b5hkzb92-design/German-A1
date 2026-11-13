@@ -639,6 +639,48 @@
   }
 
   // --- Native Web Speech Audio Engine ---
+  let cachedGermanVoice = null;
+
+  function pickBestGermanVoice() {
+    if (!('speechSynthesis' in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    const deVoices = voices.filter(v =>
+      v.lang && (v.lang.toLowerCase().startsWith('de') || v.lang.toUpperCase().includes('DE'))
+    );
+    if (deVoices.length === 0) return null;
+
+    // Exclude legacy macOS Eloquence / robotic novelty voices
+    const roboticPattern = /\b(eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|junior|kathy|organ|superstar|trinoids|whisper|wobble|zarvox|espeak)\b/i;
+
+    function scoreVoice(v) {
+      const name = (v.name || '').toLowerCase();
+      if (roboticPattern.test(name)) return -1000;
+
+      let score = 0;
+      if (v.lang.toLowerCase() === 'de-de') score += 20;
+      if (name.includes('google deutsch')) score += 120;
+      if (name.includes('natural') || name.includes('online') || name.includes('neural')) score += 100;
+      if (name.includes('premium') || name.includes('enhanced')) score += 80;
+      if (/(katja|amala|seraphina|petra|helena|marlene|vicki|hedda|claire|anna)/i.test(name)) score += 70;
+      if (name.includes('anna')) score += 25;
+      if (!v.localService) score += 30; // Network/cloud neural voices sound much more human
+      return score;
+    }
+
+    const sorted = [...deVoices].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+    cachedGermanVoice = sorted[0];
+    return cachedGermanVoice;
+  }
+
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.addEventListener) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      cachedGermanVoice = null;
+      pickBestGermanVoice();
+    });
+  }
+
   function speakGerman(text, buttonElement, onEndCallback, customRate) {
     if (!('speechSynthesis' in window)) {
       showToast('ხმის გაჟღერების მხარდაჭერა არ არის ბრაუზერში');
@@ -655,10 +697,10 @@
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'de-DE';
-    utterance.rate = (typeof customRate === 'number') ? customRate : state.speechRate;
+    utterance.rate = (typeof customRate === 'number') ? customRate : Math.min(state.speechRate || 0.92, 0.95);
+    utterance.pitch = 1.02;
 
-    const voices = window.speechSynthesis.getVoices();
-    const deVoice = voices.find(v => v.lang.startsWith('de') || v.lang.includes('DE'));
+    const deVoice = cachedGermanVoice || pickBestGermanVoice();
     if (deVoice) utterance.voice = deVoice;
 
     if (buttonElement) {
