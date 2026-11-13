@@ -3751,9 +3751,9 @@ ${escapeHtml(item.text_de)}
               const isActive = (idx === scIdx);
               const rec = (userData.labScores && userData.labScores.roleplay && userData.labScores.roleplay[s.id]);
               return `
-                <button onclick="window.DeutschApp.switchRoleplayScenario(${idx})" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition ${isActive ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
+                <button onclick="window.DeutschApp.switchRoleplayScenario(${idx})" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-left transition ${isActive ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
                   <span>${s.avatar || '💬'}</span>
-                  <span class="truncate max-w-[150px]">${escapeHtml(s.title.split('(')[0].trim())}</span>
+                  <span>${escapeHtml(s.title.split('(')[0].trim())}</span>
                   ${rec ? `<span class="px-1.5 py-0.2 rounded-full text-[10px] ${rec.score >= 60 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black' : 'bg-amber-500/20 text-amber-600 font-bold'}">✓ ${rec.score}%</span>` : ''}
                 </button>
               `;
