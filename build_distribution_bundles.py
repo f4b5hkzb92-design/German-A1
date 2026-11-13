@@ -32,6 +32,7 @@ CODE_FILES = [
     "tests/run_all_tests.py",
     "data_grammar_checks.py",
     "data_language_labs.py",
+    "data_upgrades.py",
     "build_full_suite.py"
 ]
 

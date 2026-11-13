@@ -85,6 +85,15 @@ def main():
         check(bool(c.get("sentence") and c.get("correct") and c.get("rule_ka")), f"Case Drill #{c.get('id', idx)} has complete sentence and rule")
         check(c.get("correct") in c.get("options", []), f"Case Drill #{c.get('id', idx)} options contain correct answer")
 
+    # Hör-Diktat Lab dataset
+    diktat = data.get("diktat", [])
+    check(len(diktat) == 15, f"Hör-Diktat Lab contains exactly 15 tasks (got {len(diktat)})")
+    diktat_cats = set(d.get("category") for d in diktat)
+    check(diktat_cats == {"buchstabieren", "nummern", "uhrzeit", "preise", "saetze"}, f"All 5 Hör-Diktat categories represented (found {diktat_cats})")
+
+    for idx, d in enumerate(diktat[:5]):
+        check(bool(d.get("audio_text") and d.get("expected") and d.get("prompt_ka") and d.get("explanation")), f"Diktat #{d.get('id', idx)} has complete audio, expected answer, prompt, and explanation")
+
     # -------------------------------------------------------------
     # 2. Runtime Behavior & Interactive Verification (OSA / JSC)
     # -------------------------------------------------------------
@@ -308,6 +317,33 @@ def main():
             results.push({
                 name: 'trainFavoritesFlashcards launches flashcards filtered by favorites',
                 ok: app.state.currentTab === 'flashcards' && app.state.flashcardLessonFilter === 'fav'
+            });
+
+            // Test 14: Hör-Diktat Lab Navigation & Rendering
+            app.setTab('labs');
+            app.switchLabTab('diktat');
+            const mainHtml = document.getElementById('main-content').innerHTML;
+            results.push({
+                name: 'Language Labs renders Hör-Diktat sub-tab and workbench',
+                ok: app.state.labActiveTab === 'diktat' && (mainHtml.indexOf('Hör-Diktat') !== -1 || mainHtml.indexOf('HÖR-DIKTAT') !== -1)
+            });
+
+            // Test 15: Hör-Diktat Interaction & Completion Tracking
+            app.switchDiktatCategory('buchstabieren');
+            app.onDiktatInput('Schneider');
+            app.submitDiktat();
+            const uAfterDiktat = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+            results.push({
+                name: 'submitDiktat verifies correct transcription and awards completion',
+                ok: app.state.labDiktatSubmitted === true && (uAfterDiktat.completedDiktat || []).includes('dik_1')
+            });
+
+            // Test 16: Profile JSON Export
+            const exportedJSON = app.exportUserDataJSON();
+            const parsedExport = JSON.parse(exportedJSON);
+            results.push({
+                name: 'exportUserDataJSON creates valid JSON backup with user progress',
+                ok: typeof exportedJSON === 'string' && parsedExport && parsedExport.xp >= 0 && Array.isArray(parsedExport.completedDiktat)
             });
         } catch (e) {
             results.push({ name: 'Exception in probe: ' + e.toString(), ok: false });

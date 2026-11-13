@@ -1,5 +1,5 @@
 // Deutsch A1 Pro Service Worker (PWA Offline Cache)
-const CACHE_NAME = 'deutsch-a1-cache-v5';
+const CACHE_NAME = 'deutsch-a1-cache-v6';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

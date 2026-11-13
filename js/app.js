@@ -81,6 +81,13 @@
     storyScore: 0,
     storyShowTranslations: {},
 
+    // Hör-Diktat Lab state
+    labDiktatIndex: 0,
+    labDiktatUserInput: '',
+    labDiktatSubmitted: false,
+    labDiktatScore: 0,
+    labDiktatCategory: 'all',
+
     // Sentence Builder state
     sbIndex: 0,
     sbAvailableWords: [],
@@ -226,6 +233,7 @@
       examScore: null,
       examDate: null,
       completedStories: [], // story IDs
+      completedDiktat: [], // diktat IDs
       isPro: true,
       subscriptionTier: 'pro_annual'
     };
@@ -278,6 +286,7 @@
         data.examScore = typeof data.examScore === 'number' ? data.examScore : null;
         data.examDate = typeof data.examDate === 'string' ? data.examDate : null;
         data.completedStories = Array.isArray(data.completedStories) ? data.completedStories : [];
+        data.completedDiktat = Array.isArray(data.completedDiktat) ? data.completedDiktat : [];
         data.isPro = true;
 
         // Versioned Writing Drafts Safe Recovery (Stage 9.1: Draft Persistence)
@@ -2783,6 +2792,9 @@
           <button onclick="window.DeutschApp.switchLabTab('stories')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'stories' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
             📚 6. KURZGESCHICHTEN
           </button>
+          <button onclick="window.DeutschApp.switchLabTab('diktat')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'diktat' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            🎙️ 7. HÖR-DIKTAT
+          </button>
         </div>
 
         <div id="lab-tab-content">
@@ -2800,6 +2812,8 @@
       html += renderRoleplayLab(labs.roleplay || []);
     } else if (active === 'stories') {
       html += renderStoriesLab(labs.stories || window.GERMAN_A1_DATA.mini_stories || []);
+    } else if (active === 'diktat') {
+      html += renderDiktatLab(labs.diktat || window.GERMAN_A1_DATA.diktat || []);
     }
 
     html += `
@@ -3708,6 +3722,226 @@ ${escapeHtml(item.text_de)}
     `;
   }
 
+  // --- 7. HÖR-DIKTAT LAB (A1 AUDIO DICTATION WORKBENCH - 15 TASKS) ---
+  function isDiktatInputCorrect(userInput, item) {
+    if (!userInput || typeof userInput !== 'string') return false;
+    const clean = s => String(s).trim().toLowerCase().replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
+    const userClean = clean(userInput);
+    if (!userClean) return false;
+
+    if (userClean === clean(item.expected)) return true;
+    if (Array.isArray(item.accepted)) {
+      for (const acc of item.accepted) {
+        if (userClean === clean(acc)) return true;
+      }
+    }
+    const userDecimal = userClean.replace(/,/g, '.');
+    if (userDecimal === clean(item.expected).replace(/,/g, '.')) return true;
+    if (Array.isArray(item.accepted)) {
+      for (const acc of item.accepted) {
+        if (userDecimal === clean(acc).replace(/,/g, '.')) return true;
+      }
+    }
+    return false;
+  }
+
+  function renderDiktatLab(tasks) {
+    if (!tasks || tasks.length === 0) {
+      return `<p class="text-xs text-slate-500">აუდიო-კარნახის დავალებები არ მოიძებნა.</p>`;
+    }
+
+    const categories = [
+      { key: 'all', label: 'ყველა (15)', icon: '🌟' },
+      { key: 'buchstabieren', label: 'მართლწერა (4)', icon: '🔤' },
+      { key: 'nummern', label: 'ნომრები (4)', icon: '🔢' },
+      { key: 'uhrzeit', label: 'საათი (3)', icon: '⏰' },
+      { key: 'preise', label: 'ფასები (2)', icon: '💶' },
+      { key: 'saetze', label: 'წინადადებები (2)', icon: '💬' }
+    ];
+
+    const filter = state.labDiktatCategory || 'all';
+    const filteredTasks = (filter === 'all')
+      ? tasks
+      : tasks.filter(t => t.category === filter);
+
+    const safeTasks = filteredTasks.length > 0 ? filteredTasks : tasks;
+    const currentIdx = state.labDiktatIndex % safeTasks.length;
+    const item = safeTasks[currentIdx];
+
+    const completedDiktatList = userData.completedDiktat || [];
+    const isCompleted = completedDiktatList.includes(item.id);
+    const completedCountInFilter = safeTasks.filter(t => completedDiktatList.includes(t.id)).length;
+
+    // Evaluate correctness if submitted
+    const isCorrect = state.labDiktatSubmitted && isDiktatInputCorrect(state.labDiktatUserInput, item);
+
+    return `
+      <div class="space-y-6 animate-fadeIn">
+        <!-- Category Filter Pills -->
+        <div class="flex flex-wrap gap-2">
+          ${categories.map(c => `
+            <button onclick="window.DeutschApp.switchDiktatCategory('${c.key}')" class="px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 ${filter === c.key ? 'bg-amber-500 text-slate-950 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-amber-400'}">
+              <span>${c.icon}</span>
+              <span>${c.label}</span>
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Dictation Workbench Card -->
+        <div class="bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-900/40 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 pb-4">
+            <div class="flex items-center gap-2.5">
+              <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                ${escapeHtml(item.category_ka || 'Hör-Diktat')}
+              </span>
+              <span class="text-xs font-bold text-slate-400">
+                დავალება ${currentIdx + 1} / ${safeTasks.length}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                ათვისებული: <strong class="text-amber-600 dark:text-amber-400">${completedCountInFilter} / ${safeTasks.length}</strong>
+              </span>
+              ${isCompleted ? `
+                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                  ✓ ჩათვლილია (+10 XP)
+                </span>
+              ` : ''}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-1.5">${escapeHtml(item.title)}</h3>
+            <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium">${escapeHtml(item.prompt_ka)}</p>
+          </div>
+
+          <!-- Audio Listening Section -->
+          <div class="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border border-amber-300/40 dark:border-amber-800/40 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-2xl font-black shadow-md">
+                🎧
+              </div>
+              <div>
+                <p class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Hör-Diktat (აუდიო-კარნახი) • Goethe A1 Hören</p>
+                <p class="text-[11px] text-slate-500">მოუსმინეთ რამდენჯერაც გჭირდებათ ჩაწერამდე</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="window.DeutschApp.speak('${item.audio_text.replace(/'/g, "\\'")}', this)" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black shadow transition flex items-center gap-1.5 active:scale-95">
+                <span>🔊 1.0x მოუსმინე</span>
+              </button>
+              <button onclick="window.DeutschApp.speakSlow('${item.audio_text.replace(/'/g, "\\'")}', this)" class="px-4 py-2.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95">
+                <span>🐢 0.7x ნელა</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Input Workbench & Character Keyboard Chips -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <label for="diktat-input" class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                ჩაწერეთ ტექსტი გერმანულად:
+              </label>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-400 font-bold mr-1">გერმანული ასოები:</span>
+                ${['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü', '€'].map(ch => `
+                  <button type="button" onclick="window.DeutschApp.insertDiktatChar('${ch}')" class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-amber-400 hover:text-slate-950 text-slate-800 dark:text-slate-200 font-mono font-black text-xs transition border border-slate-200 dark:border-slate-600">
+                    ${ch}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="relative">
+              <input
+                id="diktat-input"
+                type="text"
+                autocomplete="off"
+                spellcheck="false"
+                ${state.labDiktatSubmitted ? 'disabled' : ''}
+                value="${escapeHtml(state.labDiktatUserInput)}"
+                oninput="window.DeutschApp.onDiktatInput(this.value)"
+                onkeydown="if(event.key==='Enter') window.DeutschApp.submitDiktat()"
+                placeholder="მაგ. ჩაწერეთ აქ მოსმენილი სიტყვა ან წინადადება..."
+                class="w-full px-5 py-4 rounded-2xl border-2 text-base font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 transition focus:outline-none focus:ring-2 ${state.labDiktatSubmitted ? (isCorrect ? 'border-emerald-500 bg-emerald-50/20' : 'border-rose-500 bg-rose-50/20') : 'border-slate-200 dark:border-slate-700 focus:border-amber-500 focus:ring-amber-400'}"
+              />
+              ${!state.labDiktatSubmitted && state.labDiktatUserInput ? `
+                <button onclick="window.DeutschApp.clearDiktatInput()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold p-1">
+                  ✕
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Feedback & Explanation (on submit) -->
+          ${state.labDiktatSubmitted ? `
+            <div class="p-5 rounded-2xl border space-y-3 animate-fadeIn ${isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-950 dark:text-rose-100'}">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">${isCorrect ? '🎉' : '⚠️'}</span>
+                  <strong class="text-sm font-black">${isCorrect ? 'სწორია! შესანიშნავი მართლწერა და სმენა!' : 'ცოტა დაგაკლდათ. შეადარეთ ეტალონს:'}</strong>
+                </div>
+                ${isCorrect ? `<span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-emerald-200 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100">+10 XP</span>` : ''}
+              </div>
+
+              <div class="p-3 bg-white/70 dark:bg-slate-900/60 rounded-xl text-xs space-y-1 border border-black/5 dark:border-white/10">
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-500 dark:text-slate-400">გერმანული ეტალონი:</span>
+                  <strong class="font-mono text-slate-900 dark:text-white font-black text-sm">${escapeHtml(item.expected)}</strong>
+                </div>
+                ${item.hint ? `
+                  <div class="text-[11px] text-slate-600 dark:text-slate-300">
+                    💡 <strong>მინიშნება:</strong> ${escapeHtml(item.hint)}
+                  </div>
+                ` : ''}
+                <div class="text-[11px] text-slate-600 dark:text-slate-300">
+                  📚 <strong>წესი & განმარტება:</strong> ${escapeHtml(item.explanation)}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Action Buttons Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-700/60">
+            ${!state.labDiktatSubmitted ? `
+              <button onclick="window.DeutschApp.submitDiktat()" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition active:scale-95 flex items-center gap-2">
+                <span>🎯 შემოწმება</span>
+              </button>
+            ` : `
+              <div class="flex flex-wrap items-center gap-2.5">
+                ${!isCorrect ? `
+                  <button onclick="window.DeutschApp.retryDiktat()" class="px-4 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-black rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    🔄 თავიდან ცდა
+                  </button>
+                ` : ''}
+                <button onclick="window.DeutschApp.nextDiktat()" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95">
+                  <span>შემდეგი დავალება →</span>
+                </button>
+              </div>
+            `}
+
+            <!-- Task direct selector numbers -->
+            <div class="flex items-center gap-1 overflow-x-auto py-1 max-w-full">
+              ${safeTasks.map((t, idx) => {
+                const isCur = idx === currentIdx;
+                const isDone = completedDiktatList.includes(t.id);
+                return `
+                  <button
+                    onclick="window.DeutschApp.selectDiktatTask(${idx})"
+                    class="w-7 h-7 rounded-lg text-[10px] font-black transition ${isCur ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-400 ring-offset-1' : (isDone ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700')}"
+                    title="${escapeHtml(t.title)}"
+                  >
+                    ${idx + 1}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   // ==========================================================================
   // TAB 7: GRAMMAR REFERENCE HANDBOOK
   // ==========================================================================
@@ -4399,6 +4633,7 @@ ${escapeHtml(item.text_de)}
     const completedCount = (userData.completedLessons || []).length;
     const masteredCount = (userData.masteredWords || []).length;
     const mistakesCount = (userData.mistakeWords || []).length;
+    const diktatCount = (userData.completedDiktat || []).length;
 
     let html = `
       <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-16">
@@ -4539,6 +4774,31 @@ ${escapeHtml(item.text_de)}
               `;
             }).join('')}
           </div>
+        </div>
+
+        <!-- Data Backup & Sync: JSON Export / Import -->
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl p-2.5 bg-blue-50 dark:bg-slate-700 rounded-2xl">💾</span>
+              <div>
+                <h2 class="text-lg font-black text-slate-900 dark:text-white">პროგრესის სარეზერვო ასლი (Backup & Sync)</h2>
+                <p class="text-xs text-slate-500">ექსპორტი და იმპორტი JSON ფორმატში მოწყობილობებს შორის მონაცემების გადასატანად</p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button onclick="window.DeutschApp.exportUserDataJSON()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-xs shadow-md transition flex items-center gap-2 active:scale-95">
+                <span>📥 ექსპორტი (JSON)</span>
+              </button>
+              <label class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-black text-xs cursor-pointer shadow-sm transition flex items-center gap-2 active:scale-95">
+                <span>📤 იმპორტი (JSON)</span>
+                <input type="file" accept=".json" class="hidden" onchange="window.DeutschApp.importUserDataJSON(event)" />
+              </label>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            ინახავს: XP ქულებს, გავლილ გაკვეთილებს, SM-2 გამეორების ინტერვალებს, შეცდომების სიას, შენახულ სიტყვებს, კარნახებს (${diktatCount}/15), ესეების მონახაზებს და ჩაბარებულ სერტიფიკატს.
+          </p>
         </div>
 
         <!-- Danger zone: Reset -->
@@ -5833,6 +6093,91 @@ ${escapeHtml(item.text_de)}
       window.DeutschApp.selectStory(stories[nextIdx].id);
     },
 
+    // Hör-Diktat Lab Handlers
+    switchDiktatCategory: function (cat) {
+      state.labDiktatCategory = cat;
+      state.labDiktatIndex = 0;
+      state.labDiktatUserInput = '';
+      state.labDiktatSubmitted = false;
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    onDiktatInput: function (val) {
+      state.labDiktatUserInput = val;
+    },
+    clearDiktatInput: function () {
+      state.labDiktatUserInput = '';
+      const el = document.getElementById('diktat-input');
+      if (el) { el.value = ''; el.focus(); }
+    },
+    insertDiktatChar: function (ch) {
+      const el = document.getElementById('diktat-input');
+      if (el) {
+        const start = el.selectionStart || el.value.length;
+        const end = el.selectionEnd || el.value.length;
+        const oldVal = el.value;
+        const newVal = oldVal.substring(0, start) + ch + oldVal.substring(end);
+        el.value = newVal;
+        state.labDiktatUserInput = newVal;
+        el.focus();
+        const newPos = start + ch.length;
+        try { el.setSelectionRange(newPos, newPos); } catch (e) {}
+      } else {
+        state.labDiktatUserInput = (state.labDiktatUserInput || '') + ch;
+      }
+    },
+    submitDiktat: function () {
+      if (state.labDiktatSubmitted) return;
+      const tasks = window.GERMAN_A1_DATA.diktat || (window.GERMAN_A1_DATA.language_labs || {}).diktat || [];
+      const filter = state.labDiktatCategory || 'all';
+      const safeTasks = (filter === 'all') ? tasks : tasks.filter(t => t.category === filter);
+      if (safeTasks.length === 0) return;
+      const currentIdx = state.labDiktatIndex % safeTasks.length;
+      const item = safeTasks[currentIdx];
+
+      state.labDiktatSubmitted = true;
+      const isCorrect = isDiktatInputCorrect(state.labDiktatUserInput, item);
+
+      userData.completedDiktat = userData.completedDiktat || [];
+      if (isCorrect) {
+        playChime('success');
+        if (!userData.completedDiktat.includes(item.id)) {
+          userData.completedDiktat.push(item.id);
+          grantRewardXP('diktat_' + item.id, 10, 'კარნახი წარმატებით ჩაბარდა (+10 XP)! 🎙️');
+        }
+      } else {
+        playChime('wrong');
+      }
+      saveUserData();
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    retryDiktat: function () {
+      state.labDiktatSubmitted = false;
+      renderLanguageLabs(document.getElementById('main-content'));
+      const el = document.getElementById('diktat-input');
+      if (el) { el.focus(); el.select(); }
+    },
+    nextDiktat: function () {
+      const tasks = window.GERMAN_A1_DATA.diktat || (window.GERMAN_A1_DATA.language_labs || {}).diktat || [];
+      const filter = state.labDiktatCategory || 'all';
+      const safeTasks = (filter === 'all') ? tasks : tasks.filter(t => t.category === filter);
+      if (safeTasks.length === 0) return;
+
+      state.labDiktatIndex = (state.labDiktatIndex + 1) % safeTasks.length;
+      state.labDiktatUserInput = '';
+      state.labDiktatSubmitted = false;
+      renderLanguageLabs(document.getElementById('main-content'));
+      const el = document.getElementById('diktat-input');
+      if (el) el.focus();
+    },
+    selectDiktatTask: function (idx) {
+      state.labDiktatIndex = idx;
+      state.labDiktatUserInput = '';
+      state.labDiktatSubmitted = false;
+      renderLanguageLabs(document.getElementById('main-content'));
+      const el = document.getElementById('diktat-input');
+      if (el) el.focus();
+    },
+
     // Learner Name Update for Certificate (Stage 10)
     updateLearnerName: function (name) {
       userData.learnerName = name;
@@ -5984,6 +6329,61 @@ ${escapeHtml(item.text_de)}
       state.examFilterModule = 'all';
       state.examModuleBreakdown = null;
       renderExam(document.getElementById('main-content'));
+    },
+
+    // Profile JSON Backup & Sync (Data Export / Import)
+    exportUserDataJSON: function () {
+      const jsonStr = JSON.stringify(userData, null, 2);
+      try {
+        if (typeof Blob !== 'undefined' && typeof document !== 'undefined') {
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = (typeof URL !== 'undefined' && URL.createObjectURL) ? URL.createObjectURL(blob) : null;
+          if (url) {
+            const a = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `deutsch_a1_backup_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => {
+              try { URL.revokeObjectURL(url); } catch (e) {}
+            }, 1000);
+          }
+        }
+      } catch (err) {
+        console.warn('Backup export download fallback:', err);
+      }
+      showToast('პროგრესის სარეზერვო ასლი ჩამოტვირთულია (JSON) 💾');
+      return jsonStr;
+    },
+    importUserDataJSON: function (event) {
+      const file = event && event.target && event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (typeof FileReader === 'undefined') {
+        alert('FileReader მხარდაჭერილი არ არის ამ ბრაუზერში.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          const raw = evt.target.result;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') {
+            alert('არასწორი JSON მონაცემები. გთხოვთ ატვირთოთ ვალიდური ფაილი.');
+            return;
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          userData = loadUserData();
+          showToast('პროგრესი წარმატებით აღდგა სარეზერვო ასლიდან! 🎉');
+          setTab('profile');
+        } catch (err) {
+          alert('შეცდომა სარეზერვო ფაილის წაკითხვისას: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
     },
 
     // Profile & Reset (Fixed Defect 8.6 & Stage 9.1 Drafts Purge)

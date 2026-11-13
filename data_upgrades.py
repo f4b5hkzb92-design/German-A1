@@ -2039,3 +2039,205 @@ PREPOSITION_CASES_DATA = [
     }
 ]
 
+# ==============================================================================
+# 5. HÖR-DIKTAT (A1 AUDIO DICTATION LAB DATASET - 15 TASKS)
+# Categories:
+# - Buchstabieren: Namen & Straßen (მართლწერა ასო-ასო)
+# - Nummern: Handynummern, Zimmernummern, Postleitzahlen
+# - Uhrzeiten: Digitale & umgangssprachliche Zeitangaben
+# - Preise: Geldbeträge in Euro und Cent
+# - Mustersätze: A1 Alltagskommunikation
+# ==============================================================================
+A1_HÖR_DIKTAT_DATA = [
+    # 1. Buchstabieren (4 tasks)
+    {
+        "id": "dik_1",
+        "category": "buchstabieren",
+        "category_ka": "მართლწერა (Buchstabieren)",
+        "title": "გვარის მართლწერა (Nachname buchstabieren)",
+        "prompt_ka": "მოუსმინეთ აუდიოს და ჩაწერეთ მოქალაქის გვარი გერმანული მართლწერით:",
+        "audio_text": "Mein Nachname ist Schneider. Ich buchstabiere: S - C - H - N - E - I - D - E - R. Schneider.",
+        "expected": "Schneider",
+        "accepted": ["schneider", "Schneider"],
+        "hint": "S - C - H - N - E - I - D - E - R (ei = [აი])",
+        "explanation": "გერმანულში გვარი იწერება დიდი ასოთი: Schneider. ასოთშეხამება SCH = [შ], ხოლო EI = [აი]."
+    },
+    {
+        "id": "dik_2",
+        "category": "buchstabieren",
+        "category_ka": "მართლწერა (Buchstabieren)",
+        "title": "ქალაქის სახელის მართლწერა",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ გერმანიის ქალაქის სახელი:",
+        "audio_text": "Ich wohne in Leipzig. Buchstabiert: L - E - I - P - Z - I - G. Leipzig.",
+        "expected": "Leipzig",
+        "accepted": ["leipzig", "Leipzig"],
+        "hint": "L - E - I - P - Z - I - G (Z = [ც])",
+        "explanation": "Leipzig (ლაიფციგი): ასო Z გერმანულში ყოველთვის იკითხება როგორც [ც]."
+    },
+    {
+        "id": "dik_3",
+        "category": "buchstabieren",
+        "category_ka": "მართლწერა (Buchstabieren)",
+        "title": "ქუჩის სახელის მართლწერა (Straße)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ ქუჩის დასახელება:",
+        "audio_text": "Meine Adresse ist Blumenstraße. B - L - U - M - E - N - S - T - R - A - Doppel-S - E. Blumenstraße.",
+        "expected": "Blumenstraße",
+        "accepted": ["blumenstraße", "Blumenstraße", "blumenstrasse", "Blumenstrasse"],
+        "hint": "B - L - U - M - E - N - S - T - R - A - ß - E (შეიძლება ჩაიწეროს როგორც ß, ისე ss)",
+        "explanation": "Blumenstraße (ყვავილების ქუჩა). გერმანული ასო ß (Eszett) შეიძლება დაიწეროს როგორც ß ან ss."
+    },
+    {
+        "id": "dik_4",
+        "category": "buchstabieren",
+        "category_ka": "მართლწერა (Buchstabieren)",
+        "title": "გვარის მართლწერა უმლაუტით (Umlaut)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ გერმანული გვარი:",
+        "audio_text": "Frau Müller kommt heute. Ich buchstabiere: M - U-Umlaut - Doppel-L - E - R. Müller.",
+        "expected": "Müller",
+        "accepted": ["müller", "Müller", "mueller", "Mueller"],
+        "hint": "M - ü - l - l - e - r (U-Umlaut = Ü / ue)",
+        "explanation": "Müller: U-Umlaut (Ü) კლავიატურაზე თუ არ გაქვთ, სტანდარტულად ჩაიწერება როგორც ue."
+    },
+
+    # 2. Nummern & Telefon (4 tasks)
+    {
+        "id": "dik_5",
+        "category": "nummern",
+        "category_ka": "ნომრები & ტელეფონი",
+        "title": "მობილურის ნომრის ჩაწერა (Handynummer)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ მობილური ტელეფონის ნომერი (ციფრებით):",
+        "audio_text": "Meine Handynummer ist: null - eins - sieben - sechs - vier - fünf - acht - neun - zwei - drei.",
+        "expected": "0176458923",
+        "accepted": ["0176458923", "0176 45 89 23", "0176-45-89-23", "0176/458923"],
+        "hint": "null (0), eins (1), sieben (7), sechs (6), vier (4), fünf (5), acht (8), neun (9), zwei (2), drei (3)",
+        "explanation": "გერმანული ციფრები: null (0), eins (1), sieben (7), sechs (6), vier (4), fünf (5), acht (8), neun (9), zwei (2), drei (3)."
+    },
+    {
+        "id": "dik_6",
+        "category": "nummern",
+        "category_ka": "ნომრები & ტელეფონი",
+        "title": "სასტუმროს ოთახის ნომერი (Zimmernummer)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ სასტუმროს ოთახის ნომერი (ციფრებით):",
+        "audio_text": "Ihr Zimmer ist die Nummer dreihundertvierzehn. Ich wiederhole: Zimmer drei - eins - vier.",
+        "expected": "314",
+        "accepted": ["314", "Zimmer 314", "zimmer 314"],
+        "hint": "dreihundertvierzehn = 314",
+        "explanation": "dreihundert (300) + vierzehn (14) = 314."
+    },
+    {
+        "id": "dik_7",
+        "category": "nummern",
+        "category_ka": "ნომრები & ტელეფონი",
+        "title": "საფოსტო ინდექსი (Postleitzahl - PLZ)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ ბერლინის საფოსტო ინდექსი (5 ციფრი):",
+        "audio_text": "Die Postleitzahl von Berlin-Mitte ist eins - null - eins - eins - sieben. Zehntausendeinhundertsiebzehn.",
+        "expected": "10117",
+        "accepted": ["10117"],
+        "hint": "eins - null - eins - eins - sieben = 10117",
+        "explanation": "გერმანიის საფოსტო ინდექსი (PLZ) ყოველთვის 5-ნიშნაა: 10117."
+    },
+    {
+        "id": "dik_8",
+        "category": "nummern",
+        "category_ka": "ნომრები & ტელეფონი",
+        "title": "გადაუდებელი დახმარების ნომერი (Notfallnummer)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ ექიმის გადაუდებელი დახმარების ნომერი:",
+        "audio_text": "Im Notfall wählen Sie bitte die Nummer: eins - eins - sechs - eins - eins - sieben.",
+        "expected": "116117",
+        "accepted": ["116117", "116 117", "116-117"],
+        "hint": "eins-eins-sechs-eins-eins-sieben = 116117",
+        "explanation": "116 117 არის გერმანიის ოფიციალური სამედიცინო სადისპეტჩერო სამსახურის ნომერი."
+    },
+
+    # 3. Uhrzeiten (3 tasks)
+    {
+        "id": "dik_9",
+        "category": "uhrzeit",
+        "category_ka": "საათი & განრიგი",
+        "title": "მატარებლის გამგზავრების დრო (Uhrzeit)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ მატარებლის გამგზავრების დრო (ფორმატში HH:MM):",
+        "audio_text": "Der Zug nach München fährt um vierzehn Uhr dreißig ab. Vierzehn Uhr dreißig.",
+        "expected": "14:30",
+        "accepted": ["14:30", "14.30", "14:30 Uhr", "14:30 uhr"],
+        "hint": "vierzehn Uhr dreißig = 14:30",
+        "explanation": "vierzehn (14) Uhr dreißig (30) = 14:30."
+    },
+    {
+        "id": "dik_10",
+        "category": "uhrzeit",
+        "category_ka": "საათი & განრიგი",
+        "title": "ექიმთან შეხვედრის დრო (halb)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ ექიმთან ვიზიტის დრო (ფორმატში HH:MM):",
+        "audio_text": "Ihr Termin beim Arzt ist morgen früh um halb neun. Halb neun.",
+        "expected": "08:30",
+        "accepted": ["08:30", "8:30", "08.30", "8.30"],
+        "hint": "halb neun = 08:30 (გერმანულში halb neun ნიშნავს 9-ის ნახევარს, ანუ 08:30-ს)",
+        "explanation": "გერმანული წესი: „halb neun“ ნიშნავს, რომ ცხრამდე დარჩენილია ნახევარი საათი, ანუ 08:30."
+    },
+    {
+        "id": "dik_11",
+        "category": "uhrzeit",
+        "category_ka": "საათი & განრიგი",
+        "title": "შეხვედრის დრო (Viertel nach)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ შეხვედრის დრო (ფორმატში HH:MM):",
+        "audio_text": "Wir treffen uns um Viertel nach fünf am Nachmittag. Viertel nach fünf.",
+        "expected": "17:15",
+        "accepted": ["17:15", "5:15", "17.15", "5.15"],
+        "hint": "Viertel nach fünf am Nachmittag = 17:15",
+        "explanation": "Viertel nach fünf (5-ს გადაცილებული 15 წუთი) + am Nachmittag (ნაშუადღევს) = 17:15."
+    },
+
+    # 4. Preise & Beträge (2 tasks)
+    {
+        "id": "dik_12",
+        "category": "preise",
+        "category_ka": "ფასები & თანხები",
+        "title": "პროდუქტის ფასის ჩაწერა (Preis)",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ წიგნის ფასი (მაგ. 14,99 ან 14.99):",
+        "audio_text": "Das Buch kostet vierzehn Euro neunundneunzig. Vierzehn Euro neunundneunzig.",
+        "expected": "14,99",
+        "accepted": ["14,99", "14.99", "14,99 Euro", "14.99 Euro", "14,99 €", "14.99 €"],
+        "hint": "vierzehn Euro neunundneunzig = 14,99",
+        "explanation": "vierzehn (14) Euro + neunundneunzig (99) Cent = 14,99 €."
+    },
+    {
+        "id": "dik_13",
+        "category": "preise",
+        "category_ka": "ფასები & თანხები",
+        "title": "ბილეთის ფასის ჩაწერა",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ მატარებლის ბილეთის ფასი:",
+        "audio_text": "Die Fahrkarte nach Hamburg kostet achtundzwanzig Euro fünfzig. Achtundzwanzig Euro fünfzig.",
+        "expected": "28,50",
+        "accepted": ["28,50", "28.50", "28,50 Euro", "28.50 Euro", "28,50 €", "28.50 €"],
+        "hint": "achtundzwanzig Euro fünfzig = 28,50",
+        "explanation": "achtundzwanzig (28) Euro + fünfzig (50) Cent = 28,50 €."
+    },
+
+    # 5. A1 Mustersätze (2 tasks)
+    {
+        "id": "dik_14",
+        "category": "saetze",
+        "category_ka": "A1 წინადადებები",
+        "title": "მოკლე წინადადება: სასტუმროში რეგისტრაცია",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ მთლიანი წინადადება გერმანულად:",
+        "audio_text": "Ich habe ein Zimmer reserviert.",
+        "expected": "Ich habe ein Zimmer reserviert.",
+        "accepted": ["Ich habe ein Zimmer reserviert.", "ich habe ein zimmer reserviert", "Ich habe ein Zimmer reserviert", "Ich habe ein zimmer reserviert."],
+        "hint": "Ich habe ein Zimmer reserviert. (Perfect ფორმა)",
+        "explanation": "Perfekt დროში: დამხმარე ზმნა habe მე-2 ადგილზე, ნამყო მიმღეობა reserviert ბოლოში. არსებითი სახელი Zimmer იწერება დიდი ასოთი."
+    },
+    {
+        "id": "dik_15",
+        "category": "saetze",
+        "category_ka": "A1 წინადადებები",
+        "title": "მოკლე წინადადება: თავაზიანი თხოვნა",
+        "prompt_ka": "მოუსმინეთ და ჩაწერეთ კაფეში შეკვეთის ფრაზა:",
+        "audio_text": "Ich möchte bitte einen Kaffee.",
+        "expected": "Ich möchte bitte einen Kaffee.",
+        "accepted": ["Ich möchte bitte einen Kaffee.", "ich möchte bitte einen kaffee", "Ich möchte bitte einen Kaffee", "ich moechte bitte einen kaffee"],
+        "hint": "Ich möchte bitte einen Kaffee. (möchte + Akkusativ)",
+        "explanation": "A1 თავაზიანი ფორმულა: Ich möchte bitte einen Kaffee (მამრ. Akkusativ: der -> einen)."
+    }
+]
+
+

@@ -530,7 +530,7 @@ grammar_tables = {
 }
 
 from data_grammar_checks import GRAMMAR_CHECKS
-from data_upgrades import PLURAL_TRAINER_WORDS, VERB_CONJUGATIONS_DATA, A1_MINI_STORIES, PREPOSITION_CASES_DATA
+from data_upgrades import PLURAL_TRAINER_WORDS, VERB_CONJUGATIONS_DATA, A1_MINI_STORIES, PREPOSITION_CASES_DATA, A1_HÖR_DIKTAT_DATA
 
 for lesson in ALL_DEEP_LESSONS:
     for sec in lesson.get("grammar_sections", []):
@@ -538,8 +538,9 @@ for lesson in ALL_DEEP_LESSONS:
         if sec_id in GRAMMAR_CHECKS:
             sec["check"] = GRAMMAR_CHECKS[sec_id]
 
-# Inject mini-stories into language labs as well
+# Inject mini-stories and dictation into language labs as well
 LANGUAGE_LABS_DATA["stories"] = A1_MINI_STORIES
+LANGUAGE_LABS_DATA["diktat"] = A1_HÖR_DIKTAT_DATA
 
 # Master compile
 master_data = {
@@ -550,6 +551,7 @@ master_data = {
     "verb_conjugations": VERB_CONJUGATIONS_DATA,
     "preposition_cases": PREPOSITION_CASES_DATA,
     "mini_stories": A1_MINI_STORIES,
+    "diktat": A1_HÖR_DIKTAT_DATA,
     "sentence_builders": sentence_builders,
     "final_exam_questions": final_exam_questions,
     "grammar_tables": grammar_tables,

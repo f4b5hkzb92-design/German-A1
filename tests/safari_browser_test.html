@@ -316,6 +316,21 @@
       if (curCase) app.guessCase(curCase.correct);
       await sleep(100);
       logItem(app.state.caseScore === initialCaseScore + 1, "19. Kasus & Preposition Trainer (Akkusativ, Dativ & Wechselpräpositionen)");
+
+      // 20. Hör-Diktat Lab & Profile JSON Backup Sync
+      app.setTab('labs');
+      await sleep(100);
+      app.switchLabTab('diktat');
+      await sleep(100);
+      app.switchDiktatCategory('buchstabieren');
+      app.onDiktatInput('Schneider');
+      app.submitDiktat();
+      await sleep(100);
+      const uDiktat = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+      const diktatPassed = (uDiktat.completedDiktat || []).includes('dik_1');
+      const backupJSON = app.exportUserDataJSON();
+      const backupValid = typeof backupJSON === 'string' && backupJSON.length > 50;
+      logItem(Boolean(diktatPassed && backupValid), "20. Hör-Diktat Lab & Profile JSON Backup Sync System");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });
