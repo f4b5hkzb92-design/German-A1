@@ -1090,6 +1090,21 @@ html.dark .grammar-table th, html.dark .grammar-table td { border-color: var(--s
   margin: 1cm;
 }
 
+
+/* Zahlen, Uhrzeit & Datum Trainer cyan utilities */
+.bg-cyan-100 { background-color: #cffafe; }
+.bg-cyan-600 { background-color: #0891b2; }
+.dark .dark\:bg-cyan-900\/40 { background-color: rgba(22, 78, 99, 0.4); }
+.text-cyan-700 { color: #0e7490; }
+.text-cyan-600 { color: #0891b2; }
+.dark .dark\:text-cyan-400 { color: #22d3ee; }
+.hover\:text-cyan-600:hover { color: #0891b2; }
+.from-cyan-900 { --tw-gradient-from: #164e63; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(22, 78, 99, 0)); }
+.border-cyan-400\/30 { border-color: rgba(34, 211, 238, 0.3); border-style: solid; }
+.hover\:bg-cyan-50:hover { background-color: #ecfeff; }
+.dark .dark\:hover\:bg-cyan-950\/40:hover { background-color: rgba(8, 51, 68, 0.4); }
+.hover\:border-cyan-500:hover { border-color: #06b6d4; }
+
 @media print {
   html, body {
     background: #ffffff !important;

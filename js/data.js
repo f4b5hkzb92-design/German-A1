@@ -20875,5 +20875,547 @@ window.GERMAN_A1_DATA = {
         "explanation": "A1 თავაზიანი ფორმულა: Ich möchte bitte einen Kaffee (მამრ. Akkusativ: der -> einen)."
       }
     ]
+  },
+  "zahlen_uhrzeit_drills": [
+  {
+    "id": "zah_1",
+    "category": "zahlen",
+    "prompt_ka": "როგორ იწერება გერმანულად რიცხვი 21?",
+    "prompt_display": "21",
+    "audio_text": "einundzwanzig",
+    "options": [
+      "einundzwanzig",
+      "zwanzigeins",
+      "einsundzwanzig",
+      "zwanzigundeins"
+    ],
+    "correct": "einundzwanzig",
+    "rule_ka": "გერმანულში 21-დან 99-მდე ჯერ ერთეული ითქმის, შემდეგ und, შემდეგ ათეული: ein + und + zwanzig (აქ eins კარგავს s-ს)."
+  },
+  {
+    "id": "zah_2",
+    "category": "zahlen",
+    "prompt_ka": "აირჩიეთ სწორი ფორმა რიცხვისთვის 47:",
+    "prompt_display": "47",
+    "audio_text": "siebenundvierzig",
+    "options": [
+      "siebenundvierzig",
+      "vierzigundsieben",
+      "siebzigundvier",
+      "siebenundvier"
+    ],
+    "correct": "siebenundvierzig",
+    "rule_ka": "47 = sieben (7) + und + vierzig (40) -> siebenundvierzig."
+  },
+  {
+    "id": "zah_3",
+    "category": "zahlen",
+    "prompt_ka": "რას ნიშნავს რიცხვი 'achtundsechzig'?",
+    "prompt_display": "achtundsechzig",
+    "audio_text": "achtundsechzig",
+    "options": [
+      "68",
+      "86",
+      "78",
+      "60"
+    ],
+    "correct": "68",
+    "rule_ka": "acht (8) + und + sechzig (60) = 68. ყურადღება: ქართულისგან განსხვავებით ათეული ბოლოშია."
+  },
+  {
+    "id": "zah_4",
+    "category": "zahlen",
+    "prompt_ka": "როგორ იკითხება რიცხვი 17?",
+    "prompt_display": "17",
+    "audio_text": "siebzehn",
+    "options": [
+      "siebzehn",
+      "siebenzehn",
+      "siebzig",
+      "sechzehn"
+    ],
+    "correct": "siebzehn",
+    "rule_ka": "17 = siebzehn (sieben კარგავს -en-ს), ხოლო 70 = siebzig."
+  },
+  {
+    "id": "zah_5",
+    "category": "zahlen",
+    "prompt_ka": "როგორ იკითხება რიცხვი 16?",
+    "prompt_display": "16",
+    "audio_text": "sechzehn",
+    "options": [
+      "sechzehn",
+      "sechszehn",
+      "sechzig",
+      "siebzehn"
+    ],
+    "correct": "sechzehn",
+    "rule_ka": "16 = sechzehn და 60 = sechzig — ორივეგან 's' იკარგება (არა sechszehn)."
+  },
+  {
+    "id": "zah_6",
+    "category": "zahlen",
+    "prompt_ka": "როგორ ითქმის ფასი: 12,50 €?",
+    "prompt_display": "12,50 €",
+    "audio_text": "zwölf Euro fünfzig",
+    "options": [
+      "zwölf Euro fünfzig",
+      "zwanzig Euro fünf",
+      "zweiundzwanzig Euro fünfzig",
+      "zwölf Euro fünf"
+    ],
+    "correct": "zwölf Euro fünfzig",
+    "rule_ka": "ფასებში ჯერ მთელი ევრო ითქმის, შემდეგ Euro, შემდეგ ცენტები: zwölf Euro fünfzig."
+  },
+  {
+    "id": "zah_7",
+    "category": "zahlen",
+    "prompt_ka": "როგორ იკითხება რიცხვი 315?",
+    "prompt_display": "315",
+    "audio_text": "dreihundertfünfzehn",
+    "options": [
+      "dreihundertfünfzehn",
+      "dreihundertfünfzig",
+      "fünfzehnhundertdrei",
+      "dreizehnfünfzehn"
+    ],
+    "correct": "dreihundertfünfzehn",
+    "rule_ka": "ასეულები ერთად იწერება: dreihundert (300) + fünfzehn (15) = dreihundertfünfzehn."
+  },
+  {
+    "id": "zah_8",
+    "category": "zahlen",
+    "prompt_ka": "რას ნიშნავს 'neunundneunzig'?",
+    "prompt_display": "neunundneunzig",
+    "audio_text": "neunundneunzig",
+    "options": [
+      "99",
+      "90",
+      "19",
+      "89"
+    ],
+    "correct": "99",
+    "rule_ka": "neun (9) + und + neunzig (90) = 99."
+  },
+  {
+    "id": "zah_9",
+    "category": "zahlen",
+    "prompt_ka": "როგორ ითქმის რიცხვი 1000?",
+    "prompt_display": "1000",
+    "audio_text": "eintausend",
+    "options": [
+      "eintausend",
+      "einhundert",
+      "zehnhundert",
+      "tausendundeins"
+    ],
+    "correct": "eintausend",
+    "rule_ka": "1000 = eintausend (ან უბრალოდ tausend)."
+  },
+  {
+    "id": "zah_10",
+    "category": "zahlen",
+    "prompt_ka": "როგორ იკითხება წელი 1998 გერმანულად?",
+    "prompt_display": "1998",
+    "audio_text": "neunzehnhundertachtundneunzig",
+    "options": [
+      "neunzehnhundertachtundneunzig",
+      "eintausendneunhundertachtundneunzig",
+      "neunzigachtundneunzig",
+      "neunzehnhundertneunundachtzig"
+    ],
+    "correct": "neunzehnhundertachtundneunzig",
+    "rule_ka": "1999 წლამდე წლები ასეულებით იკითხება: 19 (neunzehn) + hundert + 98 (achtundneunzig)."
+  },
+  {
+    "id": "zah_11",
+    "category": "zahlen",
+    "prompt_ka": "როგორ ითქმის ფასი: 3,99 €?",
+    "prompt_display": "3,99 €",
+    "audio_text": "drei Euro neunundneunzig",
+    "options": [
+      "drei Euro neunundneunzig",
+      "dreißig Euro neunundneunzig",
+      "drei Euro neunzig",
+      "neunundneunzig Euro drei"
+    ],
+    "correct": "drei Euro neunundneunzig",
+    "rule_ka": "3,99 € = drei Euro neunundneunzig."
+  },
+  {
+    "id": "zah_12",
+    "category": "zahlen",
+    "prompt_ka": "აირჩიეთ სწორი ფორმა რიცხვისთვის 53:",
+    "prompt_display": "53",
+    "audio_text": "dreiundfünfzig",
+    "options": [
+      "dreiundfünfzig",
+      "fünfzigunddrei",
+      "dreizehnundfünfzig",
+      "dreißigundfünf"
+    ],
+    "correct": "dreiundfünfzig",
+    "rule_ka": "53 = drei (3) + und + fünfzig (50) -> dreiundfünfzig."
+  },
+  {
+    "id": "uhr_1",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათია: 'Es ist halb drei'?",
+    "prompt_display": "halb drei",
+    "audio_text": "Es ist halb drei.",
+    "options": [
+      "14:30 (2:30)",
+      "15:30 (3:30)",
+      "13:30 (1:30)",
+      "14:15 (2:15)"
+    ],
+    "correct": "14:30 (2:30)",
+    "rule_ka": "გერმანულში 'halb drei' ნიშნავს მესამე საათის ნახევარს, ანუ 2:30 / 14:30-ს (და არა 3:30-ს)!"
+  },
+  {
+    "id": "uhr_2",
+    "category": "uhrzeit",
+    "prompt_ka": "როგორ ითქმის სასაუბროდ 08:15?",
+    "prompt_display": "08:15",
+    "audio_text": "Es ist Viertel nach acht.",
+    "options": [
+      "Viertel nach acht",
+      "Viertel vor acht",
+      "halb acht",
+      "acht Uhr fünfzig"
+    ],
+    "correct": "Viertel nach acht",
+    "rule_ka": "Viertel nach = 15 წუთი გადასულია (მეოთხედი ...-ის შემდეგ). 08:15 = Viertel nach acht."
+  },
+  {
+    "id": "uhr_3",
+    "category": "uhrzeit",
+    "prompt_ka": "როგორ ითქმის სასაუბროდ 16:45?",
+    "prompt_display": "16:45",
+    "audio_text": "Es ist Viertel vor fünf.",
+    "options": [
+      "Viertel vor fünf",
+      "Viertel nach vier",
+      "Viertel vor vier",
+      "halb fünf"
+    ],
+    "correct": "Viertel vor fünf",
+    "rule_ka": "Viertel vor = 15 წუთი აკლია მომდევნო საათს. 16:45 = Viertel vor fünf (ხუთს უკლია თხუთმეტი)."
+  },
+  {
+    "id": "uhr_4",
+    "category": "uhrzeit",
+    "prompt_ka": "ოფიციალური დრო: როგორ ითქმის 14:30?",
+    "prompt_display": "14:30",
+    "audio_text": "vierzehn Uhr dreißig",
+    "options": [
+      "vierzehn Uhr dreißig",
+      "vier Uhr dreißig",
+      "vierzehn Uhr dreizehn",
+      "halb vierzehn"
+    ],
+    "correct": "vierzehn Uhr dreißig",
+    "rule_ka": "ოფიციალურ (24-საათიან) სისტემაში: საათი + Uhr + წუთები -> vierzehn Uhr dreißig."
+  },
+  {
+    "id": "uhr_5",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათია: 'Es ist halb neun'?",
+    "prompt_display": "halb neun",
+    "audio_text": "Es ist halb neun.",
+    "options": [
+      "08:30 (20:30)",
+      "09:30 (21:30)",
+      "08:15",
+      "09:15"
+    ],
+    "correct": "08:30 (20:30)",
+    "rule_ka": "halb neun = ცხრის ნახევარი = 08:30 ან 20:30."
+  },
+  {
+    "id": "uhr_6",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათია: 'Es ist zehn vor zwölf'?",
+    "prompt_display": "zehn vor zwölf",
+    "audio_text": "Es ist zehn vor zwölf.",
+    "options": [
+      "11:50",
+      "12:10",
+      "10:12",
+      "11:40"
+    ],
+    "correct": "11:50",
+    "rule_ka": "vor = აკლია. zehn vor zwölf = თორმეტს აკლია ათი წუთი = 11:50."
+  },
+  {
+    "id": "uhr_7",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათია: 'Es ist fünf nach zehn'?",
+    "prompt_display": "fünf nach zehn",
+    "audio_text": "Es ist fünf nach zehn.",
+    "options": [
+      "10:05",
+      "09:55",
+      "10:50",
+      "05:10"
+    ],
+    "correct": "10:05",
+    "rule_ka": "nach = გადასულია. fünf nach zehn = ათს გადასულია ხუთი წუთი = 10:05."
+  },
+  {
+    "id": "uhr_8",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათის წინდებული გამოიყენება ზუსტ დროსთან? (___ 8 Uhr)",
+    "prompt_display": "___ 8 Uhr",
+    "audio_text": "Um acht Uhr.",
+    "options": [
+      "um",
+      "am",
+      "im",
+      "in"
+    ],
+    "correct": "um",
+    "rule_ka": "ზუსტ საათთან ყოველთვის გამოიყენება წინდებული 'um': um 8 Uhr, um halb drei."
+  },
+  {
+    "id": "uhr_9",
+    "category": "uhrzeit",
+    "prompt_ka": "როგორ ითქმის ოფიციალურად 09:05?",
+    "prompt_display": "09:05",
+    "audio_text": "neun Uhr fünf",
+    "options": [
+      "neun Uhr fünf",
+      "neun fünf Uhr",
+      "fünf Uhr neun",
+      "neunzehn Uhr fünf"
+    ],
+    "correct": "neun Uhr fünf",
+    "rule_ka": "ოფიციალურ დროში 'Uhr' დგას საათსა და წუთებს შორის: neun Uhr fünf."
+  },
+  {
+    "id": "uhr_10",
+    "category": "uhrzeit",
+    "prompt_ka": "როგორ ვიკითხოთ 'რომელი საათია?' გერმანულად?",
+    "prompt_display": "⏰ ?",
+    "audio_text": "Wie spät ist es?",
+    "options": [
+      "Wie spät ist es?",
+      "Wie alt bist du?",
+      "Wann kommst du?",
+      "Wie viel kostet das?"
+    ],
+    "correct": "Wie spät ist es?",
+    "rule_ka": "საათის საკითხავი სტანდარტული ფრაზაა: 'Wie spät ist es?' ან 'Wie viel Uhr ist es?'."
+  },
+  {
+    "id": "uhr_11",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი საათია: 'Es ist halb eins'?",
+    "prompt_display": "halb eins",
+    "audio_text": "Es ist halb eins.",
+    "options": [
+      "12:30 (00:30)",
+      "01:30 (13:30)",
+      "11:30",
+      "12:15"
+    ],
+    "correct": "12:30 (00:30)",
+    "rule_ka": "halb eins = პირველის ნახევარი = 12:30 ან 00:30."
+  },
+  {
+    "id": "uhr_12",
+    "category": "uhrzeit",
+    "prompt_ka": "რომელი წინდებული იხმარება 'მთელი საათიდან საათამდე' (09:00–17:00)?",
+    "prompt_display": "___ 9 ___ 17 Uhr",
+    "audio_text": "von neun bis siebzehn Uhr",
+    "options": [
+      "von ... bis",
+      "um ... nach",
+      "am ... im",
+      "seit ... um"
+    ],
+    "correct": "von ... bis",
+    "rule_ka": "დროის შუალედისთვის გამოიყენება წყვილი 'von ... bis': von 9 bis 17 Uhr."
+  },
+  {
+    "id": "dat_1",
+    "category": "datum",
+    "prompt_ka": "რომელი წინდებული იხმარება კვირის დღეებთან? (___ Montag)",
+    "prompt_display": "___ Montag",
+    "audio_text": "am Montag",
+    "options": [
+      "am",
+      "im",
+      "um",
+      "zu"
+    ],
+    "correct": "am",
+    "rule_ka": "კვირის დღეებთან და დღის მონაკვეთებთან გამოიყენება 'am' (an + dem): am Montag, am Abend."
+  },
+  {
+    "id": "dat_2",
+    "category": "datum",
+    "prompt_ka": "რომელი წინდებული იხმარება თვეებთან და წელიწადის დროებთან? (___ Juli)",
+    "prompt_display": "___ Juli",
+    "audio_text": "im Juli",
+    "options": [
+      "im",
+      "am",
+      "um",
+      "auf"
+    ],
+    "correct": "im",
+    "rule_ka": "თვეებთან და სეზონებთან გამოიყენება 'im' (in + dem): im Juli, im Sommer."
+  },
+  {
+    "id": "dat_3",
+    "category": "datum",
+    "prompt_ka": "როგორ ითქმის '3 მაისს' (am 03.05.)?",
+    "prompt_display": "am 03.05.",
+    "audio_text": "am dritten Mai",
+    "options": [
+      "am dritten Mai",
+      "am drei Mai",
+      "im dritten Mai",
+      "am dreiten Mai"
+    ],
+    "correct": "am dritten Mai",
+    "rule_ka": "am + რიგობითი რიცხვი იღებს -en დაბოლოებას (1-19: -ten, 3 = dritten -> არაწესიერი ფორმა!): am dritten Mai."
+  },
+  {
+    "id": "dat_4",
+    "category": "datum",
+    "prompt_ka": "როგორ ითქმის '1 იანვარს' (am 01.01.)?",
+    "prompt_display": "am 01.01.",
+    "audio_text": "am ersten Januar",
+    "options": [
+      "am ersten Januar",
+      "am einsten Januar",
+      "am eins Januar",
+      "im ersten Januar"
+    ],
+    "correct": "am ersten Januar",
+    "rule_ka": "1-ის რიგობითი ფორმაა 'erste', 'am'-ის შემდეგ კი -> am ersten Januar."
+  },
+  {
+    "id": "dat_5",
+    "category": "datum",
+    "prompt_ka": "როგორ ითქმის '20 ოქტომბერს' (am 20.10.)?",
+    "prompt_display": "am 20.10.",
+    "audio_text": "am zwanzigsten Oktober",
+    "options": [
+      "am zwanzigsten Oktober",
+      "am zwanzigten Oktober",
+      "am zwanzig Oktober",
+      "im zwanzigsten Oktober"
+    ],
+    "correct": "am zwanzigsten Oktober",
+    "rule_ka": "20-დან ზემოთ რიგობით რიცხვებს ემატება -ste / -sten: zwanzig -> am zwanzigsten Oktober."
+  },
+  {
+    "id": "dat_6",
+    "category": "datum",
+    "prompt_ka": "რომელი დღე მოსდევს Donnerstag-ს?",
+    "prompt_display": "Donnerstag -> ?",
+    "audio_text": "Freitag",
+    "options": [
+      "Freitag",
+      "Mittwoch",
+      "Dienstag",
+      "Samstag"
+    ],
+    "correct": "Freitag",
+    "rule_ka": "კვირის დღეები: Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag, Sonntag."
+  },
+  {
+    "id": "dat_7",
+    "category": "datum",
+    "prompt_ka": "რომელი თვეა 'März'?",
+    "prompt_display": "März",
+    "audio_text": "März",
+    "options": [
+      "მარტი",
+      "მაისი",
+      "მარხვის თვე",
+      "აპრილი"
+    ],
+    "correct": "მარტი",
+    "rule_ka": "Januar (იანვარი), Februar (თებერვალი), März (მარტი), April (აპრილი), Mai (მაისი)."
+  },
+  {
+    "id": "dat_8",
+    "category": "datum",
+    "prompt_ka": "გამონაკლისი დღის მონაკვეთებში: ___ Nacht (ღამით)",
+    "prompt_display": "___ Nacht",
+    "audio_text": "in der Nacht",
+    "options": [
+      "in der",
+      "am",
+      "im",
+      "um"
+    ],
+    "correct": "in der",
+    "rule_ka": "მართალია am Morgen / am Abend ვამბობთ, მაგრამ 'die Nacht' გამონაკლისია -> in der Nacht."
+  },
+  {
+    "id": "dat_9",
+    "category": "datum",
+    "prompt_ka": "როგორ ითქმის 'შაბათ-კვირას'?",
+    "prompt_display": "___ Wochenende",
+    "audio_text": "am Wochenende",
+    "options": [
+      "am Wochenende",
+      "im Wochenende",
+      "um Wochenende",
+      "zu Wochenende"
+    ],
+    "correct": "am Wochenende",
+    "rule_ka": "das Wochenende -> am Wochenende (შაბათ-კვირას)."
+  },
+  {
+    "id": "dat_10",
+    "category": "datum",
+    "prompt_ka": "რომელი სეზონია 'Herbst'?",
+    "prompt_display": "im Herbst",
+    "audio_text": "im Herbst",
+    "options": [
+      "შემოდგომა",
+      "ზამთარი",
+      "გაზაფხული",
+      "ზაფხული"
+    ],
+    "correct": "შემოდგომა",
+    "rule_ka": "Frühling (გაზაფხული), Sommer (ზაფხული), Herbst (შემოდგომა), Winter (ზამთარი)."
+  },
+  {
+    "id": "dat_11",
+    "category": "datum",
+    "prompt_ka": "როგორ ითქმის '7 ივნისს' (am 07.06.)?",
+    "prompt_display": "am 07.06.",
+    "audio_text": "am siebten Juni",
+    "options": [
+      "am siebten Juni",
+      "am siebenten Juni",
+      "am sieben Juni",
+      "im siebten Juni"
+    ],
+    "correct": "am siebten Juni",
+    "rule_ka": "7-ის რიგობითი ფორმაა 'siebte', 'am'-ის შემდეგ -> am siebten Juni."
+  },
+  {
+    "id": "dat_12",
+    "category": "datum",
+    "prompt_ka": "რომელი კითხვითი სიტყვით ვკითხულობთ თარიღს ან დროს?",
+    "prompt_display": "___ hast du Geburtstag?",
+    "audio_text": "Wann hast du Geburtstag?",
+    "options": [
+      "Wann",
+      "Wo",
+      "Wie",
+      "Wer"
+    ],
+    "correct": "Wann",
+    "rule_ka": "დროსა და თარიღზე კითხვა ისმის სიტყვით 'Wann' (როდის?)."
   }
+]
 };

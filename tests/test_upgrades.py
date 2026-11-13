@@ -104,6 +104,15 @@ def main():
         check(bool(t.get("infinitive") and t.get("sentence") and t.get("correct") and t.get("rule_ka")), f"Trennbare Drill #{t.get('id', idx)} has complete sentence and rule")
         check(t.get("correct") in t.get("options", []), f"Trennbare Drill #{t.get('id', idx)} options contain correct answer")
 
+    # Zahlen, Uhrzeit & Datum dataset
+    zahlen = data.get("zahlen_uhrzeit_drills", [])
+    check(len(zahlen) == 36, f"Zahlen & Uhrzeit Trainer contains exactly 36 drills (got {len(zahlen)})")
+    zahlen_cats = set(z.get("category") for z in zahlen)
+    check(zahlen_cats == {"zahlen", "uhrzeit", "datum"}, f"All 3 Zahlen & Zeit categories represented (found {zahlen_cats})")
+    for idx, z in enumerate(zahlen[:5]):
+        check(bool(z.get("prompt_ka") and z.get("prompt_display") and z.get("correct") and z.get("rule_ka")), f"Zahlen Drill #{z.get('id', idx)} has complete prompt and rule")
+        check(z.get("correct") in z.get("options", []), f"Zahlen Drill #{z.get('id', idx)} options contain correct answer")
+
     # -------------------------------------------------------------
     # 2. Runtime Behavior & Interactive Verification (OSA / JSC)
     # -------------------------------------------------------------
@@ -391,6 +400,28 @@ def main():
             results.push({
                 name: 'buyStreakFreeze spends 50 XP when available or enforces XP threshold safely',
                 ok: (uAfterGoal.xp >= 50) ? (freezeRes === true && uAfterFreeze.streakFreezes === 2 && uAfterFreeze.xp === uAfterGoal.xp - 50) : (freezeRes === false)
+            });
+
+            // Test 19: Zahlen, Uhrzeit & Datum Trainer
+            app.setTab('article-trainer');
+            app.setTrainerMode('zahlen');
+            const zahlenDrill = app.state.zahlenCurrentDrill;
+            results.push({
+                name: 'setTrainerMode switches to Zahlen, Uhrzeit & Datum Trainer view',
+                ok: app.state.trainerActiveMode === 'zahlen' && zahlenDrill !== null && document.getElementById('main-content').innerHTML.indexOf('Zahlen, Uhrzeit & Datum') !== -1
+            });
+
+            const prevZahlenScore = app.state.zahlenScore;
+            app.guessZahlen(zahlenDrill.correct);
+            results.push({
+                name: 'guessZahlen correct increments score and streak',
+                ok: app.state.zahlenScore === prevZahlenScore + 1 && app.state.zahlenStreak === 1
+            });
+
+            app.setZahlenFilter('uhrzeit');
+            results.push({
+                name: 'setZahlenFilter filters drills by uhrzeit category',
+                ok: app.state.zahlenFilterType === 'uhrzeit' && app.state.zahlenCurrentDrill && app.state.zahlenCurrentDrill.category === 'uhrzeit'
             });
         } catch (e) {
             results.push({ name: 'Exception in probe: ' + e.toString(), ok: false });

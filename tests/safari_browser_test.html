@@ -353,6 +353,16 @@
       await sleep(50);
       const profileHtml = document.getElementById('main-content').innerHTML;
       logItem(Boolean(uGoal.dailyXpGoal === 100 && freezeBtnWorked && profileHtml.indexOf('Streak Freeze') !== -1), "22. Weekly Goal, 7-Day Activity Chart & Streak Freeze System");
+
+      // 23. Zahlen, Uhrzeit & Datum Trainer
+      app.setTab('article-trainer');
+      app.setTrainerMode('zahlen');
+      await sleep(100);
+      const curZahlen = app.state.zahlenCurrentDrill;
+      const initZahlenScore = app.state.zahlenScore;
+      if (curZahlen) app.guessZahlen(curZahlen.correct);
+      await sleep(100);
+      logItem(app.state.zahlenScore === initZahlenScore + 1, "23. Zahlen, Uhrzeit & Datum Trainer (Numbers, Clock & Dates)");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });

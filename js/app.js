@@ -75,6 +75,14 @@
     trennbarFeedback: null,
     trennbarFilterType: 'all', // 'all', 'praesens', 'modal', 'imperativ_perfekt'
 
+    // Zahlen, Uhrzeit & Datum Trainer state
+    zahlenIndex: 0,
+    zahlenScore: 0,
+    zahlenStreak: 0,
+    zahlenCurrentDrill: null,
+    zahlenFeedback: null,
+    zahlenFilterType: 'all', // 'all', 'zahlen', 'uhrzeit', 'datum'
+
     // Matching Pairs Game state
     matchCards: [],
     matchFlipped: [],
@@ -2289,6 +2297,20 @@
     state.trennbarFeedback = null;
   }
 
+  function pickNextZahlenDrill() {
+    const all = window.GERMAN_A1_DATA.zahlen_uhrzeit_drills || [];
+    let list = all;
+    if (state.zahlenFilterType !== 'all') {
+      list = all.filter(d => d.category === state.zahlenFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (list.length === 0) return;
+
+    state.zahlenIndex = (state.zahlenIndex + 1) % list.length;
+    state.zahlenCurrentDrill = list[state.zahlenIndex];
+    state.zahlenFeedback = null;
+  }
+
   function initMatchingGame() {
     const dict = window.GERMAN_A1_DATA.dictionary || [];
     if (dict.length < 5) return;
@@ -2715,6 +2737,96 @@
     `;
   }
 
+  function renderZahlenTrainerView() {
+    const all = window.GERMAN_A1_DATA.zahlen_uhrzeit_drills || [];
+    let list = all;
+    if (state.zahlenFilterType !== 'all') {
+      list = all.filter(d => d.category === state.zahlenFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (!state.zahlenCurrentDrill && list.length > 0) {
+      state.zahlenCurrentDrill = list[state.zahlenIndex % list.length];
+    }
+    const drill = state.zahlenCurrentDrill;
+    if (!drill) return `<div class="p-8 text-center text-slate-500">მონაცემები არ არის.</div>`;
+
+    const categoryLabels = { zahlen: '🔢 რიცხვები & ფასები', uhrzeit: '⏰ საათი & დრო', datum: '📅 თარიღი & დღეები' };
+    const sampleAudio = drill.audio_text || drill.correct;
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 რიცხვები, საათი & თარიღი • 36 სავარჯიშო
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Zahlen, Uhrzeit & Datum</h2>
+          <p class="text-xs text-slate-500 font-medium">გამოიყენეთ გერმანული რიცხვები, სასაუბრო/ოფიციალური საათი და კალენდარული თარიღები</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2 justify-center text-xs font-bold">
+          <button onclick="window.DeutschApp.setZahlenFilter('all')" class="px-3.5 py-1.5 rounded-xl transition ${state.zahlenFilterType === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            ყველა (36)
+          </button>
+          <button onclick="window.DeutschApp.setZahlenFilter('zahlen')" class="px-3.5 py-1.5 rounded-xl transition ${state.zahlenFilterType === 'zahlen' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            🔢 რიცხვები (12)
+          </button>
+          <button onclick="window.DeutschApp.setZahlenFilter('uhrzeit')" class="px-3.5 py-1.5 rounded-xl transition ${state.zahlenFilterType === 'uhrzeit' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            ⏰ საათი (12)
+          </button>
+          <button onclick="window.DeutschApp.setZahlenFilter('datum')" class="px-3.5 py-1.5 rounded-xl transition ${state.zahlenFilterType === 'datum' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            📅 თარიღი (12)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 shadow-sm text-center">
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
+            <span class="text-2xl font-black text-cyan-600 dark:text-cyan-400">${state.zahlenScore}</span>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
+            <span class="text-2xl font-black text-amber-500">🔥 ${state.zahlenStreak}</span>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-cyan-900 via-slate-900 to-slate-950 text-white rounded-3xl p-7 text-center shadow-lg space-y-3">
+          <span class="inline-block text-xs font-extrabold uppercase px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+            ${escapeHtml(categoryLabels[drill.category] || drill.category)}
+          </span>
+
+          <div class="text-3xl md:text-4xl font-black tracking-wide text-amber-300 py-1">
+            ${escapeHtml(drill.prompt_display)}
+          </div>
+
+          <h3 class="text-base md:text-lg font-bold text-white">
+            ${escapeHtml(drill.prompt_ka)}
+          </h3>
+
+          <div class="pt-1 flex justify-center gap-2">
+            <button onclick="window.DeutschApp.speak('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🔊 1.0x</span>
+            </button>
+            <button onclick="window.DeutschApp.speakSlow('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🐢 0.7x</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          ${drill.options.map(opt => `
+            <button onclick="window.DeutschApp.guessZahlen('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-cyan-500 font-black text-sm md:text-base text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="zahlen-feedback" class="min-h-[50px] text-center font-bold text-xs md:text-sm">
+          ${state.zahlenFeedback || ''}
+        </div>
+      </div>
+    `;
+  }
+
   function renderArticleTrainer(container) {
     if (!container) container = document.getElementById('main-content');
     if (!container) return;
@@ -2738,6 +2850,9 @@
         <button onclick="window.DeutschApp.setTrainerMode('trennbare')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'trennbare' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-rose-600'}">
           ✂️ Trennbare (35)
         </button>
+        <button onclick="window.DeutschApp.setTrainerMode('zahlen')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'zahlen' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-cyan-600'}">
+          🔢 Zahlen & Zeit (36)
+        </button>
         <button onclick="window.DeutschApp.setTrainerMode('matching')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'matching' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'}">
           🧩 Wort-Paare
         </button>
@@ -2758,6 +2873,10 @@
     }
     if (mode === 'trennbare') {
       container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderTrennbareTrainerView()}</div>`;
+      return;
+    }
+    if (mode === 'zahlen') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderZahlenTrainerView()}</div>`;
       return;
     }
     if (mode === 'matching') {
@@ -5745,6 +5864,45 @@ ${escapeHtml(item.text_de)}
 
     nextTrennbareDrill: function () {
       pickNextTrennbareDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Zahlen, Uhrzeit & Datum Trainer
+    setZahlenFilter: function (filterType) {
+      state.zahlenFilterType = filterType;
+      state.zahlenIndex = 0;
+      pickNextZahlenDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    guessZahlen: function (chosen) {
+      const drill = state.zahlenCurrentDrill;
+      if (!drill) return;
+      const feedbackEl = document.getElementById('zahlen-feedback');
+
+      if (chosen === drill.correct) {
+        state.zahlenScore += 1;
+        state.zahlenStreak += 1;
+        playChime('success');
+        grantRewardXP('zahlen_' + drill.id, 5);
+        speakGerman(drill.audio_text || drill.correct);
+        state.zahlenFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ სწორია! „${escapeHtml(drill.correct)}“<br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      } else {
+        state.zahlenStreak = 0;
+        playChime('wrong');
+        state.zahlenFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      }
+
+      if (feedbackEl) feedbackEl.innerHTML = state.zahlenFeedback;
+
+      setTimeout(() => {
+        pickNextZahlenDrill();
+        renderArticleTrainer(document.getElementById('main-content'));
+      }, 1600);
+    },
+
+    nextZahlenDrill: function () {
+      pickNextZahlenDrill();
       renderArticleTrainer(document.getElementById('main-content'));
     },
 
