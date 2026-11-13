@@ -638,8 +638,56 @@
     }
   }
 
-  // --- Native Web Speech Audio Engine ---
+  // --- Neural Piper TTS + Web Speech Audio Engine ---
   let cachedGermanVoice = null;
+  let piperSession = null;
+  let piperInitPromise = null;
+  let piperFailed = false;
+  let currentPiperAudio = null;
+  let currentSpeakToken = 0;
+  const piperAudioCache = new Map();
+
+  function stopActiveAudio() {
+    currentSpeakToken++;
+    if (currentPiperAudio) {
+      try {
+        currentPiperAudio.pause();
+        currentPiperAudio.currentTime = 0;
+      } catch (e) {}
+      currentPiperAudio = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  function initPiperNeuralVoice() {
+    if (piperSession || piperFailed || typeof window === 'undefined' || typeof Audio === 'undefined') {
+      return piperInitPromise;
+    }
+    if (piperInitPromise) return piperInitPromise;
+
+    piperInitPromise = (async () => {
+      try {
+        const piperMod = await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web/+esm');
+        const session = await piperMod.TtsSession.create({
+          voiceId: 'de_DE-kerstin-low'
+        });
+        piperSession = session;
+        showToast('🧠 ნეირონული გერმანული ხმა (Piper Kerstin) მზადაა!');
+        return session;
+      } catch (err) {
+        piperFailed = true;
+        return null;
+      }
+    })();
+
+    return piperInitPromise;
+  }
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    setTimeout(() => { initPiperNeuralVoice(); }, 1500);
+  }
 
   function pickBestGermanVoice() {
     if (!('speechSynthesis' in window)) return null;
@@ -681,23 +729,16 @@
     });
   }
 
-  function speakGerman(text, buttonElement, onEndCallback, customRate) {
+  function speakWithWebSpeech(cleanText, buttonElement, onEndCallback, rate) {
     if (!('speechSynthesis' in window)) {
       showToast('ხმის გაჟღერების მხარდაჭერა არ არის ბრაუზერში');
       if (onEndCallback) onEndCallback();
       return;
     }
-    window.speechSynthesis.cancel();
-
-    const cleanText = text
-      .replace(/[()]/g, '')
-      .replace(/,\s*-[a-zäöüß]+/gi, '')
-      .replace(/•/g, '')
-      .trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'de-DE';
-    utterance.rate = (typeof customRate === 'number') ? customRate : Math.min(state.speechRate || 0.92, 0.95);
+    utterance.rate = rate;
     utterance.pitch = 1.02;
 
     const deVoice = cachedGermanVoice || pickBestGermanVoice();
@@ -723,6 +764,84 @@
     }
 
     window.speechSynthesis.speak(utterance);
+  }
+
+  function speakGerman(text, buttonElement, onEndCallback, customRate) {
+    stopActiveAudio();
+    const myToken = currentSpeakToken;
+
+    const cleanText = text
+      .replace(/[()]/g, '')
+      .replace(/,\s*-[a-zäöüß]+/gi, '')
+      .replace(/•/g, '')
+      .trim();
+
+    if (!cleanText) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    const rate = (typeof customRate === 'number') ? customRate : Math.min(state.speechRate || 0.92, 0.95);
+
+    // Kick off Piper preload if not started yet
+    if (!piperSession && !piperFailed) {
+      initPiperNeuralVoice();
+    }
+
+    // Use Piper Neural TTS when ready
+    if (piperSession && typeof Audio !== 'undefined') {
+      if (buttonElement) buttonElement.classList.add('speaking-active');
+
+      const playBlobUrl = (url) => {
+        if (myToken !== currentSpeakToken) {
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          return;
+        }
+        const audio = new Audio(url);
+        audio.playbackRate = Math.max(0.6, Math.min(rate / 0.92, 1.35));
+        currentPiperAudio = audio;
+        const finish = () => {
+          if (currentPiperAudio === audio) currentPiperAudio = null;
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          if (onEndCallback) onEndCallback();
+        };
+        audio.onended = finish;
+        audio.onerror = () => {
+          if (currentPiperAudio === audio) currentPiperAudio = null;
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          speakWithWebSpeech(cleanText, buttonElement, onEndCallback, rate);
+        };
+        audio.play().catch(() => {
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          speakWithWebSpeech(cleanText, buttonElement, onEndCallback, rate);
+        });
+      };
+
+      if (piperAudioCache.has(cleanText)) {
+        playBlobUrl(piperAudioCache.get(cleanText));
+        return;
+      }
+
+      piperSession.predict(cleanText).then(wavBlob => {
+        if (myToken !== currentSpeakToken) {
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          return;
+        }
+        const url = URL.createObjectURL(wavBlob);
+        piperAudioCache.set(cleanText, url);
+        playBlobUrl(url);
+      }).catch(() => {
+        if (myToken !== currentSpeakToken) {
+          if (buttonElement) buttonElement.classList.remove('speaking-active');
+          return;
+        }
+        speakWithWebSpeech(cleanText, buttonElement, onEndCallback, rate);
+      });
+      return;
+    }
+
+    // Fallback to best browser voice while Piper downloads or in offline/test mode
+    speakWithWebSpeech(cleanText, buttonElement, onEndCallback, rate);
   }
 
   function speakSlow(text, buttonElement, onEndCallback) {
@@ -1494,7 +1613,7 @@
   function stopSequentialDialogue() {
     state.dialoguePlaying = false;
     if (state.dialogueTimer) clearTimeout(state.dialogueTimer);
-    window.speechSynthesis.cancel();
+    stopActiveAudio();
 
     const btn = document.getElementById('btn-play-all-dialogue');
     if (btn) btn.innerHTML = `<span>▶️ მთლიანი დიალოგის მოსმენა</span>`;
