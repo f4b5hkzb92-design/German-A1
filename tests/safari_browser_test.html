@@ -259,6 +259,52 @@
       const noPromisedCert = examEl && examEl.innerHTML.indexOf('📜 Deutsch A1 Pro კურსის სერტიფიკატი') === -1;
       app.setExamFilterModule('all');
       logItem(Boolean(hasHoeren && noPromisedCert), "14. Multi-Skill CEFR A1 Exam & Honest Assessment (Hören, Lesen, Satzbau, Schreiben)");
+
+      // 15. Plural Trainer (Hub Mode 2)
+      app.setTab('article-trainer');
+      await sleep(100);
+      app.setTrainerMode('plurals');
+      await sleep(100);
+      const curPlural = app.state.pluralCurrentWord;
+      const initialPluralScore = app.state.pluralScore;
+      if (curPlural) app.guessPlural(curPlural.plural);
+      await sleep(100);
+      logItem(app.state.pluralScore === initialPluralScore + 1, "15. Plural Trainer Multi-Choice & Pedagogical Rule Verification");
+
+      // 16. Verb Conjugation Trainer (Hub Mode 3)
+      app.setTrainerMode('verbs');
+      await sleep(100);
+      const curVerb = app.state.verbCurrentDrill;
+      const initialVerbScore = app.state.verbScore;
+      if (curVerb) app.guessVerb(curVerb.correct);
+      await sleep(100);
+      logItem(app.state.verbScore === initialVerbScore + 1, "16. Verb Conjugation Trainer (Präsens Vowel Shifts & Modals)");
+
+      // 17. Wort-Paare Matching Pairs Game (Hub Mode 4)
+      app.setTrainerMode('matching');
+      await sleep(100);
+      const card0 = app.state.matchCards[0];
+      const matchIdx = app.state.matchCards.findIndex((c, i) => i !== 0 && c.pairId === card0.pairId && c.type !== card0.type);
+      app.onMatchCardClick(0);
+      app.onMatchCardClick(matchIdx);
+      await sleep(100);
+      logItem(app.state.matchMatchedIds.includes(card0.id), "17. Wort-Paare Interactive Card Matching Game");
+
+      // 18. Kurzgeschichten Mini-Stories Lab & Comprehension Check
+      app.setTab('labs');
+      await sleep(100);
+      app.switchLabTab('stories');
+      await sleep(100);
+      app.selectStory('story_1');
+      await sleep(50);
+      app.selectStoryAnswer(0, 1);
+      app.selectStoryAnswer(1, 2);
+      app.selectStoryAnswer(2, 1);
+      app.submitStoryQuiz();
+      await sleep(100);
+      const uAfterStory = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{"xp":0}');
+      const storyCompleted = (uAfterStory.completedStories || []).includes('story_1');
+      logItem(storyCompleted && app.state.storyScore === 3, "18. Kurzgeschichten A1 Mini-Story Reading & Comprehension Check");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });

@@ -39,10 +39,39 @@
     flashcardMode: 'normal', // 'normal' or 'srs'
 
     // Article Trainer state
+    trainerActiveMode: 'articles', // 'articles' | 'plurals' | 'verbs' | 'matching'
     trainerIndex: 0,
     trainerScore: 0,
     trainerStreak: 0,
     trainerCurrentWord: null,
+
+    // Plural Trainer state
+    pluralIndex: 0,
+    pluralScore: 0,
+    pluralStreak: 0,
+    pluralCurrentWord: null,
+    pluralFeedback: null,
+
+    // Verb Conjugation Trainer state
+    verbIndex: 0,
+    verbScore: 0,
+    verbStreak: 0,
+    verbCurrentDrill: null,
+    verbFeedback: null,
+
+    // Matching Pairs Game state
+    matchCards: [],
+    matchFlipped: [],
+    matchMatchedIds: [],
+    matchMoves: 0,
+    matchCompleted: false,
+
+    // Mini-Stories Lab state
+    storyActiveId: 'story_1',
+    storyAnswers: {},
+    storySubmitted: false,
+    storyScore: 0,
+    storyShowTranslations: {},
 
     // Sentence Builder state
     sbIndex: 0,
@@ -188,6 +217,7 @@
       examPassed: false,
       examScore: null,
       examDate: null,
+      completedStories: [], // story IDs
       isPro: true,
       subscriptionTier: 'pro_annual'
     };
@@ -239,6 +269,7 @@
         data.examPassed = Boolean(data.examPassed);
         data.examScore = typeof data.examScore === 'number' ? data.examScore : null;
         data.examDate = typeof data.examDate === 'string' ? data.examDate : null;
+        data.completedStories = Array.isArray(data.completedStories) ? data.completedStories : [];
         data.isPro = true;
 
         // Versioned Writing Drafts Safe Recovery (Stage 9.1: Draft Persistence)
@@ -525,7 +556,7 @@
   }
 
   // --- Native Web Speech Audio Engine ---
-  function speakGerman(text, buttonElement, onEndCallback) {
+  function speakGerman(text, buttonElement, onEndCallback, customRate) {
     if (!('speechSynthesis' in window)) {
       showToast('ხმის გაჟღერების მხარდაჭერა არ არის ბრაუზერში');
       if (onEndCallback) onEndCallback();
@@ -541,7 +572,7 @@
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'de-DE';
-    utterance.rate = state.speechRate;
+    utterance.rate = (typeof customRate === 'number') ? customRate : state.speechRate;
 
     const voices = window.speechSynthesis.getVoices();
     const deVoice = voices.find(v => v.lang.startsWith('de') || v.lang.includes('DE'));
@@ -567,6 +598,14 @@
     }
 
     window.speechSynthesis.speak(utterance);
+  }
+
+  function speakSlow(text, buttonElement, onEndCallback) {
+    speakGerman(text, buttonElement, onEndCallback, 0.65);
+  }
+
+  function speakNormal(text, buttonElement, onEndCallback) {
+    speakGerman(text, buttonElement, onEndCallback, 0.90);
   }
 
   // --- Toast Notifications ---
@@ -1902,6 +1941,9 @@
             <button onclick="window.DeutschApp.onLexiconGender('favorites')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${state.lexiconGender === 'favorites' ? 'bg-yellow-500 text-white shadow' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}">
               ⭐ რჩეულები (${(userData.favoriteWords || []).length})
             </button>
+            <button onclick="window.DeutschApp.trainFavoritesFlashcards()" class="sm:ml-auto px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-sm flex items-center gap-1.5 transition active:scale-95">
+              <span>⚡ რჩეულების გავარჯიშება (Flashcards)</span>
+            </button>
           </div>
         </div>
 
@@ -2117,10 +2159,13 @@
   }
 
   // ==========================================================================
-  // TAB 4: ARTICLE TRAINER (DER / DIE / DAS - 431 WORDS)
+  // TAB 4: PRACTICE TRAINERS HUB (ARTICLES • PLURALS • VERBS • MATCHING)
   // ==========================================================================
   function initArticleTrainer() {
-    pickNextTrainerWord();
+    if (!state.trainerCurrentWord) pickNextTrainerWord();
+    if (!state.pluralCurrentWord) pickNextPluralWord();
+    if (!state.verbCurrentDrill) pickNextVerbDrill();
+    if (state.matchCards.length === 0) initMatchingGame();
   }
 
   function pickNextTrainerWord() {
@@ -2130,60 +2175,361 @@
     state.trainerCurrentWord = randomWord;
   }
 
-  function renderArticleTrainer(container) {
-    const word = state.trainerCurrentWord;
-    if (!word) return;
+  function pickNextPluralWord() {
+    const list = window.GERMAN_A1_DATA.plural_trainer_words || [];
+    if (list.length === 0) return;
+    state.pluralIndex = (state.pluralIndex + 1) % list.length;
+    state.pluralCurrentWord = list[state.pluralIndex];
+    state.pluralFeedback = null;
+  }
 
-    let html = `
-      <div class="max-w-xl mx-auto space-y-8 animate-fadeIn pb-16">
-        <div class="text-center space-y-2">
-          <span class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-black tracking-wider uppercase">
-            A1 გრამატიკული ტრენერი • 431 არსებითი სახელი
+  function pickNextVerbDrill() {
+    const list = window.GERMAN_A1_DATA.verb_conjugations || [];
+    if (list.length === 0) return;
+    state.verbIndex = (state.verbIndex + 1) % list.length;
+    state.verbCurrentDrill = list[state.verbIndex];
+    state.verbFeedback = null;
+  }
+
+  function initMatchingGame() {
+    const dict = window.GERMAN_A1_DATA.dictionary || [];
+    if (dict.length < 5) return;
+
+    // Pick 5 random words
+    const sample = [...dict].sort(() => Math.random() - 0.5).slice(0, 5);
+    const cards = [];
+    sample.forEach((item, idx) => {
+      cards.push({
+        id: `pair_${idx}_de`,
+        pairId: idx,
+        type: 'de',
+        text: (item.article ? item.article + ' ' : '') + item.word,
+        audio: (item.article ? item.article + ' ' : '') + item.word
+      });
+      cards.push({
+        id: `pair_${idx}_ka`,
+        pairId: idx,
+        type: 'ka',
+        text: item.georgian,
+        audio: null
+      });
+    });
+
+    state.matchCards = cards.sort(() => Math.random() - 0.5);
+    state.matchFlipped = [];
+    state.matchMatchedIds = [];
+    state.matchMoves = 0;
+    state.matchCompleted = false;
+  }
+
+  function renderPluralTrainerView() {
+    const list = window.GERMAN_A1_DATA.plural_trainer_words || [];
+    if (!state.pluralCurrentWord && list.length > 0) {
+      state.pluralCurrentWord = list[state.pluralIndex % list.length];
+    }
+    const item = state.pluralCurrentWord;
+    if (!item) return `<div class="p-8 text-center text-slate-500">მონაცემები არ არის.</div>`;
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 მრავლობითი რიცხვი • 60 მაღალი სიხშირის არსებითი სახელი
           </span>
-          <h1 class="text-3xl font-black text-slate-900 dark:text-white">არტიკლების ტრენერი</h1>
-          <p class="text-xs text-slate-500 font-medium">გამოიცანით სწორი არტიკლი: der (მამრ.), die (მდედრ.) თუ das (საშუალო)?</p>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Plural: მრავლობითი რიცხვის ტრენერი</h2>
+          <p class="text-xs text-slate-500 font-medium">შეარჩიეთ არსებითი სახელის სწორი მრავლობითი ფორმა (მოდელები: -er, -e, -(e)n, -s, -)</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 shadow-sm text-center">
+        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 shadow-sm text-center">
           <div>
             <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
-            <span class="text-2xl font-black text-blue-600 dark:text-blue-400">${state.trainerScore}</span>
+            <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400">${state.pluralScore}</span>
           </div>
           <div>
             <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
-            <span class="text-2xl font-black text-amber-500">🔥 ${state.trainerStreak}</span>
+            <span class="text-2xl font-black text-amber-500">🔥 ${state.pluralStreak}</span>
           </div>
         </div>
 
-        <div id="trainer-card" class="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-10 text-center shadow-lg transition-all duration-300">
-          <span class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 block">არსებითი სახელი</span>
-          <h2 id="trainer-word-display" class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-3">
-            ${escapeHtml(word.word)}
-          </h2>
-          <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5">
-            ${escapeHtml(word.georgian)}
+        <div class="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-8 text-center shadow-lg transition-all duration-300">
+          <span class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 block">მხოლობითი რიცხვი (Singular)</span>
+          <h3 class="text-4xl font-black text-slate-900 dark:text-white mb-2">
+            ${escapeHtml(item.singular)}
+          </h3>
+          <p class="text-base font-bold text-indigo-600 dark:text-indigo-400 mb-4">
+            ${escapeHtml(item.translation_ka)}
           </p>
-          <button onclick="window.DeutschApp.speak('${word.article} ${word.word}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:text-blue-600 transition">
-            <span>🔊 გამოთქმის მოსმენა</span>
+          <div class="flex justify-center gap-2">
+            <button onclick="window.DeutschApp.speak('${item.singular}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:text-indigo-600 transition">
+              <span>🔊 1.0x</span>
+            </button>
+            <button onclick="window.DeutschApp.speakSlow('${item.singular}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:text-indigo-600 transition">
+              <span>🐢 0.7x</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${item.options.map(opt => `
+            <button onclick="window.DeutschApp.guessPlural('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-500 font-black text-base text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="plural-feedback" class="min-h-[50px] text-center font-bold text-xs md:text-sm">
+          ${state.pluralFeedback || ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderVerbTrainerView() {
+    const list = window.GERMAN_A1_DATA.verb_conjugations || [];
+    if (!state.verbCurrentDrill && list.length > 0) {
+      state.verbCurrentDrill = list[state.verbIndex % list.length];
+    }
+    const drill = state.verbCurrentDrill;
+    if (!drill) return `<div class="p-8 text-center text-slate-500">მონაცემები არ არის.</div>`;
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 ზმნის უღლება • არარეგულარული & მოდალური ზმნები
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Verben: ზმნის უღლების ტრენერი</h2>
+          <p class="text-xs text-slate-500 font-medium">შეარჩიეთ ზმნის სწორი ფორმა მოცემული პირისთვის (Präsens / Vokalwechsel)</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 shadow-sm text-center">
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
+            <span class="text-2xl font-black text-amber-600 dark:text-amber-400">${state.verbScore}</span>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
+            <span class="text-2xl font-black text-amber-500">🔥 ${state.verbStreak}</span>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-7 text-center shadow-lg space-y-3">
+          <div class="flex items-center justify-center gap-2">
+            <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-400/30">
+              ინფინიტივი: ${escapeHtml(drill.infinitive)}
+            </span>
+            <span class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30">
+              პირი: ${escapeHtml(drill.pronoun)}
+            </span>
+            ${drill.shift ? `
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-purple-500/30 text-purple-200">
+                ${escapeHtml(drill.shift)}
+              </span>
+            ` : ''}
+          </div>
+
+          <h3 class="text-2xl md:text-3xl font-black tracking-wide text-white">
+            ${escapeHtml(drill.sentence)}
+          </h3>
+
+          <p class="text-xs text-slate-300 italic font-medium">
+            ${escapeHtml(drill.translation_ka)}
+          </p>
+
+          <div class="pt-1 flex justify-center gap-2">
+            <button onclick="window.DeutschApp.speak('${drill.infinitive}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🔊 ზმნა</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          ${drill.options.map(opt => `
+            <button onclick="window.DeutschApp.guessVerb('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-amber-500 font-black text-lg text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="verb-feedback" class="min-h-[50px] text-center font-bold text-xs md:text-sm">
+          ${state.verbFeedback || ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMatchingGameView() {
+    if (state.matchCards.length === 0) {
+      initMatchingGame();
+    }
+
+    const matchedPairsCount = Math.floor(state.matchMatchedIds.length / 2);
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 ლექსიკური მეხსიერება • Wort-Paare
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Wort-Paare: წყვილების თამაში</h2>
+          <p class="text-xs text-slate-500 font-medium">დააკავშირეთ გერმანული სიტყვა და მისი შესაბამისი ქართული თარგმანი</p>
+        </div>
+
+        <div class="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm text-xs font-bold">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 uppercase">ნაპოვნია:</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-black text-base">${matchedPairsCount} / 5</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 uppercase">სვლები:</span>
+            <span class="text-blue-600 dark:text-blue-400 font-black text-base">${state.matchMoves}</span>
+          </div>
+          <button onclick="window.DeutschApp.resetMatchingGame()" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold text-xs transition">
+            🔄 ახალი თამაში
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 md:gap-4">
-          <button onclick="window.DeutschApp.guessArticle('der')" class="py-5 px-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition flex flex-col items-center">
-            <span>DER</span>
-            <span class="text-[11px] font-medium opacity-80 mt-1">მამრობითი</span>
-          </button>
-          <button onclick="window.DeutschApp.guessArticle('die')" class="py-5 px-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-rose-500/20 active:scale-95 transition flex flex-col items-center">
-            <span>DIE</span>
-            <span class="text-[11px] font-medium opacity-80 mt-1">მდედრობითი</span>
-          </button>
-          <button onclick="window.DeutschApp.guessArticle('das')" class="py-5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition flex flex-col items-center">
-            <span>DAS</span>
-            <span class="text-[11px] font-medium opacity-80 mt-1">საშუალო</span>
-          </button>
-        </div>
+        ${state.matchCompleted ? `
+          <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-8 text-white text-center shadow-xl space-y-4 animate-fadeIn">
+            <div class="text-5xl">🎉 🏆</div>
+            <h3 class="text-2xl font-black">შესანიშნავია! ყველა წყვილი ნაპოვნია!</h3>
+            <p class="text-xs text-emerald-100">თქვენ წარმატებით დააკავშირეთ 5-ვე სიტყვა ${state.matchMoves} სვლაში (+15 XP).</p>
+            <button onclick="window.DeutschApp.resetMatchingGame()" class="px-6 py-3 rounded-2xl bg-white text-emerald-800 font-black text-sm shadow-lg hover:bg-emerald-50 transition active:scale-95">
+              კვლავ თამაში ↺
+            </button>
+          </div>
+        ` : `
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            ${state.matchCards.map((card, idx) => {
+              const isMatched = state.matchMatchedIds.includes(card.id);
+              const isSelected = state.matchFlipped.includes(idx);
 
-        <div id="trainer-feedback" class="min-h-[50px] text-center font-bold text-sm"></div>
+              let cardClass = "min-h-[90px] p-3 rounded-2xl font-black text-xs md:text-sm shadow-sm transition-all duration-200 flex flex-col items-center justify-center text-center cursor-pointer select-none ";
+              if (isMatched) {
+                cardClass += "bg-emerald-100 dark:bg-emerald-950/60 border-2 border-emerald-500 text-emerald-800 dark:text-emerald-200 opacity-80 cursor-default";
+              } else if (isSelected) {
+                cardClass += "bg-blue-600 border-2 border-blue-400 text-white scale-105 shadow-md shadow-blue-500/30";
+              } else {
+                cardClass += "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 text-slate-800 dark:text-slate-100 active:scale-95";
+              }
+
+              return `
+                <div onclick="window.DeutschApp.onMatchCardClick(${idx})" class="${cardClass}">
+                  <span class="text-[9px] font-bold uppercase tracking-wider block opacity-70 mb-1">
+                    ${card.type === 'de' ? '🇩🇪 DE' : '🇬🇪 GE'}
+                  </span>
+                  <span>${escapeHtml(card.text)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  function renderArticleTrainer(container) {
+    if (!container) container = document.getElementById('main-content');
+    if (!container) return;
+
+    const mode = state.trainerActiveMode || 'articles';
+
+    const navBar = `
+      <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black max-w-2xl mx-auto mb-6">
+        <button onclick="window.DeutschApp.setTrainerMode('articles')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'articles' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-blue-600'}">
+          🛡️ der / die / das (431)
+        </button>
+        <button onclick="window.DeutschApp.setTrainerMode('plurals')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'plurals' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-indigo-600'}">
+          👥 Plural (60)
+        </button>
+        <button onclick="window.DeutschApp.setTrainerMode('verbs')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'verbs' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-amber-600'}">
+          ⚡ Verben (50)
+        </button>
+        <button onclick="window.DeutschApp.setTrainerMode('matching')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'matching' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'}">
+          🧩 Wort-Paare
+        </button>
+      </div>
+    `;
+
+    if (mode === 'plurals') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderPluralTrainerView()}</div>`;
+      return;
+    }
+    if (mode === 'verbs') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderVerbTrainerView()}</div>`;
+      return;
+    }
+    if (mode === 'matching') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderMatchingGameView()}</div>`;
+      return;
+    }
+
+    // Default: 'articles'
+    const word = state.trainerCurrentWord;
+    if (!word) {
+      pickNextTrainerWord();
+    }
+    const currentWord = state.trainerCurrentWord;
+    if (!currentWord) return;
+
+    let html = `
+      <div class="max-w-2xl mx-auto pb-16">
+        ${navBar}
+        <div class="max-w-xl mx-auto space-y-8 animate-fadeIn">
+          <div class="text-center space-y-2">
+            <span class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-full text-xs font-black tracking-wider uppercase">
+              A1 გრამატიკული ტრენერი • 431 არსებითი სახელი
+            </span>
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">არტიკლების ტრენერი</h1>
+            <p class="text-xs text-slate-500 font-medium">გამოიცანით სწორი არტიკლი: der (მამრ.), die (მდედრ.) თუ das (საშუალო)?</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 shadow-sm text-center">
+            <div>
+              <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
+              <span class="text-2xl font-black text-blue-600 dark:text-blue-400">${state.trainerScore}</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
+              <span class="text-2xl font-black text-amber-500">🔥 ${state.trainerStreak}</span>
+            </div>
+          </div>
+
+          <div id="trainer-card" class="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-10 text-center shadow-lg transition-all duration-300">
+            <span class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2 block">არსებითი სახელი</span>
+            <h2 id="trainer-word-display" class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-3">
+              ${escapeHtml(currentWord.word)}
+            </h2>
+            <p class="text-lg font-bold text-blue-600 dark:text-blue-400 mb-5">
+              ${escapeHtml(currentWord.georgian)}
+            </p>
+            <div class="flex justify-center gap-2">
+              <button onclick="window.DeutschApp.speak('${currentWord.article} ${currentWord.word}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:text-blue-600 transition">
+                <span>🔊 1.0x</span>
+              </button>
+              <button onclick="window.DeutschApp.speakSlow('${currentWord.article} ${currentWord.word}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:text-blue-600 transition">
+                <span>🐢 0.7x</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 md:gap-4">
+            <button onclick="window.DeutschApp.guessArticle('der')" class="py-5 px-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition flex flex-col items-center">
+              <span>DER</span>
+              <span class="text-[11px] font-medium opacity-80 mt-1">მამრობითი</span>
+            </button>
+            <button onclick="window.DeutschApp.guessArticle('die')" class="py-5 px-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-rose-500/20 active:scale-95 transition flex flex-col items-center">
+              <span>DIE</span>
+              <span class="text-[11px] font-medium opacity-80 mt-1">მდედრობითი</span>
+            </button>
+            <button onclick="window.DeutschApp.guessArticle('das')" class="py-5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xl md:text-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition flex flex-col items-center">
+              <span>DAS</span>
+              <span class="text-[11px] font-medium opacity-80 mt-1">საშუალო</span>
+            </button>
+          </div>
+
+          <div id="trainer-feedback" class="min-h-[50px] text-center font-bold text-sm"></div>
+        </div>
       </div>
     `;
 
@@ -2310,6 +2656,9 @@
           <button onclick="window.DeutschApp.switchLabTab('roleplay')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'roleplay' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
             💬 5. DIALOG-CHAT
           </button>
+          <button onclick="window.DeutschApp.switchLabTab('stories')" class="flex-1 py-3 px-2 rounded-xl transition text-center ${active === 'stories' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300'}">
+            📚 6. KURZGESCHICHTEN
+          </button>
         </div>
 
         <div id="lab-tab-content">
@@ -2325,6 +2674,8 @@
       html += renderSprechenLab(labs.sprechen || []);
     } else if (active === 'roleplay') {
       html += renderRoleplayLab(labs.roleplay || []);
+    } else if (active === 'stories') {
+      html += renderStoriesLab(labs.stories || window.GERMAN_A1_DATA.mini_stories || []);
     }
 
     html += `
@@ -3035,6 +3386,202 @@ ${escapeHtml(item.text_de)}
     `;
 
     return html;
+  }
+
+  // --- 6. KURZGESCHICHTEN LAB (A1 MINI-STORIES & COMPREHENSION CHECK) ---
+  function renderStoriesLab(stories) {
+    if (!stories || stories.length === 0) {
+      return `<p class="text-xs text-slate-500">ისტორიები არ მოიძებნა.</p>`;
+    }
+
+    let activeStory = stories.find(s => s.id === state.storyActiveId);
+    if (!activeStory) {
+      activeStory = stories[0];
+      state.storyActiveId = activeStory.id;
+    }
+
+    const isMastered = (userData.completedStories || []).includes(activeStory.id);
+
+    return `
+      <div class="space-y-6 animate-fadeIn">
+        <!-- Story Selection Pills -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          ${stories.map((st, sIdx) => {
+            const isCurrent = (st.id === state.storyActiveId);
+            const done = (userData.completedStories || []).includes(st.id);
+            return `
+              <button onclick="window.DeutschApp.selectStory('${st.id}')" class="p-3.5 rounded-2xl border text-left transition ${isCurrent ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-indigo-400'}">
+                <div class="flex items-center justify-between text-[10px] font-black uppercase mb-1">
+                  <span>მოთხრობა ${sIdx + 1}</span>
+                  ${done ? '<span class="text-emerald-400 font-extrabold">✓</span>' : ''}
+                </div>
+                <div class="text-xs font-black truncate">${escapeHtml(st.title_de)}</div>
+                <div class="text-[10px] opacity-75 truncate">${escapeHtml(st.title_ka)}</div>
+              </button>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Story Reader Card -->
+        <div class="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-lg space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-black uppercase tracking-wider">
+              CEFR A1 • ${escapeHtml(activeStory.level || 'A1')}
+            </span>
+            ${isMastered ? `
+              <span class="px-3 py-1 bg-emerald-500/30 border border-emerald-400 text-emerald-300 rounded-xl text-xs font-black">
+                ✓ ათვისებულია (+20 XP)
+              </span>
+            ` : ''}
+          </div>
+          <div>
+            <h2 class="text-2xl md:text-3xl font-black">${escapeHtml(activeStory.title_de)}</h2>
+            <p class="text-sm text-indigo-200 font-medium">${escapeHtml(activeStory.title_ka)}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 pt-3 border-t border-indigo-700/50">
+            <span class="text-xs text-indigo-200 font-bold">სრული აუდიო:</span>
+            <button onclick="window.DeutschApp.speak('${activeStory.audio_text.replace(/'/g, "\\'")}', this)" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-xl text-xs font-black shadow flex items-center gap-1.5 transition">
+              <span>🔊 1.0x მოუსმინე</span>
+            </button>
+            <button onclick="window.DeutschApp.speakSlow('${activeStory.audio_text.replace(/'/g, "\\'")}', this)" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🐢 0.7x ნელა</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Story Paragraphs with Translation and Vocabulary Toggles -->
+        <div class="space-y-4">
+          ${activeStory.paragraphs.map((p, pIdx) => {
+            const showTrans = Boolean(state.storyShowTranslations[pIdx]);
+            return `
+              <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex items-start justify-between gap-4">
+                  <p class="text-base font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
+                    ${escapeHtml(p.de)}
+                  </p>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="window.DeutschApp.speak('${p.de.replace(/'/g, "\\'")}', this)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 text-xs transition" title="1.0x მოსმენა">
+                      🔊
+                    </button>
+                    <button onclick="window.DeutschApp.speakSlow('${p.de.replace(/'/g, "\\'")}', this)" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 text-xs transition" title="0.7x ნელა">
+                      🐢
+                    </button>
+                    <button onclick="window.DeutschApp.toggleStoryTranslation(${pIdx})" class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                      🇬🇪 ${showTrans ? 'დამალვა' : 'თარგმანი'}
+                    </button>
+                  </div>
+                </div>
+
+                ${showTrans ? `
+                  <div class="p-3.5 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 border border-indigo-100 dark:border-indigo-900/40 animate-fadeIn">
+                    ${escapeHtml(p.ka)}
+                  </div>
+                ` : ''}
+
+                ${(p.glossary && p.glossary.length > 0) ? `
+                  <div class="pt-2 border-t border-slate-100 dark:border-slate-700/60">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">საკვანძო ლექსიკა (Glossary):</span>
+                    <div class="flex flex-wrap gap-1.5">
+                      ${p.glossary.map(g => `
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold">
+                          ${g.article ? `<strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(g.article)}</strong>` : ''}
+                          <span>${escapeHtml(g.word)}:</span>
+                          <span class="text-slate-500 dark:text-slate-400">${escapeHtml(g.ka)}</span>
+                        </span>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Comprehension Check (გაგების შემოწმება) -->
+        <div class="bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">ტესტი გაგებაზე (Comprehension Check)</span>
+              <h3 class="text-xl font-black text-slate-900 dark:text-white">შეამოწმეთ რამდენად კარგად გაიგეთ ისტორია</h3>
+            </div>
+            ${state.storySubmitted ? `
+              <span class="text-xs font-black px-3 py-1 rounded-xl ${state.storyScore >= 2 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'}">
+                შედეგი: ${state.storyScore} / ${activeStory.quiz.length}
+              </span>
+            ` : ''}
+          </div>
+
+          <div class="space-y-6">
+            ${activeStory.quiz.map((q, qIdx) => {
+              const userAns = state.storyAnswers[qIdx];
+              const isSubmitted = state.storySubmitted;
+              const isCorrect = (userAns === q.answer);
+
+              return `
+                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 space-y-3">
+                  <div class="flex items-center justify-between text-xs font-black">
+                    <span class="text-slate-500 uppercase">კითხვა ${qIdx + 1}</span>
+                    ${isSubmitted ? (isCorrect ? '<span class="text-emerald-600 font-black">✓ სწორია</span>' : '<span class="text-rose-600 font-black">✗ არასწორია</span>') : ''}
+                  </div>
+                  <h4 class="text-sm font-black text-slate-800 dark:text-slate-100">${escapeHtml(q.question)}</h4>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    ${q.options.map((opt, oIdx) => {
+                      const isSelected = (userAns === oIdx);
+                      let optClass = "p-3 rounded-xl text-xs font-bold text-left border transition ";
+                      if (isSubmitted) {
+                        if (oIdx === q.answer) {
+                          optClass += "bg-emerald-100 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200 font-black";
+                        } else if (isSelected) {
+                          optClass += "bg-rose-100 dark:bg-rose-950/60 border-rose-500 text-rose-800 dark:text-rose-200";
+                        } else {
+                          optClass += "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-60";
+                        }
+                      } else {
+                        if (isSelected) {
+                          optClass += "bg-indigo-600 text-white border-indigo-600 shadow-sm";
+                        } else {
+                          optClass += "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-indigo-400";
+                        }
+                      }
+
+                      return `
+                        <button ${isSubmitted ? 'disabled' : `onclick="window.DeutschApp.selectStoryAnswer(${qIdx}, ${oIdx})"`} class="${optClass}">
+                          ${escapeHtml(opt)}
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+
+                  ${isSubmitted ? `
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 font-medium border border-slate-200 dark:border-slate-700">
+                      💡 <strong>განმარტება:</strong> ${escapeHtml(q.explanation)}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+            ${!state.storySubmitted ? `
+              <button onclick="window.DeutschApp.submitStoryQuiz()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl shadow transition">
+                შემოწმება ✓
+              </button>
+            ` : `
+              <div class="flex items-center gap-3">
+                <button onclick="window.DeutschApp.retryStoryQuiz()" class="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-100 transition">
+                  🔄 თავიდან გავლა
+                </button>
+                <button onclick="window.DeutschApp.nextStory()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl shadow transition">
+                  შემდეგი ისტორია →
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   // ==========================================================================
@@ -4048,11 +4595,10 @@ ${escapeHtml(item.text_de)}
     closeCertificateModal,
     printCertificate,
     speakSlow: function (text, btn) {
-      const orig = state.speechRate;
-      state.speechRate = 0.7;
-      speakGerman(text, btn, () => {
-        state.speechRate = orig;
-      });
+      speakSlow(text, btn);
+    },
+    speakNormal: function (text, btn) {
+      speakNormal(text, btn);
     },
 
     // Pro Modal
@@ -4286,6 +4832,17 @@ ${escapeHtml(item.text_de)}
         renderLexicon(document.getElementById('main-content'));
       }
     },
+    trainFavoritesFlashcards: function () {
+      const favs = userData.favoriteWords || [];
+      if (favs.length === 0) {
+        showToast('ჯერ მონიშნეთ სიტყვები ვარსკვლავით (⭐) ლექსიკონში');
+        return;
+      }
+      state.flashcardLessonFilter = 'fav';
+      state.flashcardMode = 'normal';
+      initFlashcards();
+      setTab('flashcards');
+    },
 
     // Flashcards & SM-2
     onFlashcardLessonFilter: function (filterVal) {
@@ -4383,6 +4940,123 @@ ${escapeHtml(item.text_de)}
         pickNextTrainerWord();
         renderArticleTrainer(document.getElementById('main-content'));
       }, 1200);
+    },
+
+    // Practice Trainers Hub Mode Switch
+    setTrainerMode: function (mode) {
+      state.trainerActiveMode = mode;
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Plural Trainer
+    guessPlural: function (chosen) {
+      const item = state.pluralCurrentWord;
+      if (!item) return;
+      const feedbackEl = document.getElementById('plural-feedback');
+
+      if (chosen === item.plural) {
+        state.pluralScore += 1;
+        state.pluralStreak += 1;
+        playChime('success');
+        grantRewardXP('plural_' + item.word, 5);
+        speakGerman(item.plural);
+        state.pluralFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ სწორია! ${escapeHtml(item.plural)}<br><span class="text-xs font-normal text-slate-500">${escapeHtml(item.rule_explanation)}</span></span>`;
+      } else {
+        state.pluralStreak = 0;
+        playChime('wrong');
+        state.pluralFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(item.plural)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(item.rule_explanation)}</span></span>`;
+      }
+
+      if (feedbackEl) feedbackEl.innerHTML = state.pluralFeedback;
+
+      setTimeout(() => {
+        pickNextPluralWord();
+        renderArticleTrainer(document.getElementById('main-content'));
+      }, 1600);
+    },
+
+    nextPluralWord: function () {
+      pickNextPluralWord();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Verb Conjugation Trainer
+    guessVerb: function (chosen) {
+      const drill = state.verbCurrentDrill;
+      if (!drill) return;
+      const feedbackEl = document.getElementById('verb-feedback');
+
+      if (chosen === drill.correct) {
+        state.verbScore += 1;
+        state.verbStreak += 1;
+        playChime('success');
+        grantRewardXP('verb_' + drill.id, 5);
+        const fullSentence = drill.sentence.replace('_______', drill.correct);
+        speakGerman(fullSentence);
+        state.verbFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ სწორია! „${escapeHtml(fullSentence)}“<br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule)}</span></span>`;
+      } else {
+        state.verbStreak = 0;
+        playChime('wrong');
+        state.verbFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule)}</span></span>`;
+      }
+
+      if (feedbackEl) feedbackEl.innerHTML = state.verbFeedback;
+
+      setTimeout(() => {
+        pickNextVerbDrill();
+        renderArticleTrainer(document.getElementById('main-content'));
+      }, 1600);
+    },
+
+    nextVerbDrill: function () {
+      pickNextVerbDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Wort-Paare (Matching Game)
+    onMatchCardClick: function (idx) {
+      if (state.matchCompleted) return;
+      if (state.matchFlipped.length >= 2) return;
+      const card = state.matchCards[idx];
+      if (!card || state.matchMatchedIds.includes(card.id)) return;
+      if (state.matchFlipped.includes(idx)) return;
+
+      state.matchFlipped.push(idx);
+      renderArticleTrainer(document.getElementById('main-content'));
+
+      if (state.matchFlipped.length === 2) {
+        state.matchMoves += 1;
+        const card1 = state.matchCards[state.matchFlipped[0]];
+        const card2 = state.matchCards[state.matchFlipped[1]];
+
+        if (card1.pairId === card2.pairId && card1.type !== card2.type) {
+          playChime('success');
+          state.matchMatchedIds.push(card1.id, card2.id);
+          const deCard = (card1.type === 'de') ? card1 : card2;
+          speakGerman(deCard.audio || deCard.text);
+          state.matchFlipped = [];
+
+          if (state.matchMatchedIds.length === state.matchCards.length) {
+            state.matchCompleted = true;
+            playChime('levelup');
+            grantRewardXP('match_pairs_' + Date.now(), 15, 'წყვილების თამაში მოგებულია (+15 XP)!');
+          }
+          setTimeout(() => {
+            renderArticleTrainer(document.getElementById('main-content'));
+          }, 300);
+        } else {
+          playChime('wrong');
+          setTimeout(() => {
+            state.matchFlipped = [];
+            renderArticleTrainer(document.getElementById('main-content'));
+          }, 700);
+        }
+      }
+    },
+
+    resetMatchingGame: function () {
+      initMatchingGame();
+      renderArticleTrainer(document.getElementById('main-content'));
     },
 
     // Sentence Builder
@@ -4926,6 +5600,73 @@ ${escapeHtml(item.text_de)}
     toggleRoleplayTranslation: function (key) {
       state.roleplayShowTranslations[key] = !state.roleplayShowTranslations[key];
       renderLanguageLabs(document.getElementById('main-content'));
+    },
+
+    // Mini-Stories Lab Handlers
+    selectStory: function (id) {
+      state.storyActiveId = id;
+      state.storyAnswers = {};
+      state.storySubmitted = false;
+      state.storyScore = 0;
+      state.storyShowTranslations = {};
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    selectStoryAnswer: function (qIdx, oIdx) {
+      if (state.storySubmitted) return;
+      state.storyAnswers[qIdx] = oIdx;
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    toggleStoryTranslation: function (pIdx) {
+      state.storyShowTranslations[pIdx] = !state.storyShowTranslations[pIdx];
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    submitStoryQuiz: function () {
+      const stories = window.GERMAN_A1_DATA.mini_stories || (window.GERMAN_A1_DATA.language_labs || {}).stories || [];
+      const activeStory = stories.find(s => s.id === state.storyActiveId) || stories[0];
+      if (!activeStory) return;
+
+      const answered = Object.keys(state.storyAnswers).length;
+      if (answered < activeStory.quiz.length) {
+        showToast(`გთხოვთ უპასუხოთ ყველა (${activeStory.quiz.length}) შეკითხვას შემოწმებამდე.`);
+        return;
+      }
+
+      let score = 0;
+      activeStory.quiz.forEach((q, idx) => {
+        if (state.storyAnswers[idx] === q.answer) {
+          score += 1;
+        }
+      });
+
+      state.storyScore = score;
+      state.storySubmitted = true;
+
+      userData.completedStories = userData.completedStories || [];
+      if (!userData.completedStories.includes(activeStory.id) && score >= 2) {
+        userData.completedStories.push(activeStory.id);
+        grantRewardXP('story_' + activeStory.id, 20, `მოთხრობა #${activeStory.id} წარმატებით ათვისებულია (+20 XP)!`);
+        playChime('fanfare');
+      } else if (score >= 2) {
+        playChime('success');
+      } else {
+        playChime('wrong');
+      }
+
+      saveUserData();
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    retryStoryQuiz: function () {
+      state.storyAnswers = {};
+      state.storySubmitted = false;
+      state.storyScore = 0;
+      renderLanguageLabs(document.getElementById('main-content'));
+    },
+    nextStory: function () {
+      const stories = window.GERMAN_A1_DATA.mini_stories || (window.GERMAN_A1_DATA.language_labs || {}).stories || [];
+      if (stories.length === 0) return;
+      const curIdx = stories.findIndex(s => s.id === state.storyActiveId);
+      const nextIdx = (curIdx >= 0 ? (curIdx + 1) % stories.length : 0);
+      window.DeutschApp.selectStory(stories[nextIdx].id);
     },
 
     // Learner Name Update for Certificate (Stage 10)
