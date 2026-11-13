@@ -129,187 +129,313 @@ sentence_builders = [
     }
 ]
 
-# --- Final Diagnostic Exam (25 questions) ---
+# --- Final Comprehensive CEFR A1 Exam (Multi-Skill: Hören, Lesen, Satzbau, Schreiben - 26 items) ---
 final_exam_questions = [
+    # --- MODUL 1: HÖREN (მოსმენა - 7 დავალება) ---
     {
         "id": 1,
-        "question": "'Woher kommen Sie?' - რომელია სწორი პასუხი?",
-        "options": ["Ich heiße David.", "Ich komme aus Georgien.", "Ich wohne in Tiflis.", "Ja, ich spreche Deutsch."],
+        "module": "hoeren",
+        "scenario": "სადგურის დისპეტჩერის განცხადება (Bahnhof Durchsage)",
+        "audio_text": "Achtung an Gleis 4. Der Intercity 523 nach München über Nürnberg hat heute circa zwanzig Minuten Verspätung. Grund dafür ist eine technische Störung. Bitte beachten Sie die Durchsagen.",
+        "question": "მოსმენა (Hören): რამდენი წუთით აგვიანებს მატარებელი მიუნხენის მიმართულებით?",
+        "options": ["10 წუთით", "20 წუთით", "30 წუთით", "არ აგვიანებს, დროულად გადის"],
         "answer": 1,
-        "explanation": "Woher (საიდან) მოითხოვს პასუხს წარმოშობაზე: aus + ქვეყანა."
+        "explanation": "დისპეტჩერის განცხადება: 'hat heute circa zwanzig Minuten Verspätung' (დაახლოებით 20 წუთით აგვიანებს)."
     },
     {
         "id": 2,
-        "question": "აირჩიეთ სწორი ფორმა: 'Er _______ sehr gut Deutsch.' (sprechen)",
-        "options": ["spreche", "sprecht", "spricht", "sprechen"],
-        "answer": 2,
-        "explanation": "ზმნა sprechen არარეგულარულია er პირში (e -> i): er spricht."
+        "module": "hoeren",
+        "scenario": "ექიმის სატელეფონო ავტომოპასუხე (Anrufbeantworter)",
+        "audio_text": "Guten Tag. Hier ist die Praxis von Doktor Schneider. Unsere Praxis bleibt diese Woche wegen Urlaub geschlossen. In dringenden Notfällen wenden Sie sich bitte an den ärztlichen Notdienst unter der Telefonnummer 116 117. Ab Montag sind wir wieder für Sie da.",
+        "question": "მოსმენა (Hören): რა უნდა ქნას პაციენტმა გადაუდებელ შემთხვევაში?",
+        "options": ["ორშაბათამდე მოიცადოს", "დარეკოს გადაუდებელ ნომერზე 116 117", "პირდაპირ კლინიკაში მივიდეს", "ხმოვანი შეტყობინება დატოვოს"],
+        "answer": 1,
+        "explanation": "ექიმის ჩანაწერში ნათქვამია: 'In dringenden Notfällen wenden Sie sich bitte an den ärztlichen Notdienst unter der Telefonnummer 116 117'."
     },
     {
         "id": 3,
-        "question": "რომელია 'das Kind'-ის მრავლობითი რიცხვი?",
-        "options": ["die Kinde", "die Kindes", "die Kinder", "die Kindern"],
-        "answer": 2,
-        "explanation": "das Kind -> die Kinder (დაბოლოება -er)."
+        "module": "hoeren",
+        "scenario": "სუპერმარკეტის აქცია (Supermarkt Durchsage)",
+        "audio_text": "Liebe Kundinnen und Kunden! Heute im Sonderangebot in unserer Obstabteilung: Süße spanische Orangen, das Kilo für nur zwei Euro neunundvierzig! Greifen Sie zu, das Angebot gilt nur heute!",
+        "question": "მოსმენა (Hören): რა ღირს ერთი კილოგრამი ფორთოხალი?",
+        "options": ["1,49 €", "2,49 €", "3,49 €", "2,99 €"],
+        "answer": 1,
+        "explanation": "ფასის გაგონება: 'zwei Euro neunundvierzig' = 2,49 ევრო."
     },
     {
         "id": 4,
-        "question": "შეავსეთ: 'Ich habe _______ Schwester und _______ Bruder.'",
-        "options": ["eine / einen", "ein / einen", "einen / eine", "einer / einem"],
-        "answer": 0,
-        "explanation": "haben მოითხოვს Akkusativ-ს: die Schwester -> eine, der Bruder -> einen."
+        "module": "hoeren",
+        "scenario": "სატელეფონო შეთანხმება (Verabredung am Telefon)",
+        "audio_text": "Hallo Anna, hier ist Lukas. Treffen wir uns heute Abend um halb sieben vor dem Kino? - Hallo Lukas. Um halb sieben schaffe ich es leider nicht. Geht es vielleicht um Viertel nach sieben? - Ja, perfekt, sieben Uhr fünfzehn passt mir super!",
+        "question": "მოსმენა (Hören): რომელ საათზე შეთანხმდნენ ანა და ლუკასი შეხვედრაზე?",
+        "options": ["18:30 საათზე (halb sieben)", "19:00 საათზე (sieben Uhr)", "19:15 საათზე (Viertel nach sieben)", "20:00 საათზე (acht Uhr)"],
+        "answer": 2,
+        "explanation": "ლუკასმა შესთავაზა 18:30 (halb sieben), მაგრამ ანამ სთხოვა 19:15 (Viertel nach sieben / sieben Uhr fünfzehn), რაზეც ლუკასი დათანხმდა."
     },
     {
         "id": 5,
-        "question": "რომელია სწორი უარყოფა: 'Das ist _______ Buch, das ist ein Heft.'",
-        "options": ["nicht", "keine", "kein", "keinen"],
-        "answer": 2,
-        "explanation": "das Buch საშუალო სქესია, ამიტომ არსებითი სახელის უარყოფაა 'kein Buch'."
+        "module": "hoeren",
+        "scenario": "გზის ახსნა ქუჩაში (Wegbeschreibung)",
+        "audio_text": "Entschuldigen Sie bitte, wie komme ich zur nächsten Apotheke? - Gehen Sie hier geradeaus bis zur Kreuzung. An der Ampel biegen Sie rechts ab. Nach zweihundert Metern sehen Sie die Apotheke auf der linken Seite, direkt neben der Bäckerei.",
+        "question": "მოსმენა (Hören): სად მდებარეობს აფთიაქი?",
+        "options": ["შუქნიშანთან მარცხნივ", "მარჯვნივ მოხვევის შემდეგ, მარცხენა მხარეს საცხობის გვერდით", "სადგურის მოპირდაპირედ", "სწორედ კუთხეში"],
+        "answer": 1,
+        "explanation": "მითითება: 'An der Ampel rechts... auf der linken Seite, direkt neben der Bäckerei'."
     },
     {
         "id": 6,
-        "question": "'Wie viel Uhr ist es?' (15:45) - როგორ ითქმის სასაუბროდ?",
-        "options": ["Viertel nach drei", "Viertel vor vier", "halb vier", "halb fünf"],
+        "module": "hoeren",
+        "scenario": "აეროპორტის გამოცხადება (Flughafen Aufruf)",
+        "audio_text": "Letzter Aufruf für Fluggäste des Lufthansa-Fluges LH 430 nach New York. Bitte begeben Sie sich unverzüglich zum Flugsteig B 26. Das Boarding wird in wenigen Minuten beendet.",
+        "question": "მოსმენა (Hören): რომელ გეითთან (Flugsteig) უნდა მივიდნენ მგზავრები?",
+        "options": ["A 14", "B 26", "C 32", "B 16"],
         "answer": 1,
-        "explanation": "15:45 ნიშნავს, რომ 4 საათს აკლია 15 წუთი -> Viertel vor vier."
+        "explanation": "გამოცხადება: 'Bitte begeben Sie sich unverzüglich zum Flugsteig B 26'."
     },
     {
         "id": 7,
-        "question": "შეავსეთ: 'Am Samstag _______ wir im Supermarkt _______.' (einkaufen)",
-        "options": ["kaufen / ein", "einkaufen / -", "kaufe / ein", "eingekauft / haben"],
-        "answer": 0,
-        "explanation": "განცალკევებადი ზმნა: wir kaufen ... ein."
+        "module": "hoeren",
+        "scenario": "სახელმწიფო უწყების შეტყობინება (Bürgeramt Termin)",
+        "audio_text": "Guten Morgen, Bürgeramt Mitte. Sie haben einen Termin zur Wohnsitzanmeldung gebucht. Ihr Termin ist am Donnerstag, dem zwanzigsten Mai, um zehn Uhr dreißig bei Herrn Richter im Zimmer 104.",
+        "question": "მოსმენა (Hören): როდის და რომელ ოთახშია დანიშნული მიღება?",
+        "options": ["ოთხშაბათს 10:00-ზე, ოთახი 102", "ხუთშაბათს 10:30-ზე, ოთახი 104", "პარასკევს 11:30-ზე, ოთახი 204", "ხუთშაბათს 14:00-ზე, ოთახი 104"],
+        "answer": 1,
+        "explanation": "'am Donnerstag... um zehn Uhr dreißig bei Herrn Richter im Zimmer 104'."
     },
+
+    # --- MODUL 2: LESEN & GRAMMATIK (კითხვა და გრამატიკა - 8 დავალება) ---
     {
         "id": 8,
-        "question": "შეავსეთ: 'Wir _______ heute leider nicht ins Kino gehen.' (können)",
-        "options": ["kann", "könnt", "können", "kannst"],
-        "answer": 2,
-        "explanation": "wir პირთან: wir können."
+        "module": "lesen",
+        "scenario": "მოსაწვევი წერილი (Einladung zum Sommerfest)",
+        "reading_text": "Liebe Freunde,\nam Samstag, den 15. Juli, feiere ich meinen Geburtstag im Stadtpark! Wir grillen ab 17:00 Uhr. Fleisch und Getränke kaufe ich. Bitte bringt einen Salat oder ein Dessert mit. Wenn es regnet, feiern wir bei mir zu Hause. Schreibt mir bitte bis Mittwoch, ob ihr kommt!\nLiebe Grüße, Markus",
+        "question": "კითხვა (Lesen): რას სთხოვს მარკუსი მეგობრებს, რა უნდა მოიტანონ წვეულებაზე?",
+        "options": ["ხორცი და სასმელები", "სალათი ან დესერტი", "საკუთარი გრილი", "ქოლგები და კარავი"],
+        "answer": 1,
+        "explanation": "ტექსტში ნათქვამია: 'Fleisch und Getränke kaufe ich. Bitte bringt einen Salat oder ein Dessert mit'."
     },
     {
         "id": 9,
-        "question": "შეავსეთ დატივის არტიკლი: 'Ich fahre jeden Tag mit _______ U-Bahn (die U-Bahn).'",
-        "options": ["die", "der", "dem", "den"],
+        "module": "lesen",
+        "scenario": "მაღაზიის სამუშაო საათების აბრა (Öffnungszeiten)",
+        "reading_text": "Sehr geehrte Kunden,\nwährend der Feiertage gelten folgende Öffnungszeiten:\nMontag - Donnerstag: 09:00 - 20:00 Uhr\nFreitag (Feiertag): GESCHLOSSEN\nSamstag: 10:00 - 18:00 Uhr\nAm Sonntag bleibt unser Haus geschlossen.",
+        "question": "კითხვა (Lesen): შეუძლია თუ არა მომხმარებელს პარასკევს მაღაზიაში შესვლა?",
+        "options": ["დიახ, 09:00-დან 20:00-მდე", "არა, პარასკევს მაღაზია დაკეტილია (Feiertag - geschlossen)", "მხოლოდ 10:00-დან 18:00-მდე", "მხოლოდ წინასწარი შეთანხმებით"],
         "answer": 1,
-        "explanation": "mit მოითხოვს Dativ-ს. მდედრობითი (die) დატივში ხდება 'der'!"
+        "explanation": "აბრაზე გარკვევით წერია: 'Freitag (Feiertag): GESCHLOSSEN'."
     },
     {
         "id": 10,
-        "question": "შეავსეთ: 'Entschuldigung, wo ist _______ Bahnhof (der Bahnhof)?'",
-        "options": ["der", "den", "dem", "des"],
-        "answer": 0,
-        "explanation": "Wo ist ...? ითხოვს სახელობით ბრუნვას (Nominativ) - der Bahnhof."
+        "module": "lesen",
+        "scenario": "ბინის გაქირავების განცხადება (Wohnungsanzeige)",
+        "reading_text": "Helle 2-Zimmer-Wohnung in Berlin-Mitte ab 1. September zu vermieten. 58 qm, 3. Stock mit Aufzug, Balkon zur Südseite, Einbauküche vorhanden. Kaltmiete: 650 Euro, Nebenkosten: 150 Euro. Haustiere sind leider nicht erlaubt. Nichtraucher bevorzugt.",
+        "question": "კითხვა (Lesen): რამდენია ბინის საერთო ქირა კომუნალურების ჩათვლით (Warmmiete) თვეში?",
+        "options": ["650 ევრო", "580 ევრო", "800 ევრო (650 + 150)", "150 ევრო"],
+        "answer": 2,
+        "explanation": "Kaltmiete (650 €) + Nebenkosten (150 €) = 800 € მთლიანი გადასახადი თვეში."
     },
     {
         "id": 11,
-        "question": "შეავსეთ: 'Mein Vater arbeitet _______ Arzt.'",
-        "options": ["wie", "als", "bei", "für"],
+        "module": "lesen",
+        "scenario": "გრამატიკა: Akkusativ masculine",
+        "question": "გრამატიკა (Grammatik): შეავსეთ სწორი არტიკლი: 'Herr Müller kauft _______ neuen Fernseher (der Fernseher) für das Wohnzimmer.'",
+        "options": ["ein", "einen", "einem", "einer"],
         "answer": 1,
-        "explanation": "პროფესიასთან ყოველთვის გამოიყენება 'als': arbeitet als Arzt."
+        "explanation": "ზმნა kaufen მოითხოვს Akkusativ-ს. მამრობითი სქესის (der Fernseher) განუსაზღვრელი არტიკლი აკუზატივში ხდება 'einen'."
     },
     {
         "id": 12,
-        "question": "შეავსეთ: 'Du bist krank. Du _______ zum Arzt gehen.'",
-        "options": ["willst", "sollst", "darfst", "kann"],
+        "module": "lesen",
+        "scenario": "გრამატიკა: Dativ mit Präpositionen",
+        "question": "გრამატიკა (Grammatik): შეავსეთ: 'Ich fahre jeden Morgen mit _______ U-Bahn (die U-Bahn) und nach der Arbeit gehe ich zu _______ Arzt (der Arzt).'",
+        "options": ["die / den", "der / dem", "dem / der", "den / des"],
         "answer": 1,
-        "explanation": "რჩევის მისაცემად გამოიყენება sollen: du sollst zum Arzt gehen."
+        "explanation": "წინდებულები 'mit' და 'zu' ყოველთვის მოითხოვს Dativ-ს: die U-Bahn -> mit der U-Bahn; der Arzt -> zum (zu dem) Arzt."
     },
     {
         "id": 13,
-        "question": "რომელია 'essen' (ჭამა)-ის სწორი Partizip II (მე-3 ფორმა)?",
-        "options": ["geesst", "gegessen", "geisst", "gegesset"],
-        "answer": 1,
-        "explanation": "essen არარეგულარული ძლიერი ზმნაა: hat gegessen."
+        "module": "lesen",
+        "scenario": "გრამატიკა: Modalverben",
+        "question": "გრამატიკა (Grammatik): შეავსეთ: 'Hier im Museum _______ man leider keine Fotos machen.' (აკრძალვა)",
+        "options": ["darf", "muss", "will", "soll"],
+        "answer": 0,
+        "explanation": "აკრძალვის გამოსახატად (nicht dürfen) გამოიყენება 'man darf nicht'."
     },
     {
         "id": 14,
-        "question": "შეავსეთ: 'Wir _______ letztes Jahr nach Deutschland geflogen.'",
-        "options": ["haben", "sind", "hatten", "waren"],
+        "module": "lesen",
+        "scenario": "გრამატიკა: Perfekt mit sein / haben",
+        "question": "გრამატიკა (Grammatik): შეავსეთ დამხმარე ზმნები: 'Gestern _______ Thomas um 7 Uhr aufgestanden und er _______ eine Tasse Kaffee getrunken.'",
+        "options": ["hat / ist", "ist / hat", "hat / hat", "ist / ist"],
         "answer": 1,
-        "explanation": "fliegen (ფრენა) გამოხატავს გადაადგილებას, ამიტომ იღებს sein-ს: wir sind geflogen."
+        "explanation": "aufstehen (ადგომა) მდგომარეობის შეცვლაა -> ist aufgestanden; trinken (დალევა) გარდამავალია -> hat getrunken."
     },
     {
         "id": 15,
-        "question": "როგორ მივმართოთ თავაზიანად ადამიანს ბრძანებითში: 'გააღეთ ფანჯარა!'",
-        "options": ["Öffne das Fenster!", "Öffnet das Fenster!", "Öffnen Sie bitte das Fenster!", "Sie öffnen das Fenster!"],
-        "answer": 2,
-        "explanation": "თავაზიანი ბრძანებითი (Sie): ზმნა ინფინიტივში + Sie + bitte."
+        "module": "lesen",
+        "scenario": "გრამატიკა: Negation kein vs nicht",
+        "question": "გრამატიკა (Grammatik): შეავსეთ: 'Ich habe heute _______ Geld dabei und ich kann _______ einkaufen gehen.'",
+        "options": ["nicht / kein", "kein / nicht", "keine / kein", "nicht / keine"],
+        "answer": 1,
+        "explanation": "არსებითი სახელის (das Geld) უარყოფაა 'kein Geld', ხოლო ზმნის/მოქმედების (einkaufen gehen) უარყოფაა 'nicht'."
     },
+
+    # --- MODUL 3: SATZBAU & SYNTAX (სინტაქსი - 7 დავალება) ---
     {
         "id": 16,
-        "question": "რას ნიშნავს 'Ich habe Durst'?",
-        "options": ["მშია", "მწყურია", "დავიღალე", "მეძინება"],
+        "module": "satzbau",
+        "syntax_rule": "Verbstellung: Position 2 im Hauptsatz (Inversion)",
+        "question": "სინტაქსი (Satzbau): დაიწყეთ წინადადება დროის გარემოებით 'Am Sonntag'. რომელი სიტყვათწყობაა გერმანულად სწორი?",
+        "options": [
+            "Am Sonntag ich bleibe den ganzen Tag zu Hause.",
+            "Am Sonntag bleibe ich den ganzen Tag zu Hause.",
+            "Am Sonntag bleibe den ganzen Tag zu Hause ich.",
+            "Ich am Sonntag bleibe den ganzen Tag zu Hause."
+        ],
         "answer": 1,
-        "explanation": "der Durst = წყურვილი -> Ich habe Durst = მწყურია."
+        "explanation": "გერმანულ თხრობით წინადადებაში უღლებადი ზმნა (bleibe) მკაცრად მე-2 ადგილზე დგას. თუ 1-ლ ადგილზე დროის გარემოებაა (Am Sonntag), სუბიექტი (ich) ზმნის შემდეგ გადადის."
     },
     {
         "id": 17,
-        "question": "შეავსეთ: 'Der Unterricht beginnt _______ 9 Uhr morgens.'",
-        "options": ["am", "im", "um", "an"],
-        "answer": 2,
-        "explanation": "ზუსტ დროსთან გამოიყენება წინდებული 'um': um 9 Uhr."
+        "module": "satzbau",
+        "syntax_rule": "Satzklammer: Modalverb (Pos 2) ... Infinitiv (Ende)",
+        "question": "სინტაქსი (Satzbau): რომელი წინადადება იცავს მოდალური ზმნის ჩარჩოს (Satzklammer) წესს?",
+        "options": [
+            "Wir müssen morgen um 8 Uhr am Flughafen sein.",
+            "Wir müssen sein morgen um 8 Uhr am Flughafen.",
+            "Wir wollen am Flughafen sein müssen morgen.",
+            "Morgen wir müssen am Flughafen sein um 8 Uhr."
+        ],
+        "answer": 0,
+        "explanation": "მოდალური ზმნა (müssen) დგას მე-2 პოზიციაზე, ხოლო ძირითადი ზმნა ინფინიტივში (sein) წინადადების ბოლოში!"
     },
     {
         "id": 18,
-        "question": "რომელი წინადადებაა გრამატიკულად სრულიად სწორი?",
+        "module": "satzbau",
+        "syntax_rule": "Trennbare Verben: Präfix am Satzende",
+        "question": "სინტაქსი (Satzbau): როგორ დალაგდება სიტყვები ზმნით 'einkaufen' (Ich / im Supermarkt / jeden Samstag / einkaufen)?",
         "options": [
-            "Heute ich habe keine Zeit.",
-            "Heute habe ich keine Zeit.",
-            "Heute habe keine Zeit ich.",
-            "Ich keine Zeit habe heute."
+            "Ich einkaufe jeden Samstag im Supermarkt.",
+            "Ich kaufe jeden Samstag im Supermarkt ein.",
+            "Jeden Samstag ich kaufe im Supermarkt ein.",
+            "Ich will jeden Samstag im Supermarkt einkaufen ab."
         ],
         "answer": 1,
-        "explanation": "V2 წესი: თუ დროით იწყება (Heute), ზმნა (habe) დგას მე-2 ადგილზე: Heute habe ich keine Zeit."
+        "explanation": "განცალკევებადი ზმნის ფუძე (kaufe) დგას მე-2 პოზიციაზე, ხოლო თავსართი (ein) წინადადების ბოლოში."
     },
     {
         "id": 19,
-        "question": "შეავსეთ: 'Ich trinke den Tee _______ Zucker.' (უშაქროდ)",
-        "options": ["mit", "ohne", "von", "aus"],
+        "module": "satzbau",
+        "syntax_rule": "Ja/Nein-Frage: Verb auf Position 1",
+        "question": "სინტაქსი (Satzbau): რომელია გრამატიკულად სწორი კითხვითი წინადადება: 'გინდა დღეს საღამოს კინოში წამოსვლა?'",
+        "options": [
+            "Du möchtest heute Abend ins Kino mitkommen?",
+            "Möchtest du heute Abend ins Kino mitkommen?",
+            "Möchtest mitkommen du heute Abend ins Kino?",
+            "Ins Kino möchtest du heute Abend mitkommen?"
+        ],
         "answer": 1,
-        "explanation": "ohne ნიშნავს 'გარეშე / უ-': ohne Zucker."
+        "explanation": "ზოგად (დიახ/არა) კითხვაში უღლებადი ზმნა (Möchtest) ყოველთვის დგას 1-ლ ადგილზე: Möchtest du ... mitkommen?"
     },
     {
         "id": 20,
-        "question": "რომელი არსებითი სახელია საშუალო სქესის (das)?",
-        "options": ["Küche", "Tisch", "Buch", "Stuhl"],
-        "answer": 2,
-        "explanation": "die Küche (მდედრობითი), der Tisch (მამრობითი), das Buch (საშუალო სქესი!)."
+        "module": "satzbau",
+        "syntax_rule": "W-Frage: W-Wort (Pos 1) + Verb (Pos 2) + Subjekt (Pos 3)",
+        "question": "სინტაქსი (Satzbau): რომელი წინადადებაა სწორად აგებული: 'რატომ სწავლობ შენ გერმანულს?'",
+        "options": [
+            "Warum du lernst Deutsch?",
+            "Warum lernst du Deutsch?",
+            "Lernst du warum Deutsch?",
+            "Warum Deutsch du lernst?"
+        ],
+        "answer": 1,
+        "explanation": "W-კითხვაში: 1. W-სიტყვა (Warum) -> 2. ზმნა (lernst) -> 3. ქვემდებარე (du) -> 4. დამატება (Deutsch)."
     },
     {
         "id": 21,
-        "question": "როგორ იწერება რიცხვი 73 გერმანულად?",
-        "options": ["siebzigdrei", "dreiundsiebzig", "dreiundsechzig", "siebenunddreißig"],
+        "module": "satzbau",
+        "syntax_rule": "Wortstellung: Zeit vor Ort (TeKaMoLo)",
+        "question": "სინტაქსი (Satzbau): შეარჩიეთ სწორი თანმიმდევრობა: დრო (morgen) და მიმართულება (nach Berlin).",
+        "options": [
+            "Ich fahre nach Berlin morgen mit dem Zug.",
+            "Ich fahre morgen mit dem Zug nach Berlin.",
+            "Morgen ich fahre nach Berlin mit dem Zug.",
+            "Ich nach Berlin morgen fahre mit dem Zug."
+        ],
         "answer": 1,
-        "explanation": "drei + und + siebzig = dreiundsiebzig."
+        "explanation": "გერმანულში დროის გარემოება (morgen) წინ უსწრებს ტრანსპორტს (mit dem Zug) და მიმართულების ადგილს (nach Berlin)."
     },
     {
         "id": 22,
-        "question": "რომელია ზმნა 'sein'-ის ფორმა 'ihr' (თქვენ - მეგობრები) პირთან?",
-        "options": ["seid", "sind", "bist", "ist"],
+        "module": "satzbau",
+        "syntax_rule": "Perfekt Satzklammer: Hilfsverb (Pos 2) ... Partizip II (Ende)",
+        "question": "სინტაქსი (Satzbau): რომელია პერფექტის სწორი წყობა: 'გუშინ ჩვენ მეგობრებთან ერთად პიცა შევჭამეთ'?",
+        "options": [
+            "Gestern haben wir mit Freunden eine leckere Pizza gegessen.",
+            "Gestern wir haben gegessen eine leckere Pizza mit Freunden.",
+            "Gestern haben gegessen wir eine leckere Pizza mit Freunden.",
+            "Wir gestern haben eine leckere Pizza gegessen mit Freunden."
+        ],
         "answer": 0,
-        "explanation": "ihr seid (თქვენ ხართ)."
+        "explanation": "Gestern (1) + haben (2) + wir (3) + mit Freunden eine leckere Pizza ... gegessen (წინადადების ბოლოში!)."
     },
+
+    # --- MODUL 4: SCHREIBEN (წერა & ფორმულარები - 4 დავალება) ---
     {
         "id": 23,
-        "question": "შეავსეთ: 'Das ist mein Vater. Er wohnt mit _______ Mutter in Tiflis.'",
-        "options": ["meine", "meiner", "meinem", "meinen"],
+        "module": "schreiben",
+        "scenario": "სარეგისტრაციო ფორმის შევსება (Formular Teil 1: Personalien)",
+        "question": "წერა (Schreiben - Formular): ლუკას მაიერის (Lukas Meier, დაბადებული 1998 წლის 14 მაისს, ცხოვრობს ბერლინში) მონაცემებით, რომელია სწორი 'Familienname' (გვარი) და 'Vorname' (სახელი)?",
+        "options": [
+            "Familienname: Lukas / Vorname: Meier",
+            "Familienname: Meier / Vorname: Lukas",
+            "Familienname: Berlin / Vorname: Lukas",
+            "Familienname: Programmierer / Vorname: Meier"
+        ],
         "answer": 1,
-        "explanation": "mit მოითხოვს Dativ-ს. die Mutter დატივში ხდება meiner Mutter."
+        "explanation": "Familienname ნიშნავს გვარს (Meier), ხოლო Vorname - სახელს (Lukas)."
     },
     {
         "id": 24,
-        "question": "რას ნიშნავს გერმანული სიტყვა 'gemütlich'?",
-        "options": ["ძვირი", "მყუდრო / სასიამოვნო", "ბნელი", "ხმაურიანი"],
+        "module": "schreiben",
+        "scenario": "სარეგისტრაციო ფორმის შევსება (Formular Teil 2: Wohnort & PLZ)",
+        "question": "წერა (Schreiben - Formular): ლუკასის მისამართია: Kantstraße 24, 10623 Berlin. რომელია სწორი ჩანაწერი ველებისთვის 'Wohnort' (ქალაქი) და 'Postleitzahl / PLZ'?",
+        "options": [
+            "Wohnort: Kantstraße 24 / PLZ: Berlin",
+            "Wohnort: Berlin / PLZ: 10623",
+            "Wohnort: 10623 / PLZ: Kantstraße",
+            "Wohnort: Deutschland / PLZ: Berlin"
+        ],
         "answer": 1,
-        "explanation": "gemütlich ნიშნავს მყუდროს, კომფორტულს."
+        "explanation": "Wohnort არის ქალაქი (Berlin), ხოლო PLZ (Postleitzahl) არის 5-ნიშნა საფოსტო ინდექსი (10623)."
     },
     {
         "id": 25,
-        "question": "რომელია 'gehen' (წასვლა)-ის სწორი პერფექტის ფორმა?",
-        "options": ["hat gegeht", "ist gegangen", "hat gegangen", "ist gegeht"],
+        "module": "schreiben",
+        "scenario": "საქმიანი ელ-ფოსტა მასწავლებელს (E-Mail: Anrede & Grund)",
+        "question": "წერა (Schreiben - E-Mail): ავადმყოფობის გამო ხვალ ვერ მიდიხართ გაკვეთილზე. რომელი დასაწყისია (მისალმება და მიზეზი) ყველაზე სწორი და თავაზიანი მასწავლებელთან (Frau Müller)?",
+        "options": [
+            "Hallo Frau Müller! Ich kein Bock auf Schule morgen.",
+            "Sehr geehrte Frau Müller, leider kann ich morgen nicht zum Unterricht kommen, weil ich krank bin.",
+            "Tschüss Frau Müller, morgen ich bin krank und komme nicht.",
+            "Liebe Müller, ich nicht kommen morgen."
+        ],
         "answer": 1,
-        "explanation": "gehen მოძრაობის ზმნაა, იღებს sein-ს და უწესო ფორმას: ist gegangen."
+        "explanation": "თავაზიანი ფორმალური მიმართვაა 'Sehr geehrte Frau Müller,' და გრამატიკულად სწორი მიზეზი: 'leider kann ich morgen nicht zum Unterricht kommen, weil ich krank bin'."
+    },
+    {
+        "id": 26,
+        "module": "schreiben",
+        "scenario": "საქმიანი ელ-ფოსტა მასწავლებელს (E-Mail: Bitte & Grußformel)",
+        "question": "წერა (Schreiben - E-Mail): ქალბატონ მიულერთან წერილის დასასრულებლად: გსურთ საშინაო დავალების გამოგზავნის თხოვნა და ოფიციალური დამშვიდობება. რომელია სწორი?",
+        "options": [
+            "Geben Sie mir die Hausaufgabe schnell! Tschau!",
+            "Könnten Sie mir bitte die Hausaufgaben per E-Mail schicken? Vielen Dank und mit freundlichen Grüßen, David.",
+            "Was soll ich machen? Tschüss David.",
+            "Ich mache keine Hausaufgaben. Bis später!"
+        ],
+        "answer": 1,
+        "explanation": "თავაზიანი თხოვნაა 'Könnten Sie mir bitte die Hausaufgaben per E-Mail schicken?' და ოფიციალური დამშვიდობება 'Mit freundlichen Grüßen'."
     }
 ]
 

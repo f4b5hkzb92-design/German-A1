@@ -56,6 +56,8 @@
     examUserAnswers: {},
     examSubmitted: false,
     examScore: 0,
+    examFilterModule: 'all',
+    examModuleBreakdown: null,
 
     // Multi-Mode Lesson Exercises state
     exerciseActiveMode: 'mc', // 'mc', 'fib', 'listening'
@@ -3183,7 +3185,7 @@ ${escapeHtml(item.text_de)}
   }
 
   // ==========================================================================
-  // TAB 8: A1 DIAGNOSTIC SIMULATION EXAM (Compliant & Honest Certification)
+  // TAB 8: A1 COMPREHENSIVE MULTI-SKILL EXAM (HÖREN, LESEN, SATZBAU, SCHREIBEN)
   // ==========================================================================
   function renderExam(container) {
     const questions = window.GERMAN_A1_DATA.final_exam_questions || [];
@@ -3193,40 +3195,148 @@ ${escapeHtml(item.text_de)}
       return;
     }
 
+    const currentFilter = state.examFilterModule || 'all';
+    const filteredQuestions = currentFilter === 'all'
+      ? questions
+      : questions.filter(q => q.module === currentFilter);
+
+    const hoerenCount = questions.filter(q => q.module === 'hoeren').length;
+    const lesenCount = questions.filter(q => q.module === 'lesen').length;
+    const satzbauCount = questions.filter(q => q.module === 'satzbau').length;
+    const schreibenCount = questions.filter(q => q.module === 'schreiben').length;
+
+    const answeredCount = Object.keys(state.examUserAnswers).length;
+
     let html = `
       <div class="max-w-3xl mx-auto space-y-8 animate-fadeIn pb-16">
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 shadow-2xl">
+        <!-- Exam Hero Banner (Objective Assessment, No False Certificate Promises) -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
           <div class="flex items-center gap-2 mb-3">
-            <span class="px-3 py-1 bg-yellow-400 text-slate-950 font-black rounded-full text-xs uppercase tracking-wider inline-block">
-              A1 სადიაგნოსტიკო საგამოცდო სიმულატორი
+            <span class="px-3 py-1 bg-yellow-400 text-slate-950 font-black rounded-full text-[10px] md:text-xs uppercase tracking-wider inline-block">
+              CEFR A1 კომპლექსური საგამოცდო სისტემა
+            </span>
+            <span class="px-2.5 py-1 bg-blue-600/80 text-white font-bold rounded-full text-[10px] uppercase">
+              ${answeredCount} / ${questions.length} შესრულებული
             </span>
           </div>
           <h1 class="text-2xl md:text-3xl font-black mb-3">A1 დონის შემაჯამებელი საგამოცდო ტესტი</h1>
           <p class="text-slate-300 text-xs md:text-sm leading-relaxed mb-4 font-normal">
-            ტესტი მოიცავს ${questions.length} შეკითხვას A1 დონის გრამატიკიდან, საკომუნიკაციო სიტუაციებიდან და ლექსიკიდან.
-            ჩასაბარებლად საჭიროა მინიმუმ 60% (${Math.ceil(questions.length * 0.6)} სწორი პასუხი).
+            ტესტი მოიცავს 26 კომპლექსურ დავალებას 4 ძირითად კომპეტენციაში: <strong>Hören (მოსმენა)</strong>, <strong>Lesen & Grammatik (კითხვა და გრამატიკა)</strong>, <strong>Satzbau (სინტაქსი და სიტყვათწყობა)</strong> და <strong>Schreiben (წერა და ფორმულარები)</strong>.
+            ჩასაბარებლად აუცილებელია მინიმუმ 60% (${Math.ceil(questions.length * 0.6)} სწორი პასუხი).
           </p>
-          <div class="flex items-center gap-4 text-xs text-yellow-300 font-bold">
-            <span>⏱️ ${questions.length} შეკითხვა</span> • <span>🎯 გამსვლელი: 60%</span> • <span>📜 Deutsch A1 Pro კურსის სერტიფიკატი</span>
+          <div class="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-yellow-300 font-bold">
+            <span>⏱️ 4 მოდული (${questions.length} დავალება)</span> • <span>🎧 Hören (${hoerenCount}) • 📖 Lesen (${lesenCount}) • 🧩 Satzbau (${satzbauCount}) • ✍️ Schreiben (${schreibenCount})</span> • <span>🎯 გამსვლელი: 60%</span>
           </div>
         </div>
 
-        <form id="final-exam-form" onsubmit="event.preventDefault(); window.DeutschApp.submitExam();" class="space-y-5">
+        <!-- Module Filter Tabs -->
+        <div class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <button type="button" onclick="window.DeutschApp.setExamFilterModule('all')" class="px-3.5 py-2 rounded-xl text-xs font-black transition ${currentFilter === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'}">
+            ყველა (${questions.length})
+          </button>
+          <button type="button" onclick="window.DeutschApp.setExamFilterModule('hoeren')" class="px-3.5 py-2 rounded-xl text-xs font-black transition ${currentFilter === 'hoeren' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'}">
+            🎧 Hören (${hoerenCount})
+          </button>
+          <button type="button" onclick="window.DeutschApp.setExamFilterModule('lesen')" class="px-3.5 py-2 rounded-xl text-xs font-black transition ${currentFilter === 'lesen' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'}">
+            📖 Lesen (${lesenCount})
+          </button>
+          <button type="button" onclick="window.DeutschApp.setExamFilterModule('satzbau')" class="px-3.5 py-2 rounded-xl text-xs font-black transition ${currentFilter === 'satzbau' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'}">
+            🧩 Satzbau (${satzbauCount})
+          </button>
+          <button type="button" onclick="window.DeutschApp.setExamFilterModule('schreiben')" class="px-3.5 py-2 rounded-xl text-xs font-black transition ${currentFilter === 'schreiben' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'}">
+            ✍️ Schreiben (${schreibenCount})
+          </button>
+        </div>
+
+        <form id="final-exam-form" onsubmit="event.preventDefault(); window.DeutschApp.submitExam();" class="space-y-6">
     `;
 
-    questions.forEach((q, idx) => {
+    filteredQuestions.forEach((q) => {
       const selected = state.examUserAnswers[q.id];
+      const isAnswered = selected !== undefined && selected !== null;
+
+      let moduleHeader = '';
+      if (q.module === 'hoeren') {
+        moduleHeader = `
+          <div class="flex items-center justify-between text-xs font-bold text-blue-600 dark:text-blue-400 mb-2">
+            <span class="flex items-center gap-1.5"><span class="text-sm">🎧</span> Modul 1: Hören (მოსმენა)</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isAnswered ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}">
+              ${isAnswered ? 'შევსებულია ✓' : 'პასუხგაუცემელი'}
+            </span>
+          </div>
+          <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
+            📍 ${escapeHtml(q.scenario || 'საკომუნიკაციო სიტუაცია')}
+          </div>
+          <div class="flex flex-wrap items-center justify-between gap-2 p-3.5 bg-blue-50/70 dark:bg-slate-700/50 rounded-2xl border border-blue-200 dark:border-blue-900/50 mb-3">
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="window.DeutschApp.speakGerman('${escapeHtml(q.audio_text || '')}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-2 active:scale-95">
+                <span>🔊 მოუსმინე აუდიოს</span>
+              </button>
+              <span class="text-[11px] text-blue-900 dark:text-blue-200 font-bold">Standard Deutsch • გერმანული წარმოთქმა</span>
+            </div>
+            <button type="button" onclick="window.DeutschApp.toggleAudioTranscript(${q.id})" class="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline">
+              👁️ ტრანსკრიპტი
+            </button>
+          </div>
+          <div id="audio-transcript-${q.id}" class="hidden p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-300 mb-3 font-mono">
+            „${escapeHtml(q.audio_text || '')}“
+          </div>
+        `;
+      } else if (q.module === 'lesen') {
+        moduleHeader = `
+          <div class="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+            <span class="flex items-center gap-1.5"><span class="text-sm">📖</span> Modul 2: Lesen & Grammatik (კითხვა და გრამატიკა)</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isAnswered ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}">
+              ${isAnswered ? 'შევსებულია ✓' : 'პასუხგაუცემელი'}
+            </span>
+          </div>
+          <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
+            📄 ${escapeHtml(q.scenario || 'ტექსტის გაანალიზება')}
+          </div>
+          ${q.reading_text ? `
+            <div class="p-4 bg-amber-50/70 dark:bg-slate-900/70 border border-amber-200 dark:border-amber-900/50 rounded-2xl text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line mb-3 font-mono shadow-inner">
+              ${escapeHtml(q.reading_text)}
+            </div>
+          ` : ''}
+        `;
+      } else if (q.module === 'satzbau') {
+        moduleHeader = `
+          <div class="flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-400 mb-2">
+            <span class="flex items-center gap-1.5"><span class="text-sm">🧩</span> Modul 3: Satzbau & Syntax (სინტაქსი და სიტყვათწყობა)</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isAnswered ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}">
+              ${isAnswered ? 'შევსებულია ✓' : 'პასუხგაუცემელი'}
+            </span>
+          </div>
+          <div class="text-[11px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2 rounded-xl mb-2.5 border border-purple-200 dark:border-purple-900/50">
+            📌 წესი: ${escapeHtml(q.syntax_rule || 'გერმანული წინადადების სტრუქტურა')}
+          </div>
+        `;
+      } else if (q.module === 'schreiben') {
+        moduleHeader = `
+          <div class="flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">
+            <span class="flex items-center gap-1.5"><span class="text-sm">✍️</span> Modul 4: Schreiben (წერა და ფორმულარები)</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isAnswered ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}">
+              ${isAnswered ? 'შევსებულია ✓' : 'პასუხგაუცემელი'}
+            </span>
+          </div>
+          <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
+            📝 ${escapeHtml(q.scenario || 'საგამოცდო წერის დავალება')}
+          </div>
+        `;
+      }
+
       html += `
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-sm space-y-3.5">
+          ${moduleHeader}
           <div class="flex items-center justify-between text-xs font-bold text-slate-400">
-            <span>შეკითხვა ${idx + 1} / ${questions.length}</span>
+            <span>დავალება #${q.id} (საერთო: ${q.id} / ${questions.length})</span>
           </div>
           <h3 class="text-sm md:text-base font-black text-slate-900 dark:text-white leading-snug">
             ${escapeHtml(q.question)}
           </h3>
-          <div class="grid grid-cols-1 gap-2.5">
+          <div class="grid grid-cols-1 gap-2.5 pt-1">
             ${q.options.map((opt, oIdx) => `
-              <label class="flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-blue-50/50 dark:hover:bg-slate-700/30 cursor-pointer transition">
+              <label class="flex items-center gap-3 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 hover:bg-blue-50/50 dark:hover:bg-slate-700/30 cursor-pointer transition ${selected === oIdx ? 'bg-blue-50/70 dark:bg-slate-700/60 border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/20' : ''}">
                 <input type="radio" name="exam_q_${q.id}" value="${oIdx}" ${selected === oIdx ? 'checked' : ''} onchange="window.DeutschApp.onExamAnswer(${q.id}, ${oIdx})" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
                 <span class="text-xs md:text-sm font-medium text-slate-800 dark:text-slate-200">${escapeHtml(opt)}</span>
               </label>
@@ -3235,6 +3345,77 @@ ${escapeHtml(item.text_de)}
         </div>
       `;
     });
+
+    // If viewing all or schreiben, render the interactive Writing Practice Workbench
+    if (currentFilter === 'all' || currentFilter === 'schreiben') {
+      html += `
+        <!-- Interactive Writing Sandbox -->
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 space-y-6 shadow-xl border border-indigo-900/50">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">✍️</span>
+            <div>
+              <h3 class="text-lg font-black">A1 წერის პრაქტიკული სიმულატორი (Schreiben Labor)</h3>
+              <p class="text-xs text-slate-300">ოფიციალური Goethe A1 Start Deutsch 1 სტილის ანკეტა და წერილის რედაქტორი</p>
+            </div>
+          </div>
+
+          <!-- Teil 1: Anmeldeformular -->
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black uppercase tracking-wider text-amber-400">Teil 1: Anmeldeformular (სარეგისტრაციო ანკეტა)</span>
+              <span class="text-[10px] text-slate-400 font-medium">სიტუაცია: Lukas Meier, Kantstraße 24, 10623 Berlin</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Familienname (გვარი):</label>
+                <input id="exam-form-nachname" type="text" placeholder="მაგ. Meier" class="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-bold focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Vorname (სახელი):</label>
+                <input id="exam-form-vorname" type="text" placeholder="მაგ. Lukas" class="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-bold focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Wohnort (ქალაქი):</label>
+                <input id="exam-form-stadt" type="text" placeholder="მაგ. Berlin" class="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-bold focus:outline-none focus:border-amber-400">
+              </div>
+              <div>
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Postleitzahl / PLZ:</label>
+                <input id="exam-form-plz" type="text" placeholder="მაგ. 10623" class="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-bold focus:outline-none focus:border-amber-400">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Beruf (პროფესია):</label>
+                <input id="exam-form-beruf" type="text" placeholder="მაგ. Programmierer" class="w-full px-3 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-bold focus:outline-none focus:border-amber-400">
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+              <button type="button" onclick="window.DeutschApp.checkExamFormular()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition active:scale-95 shadow">
+                ანკეტის გადამოწმება ✓
+              </button>
+              <div id="exam-form-feedback" class="text-xs font-bold text-slate-300"></div>
+            </div>
+          </div>
+
+          <!-- Teil 2: Kurze Mitteilung (Email) -->
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black uppercase tracking-wider text-emerald-400">Teil 2: Kurze Nachricht (მოკლე წერილი მასწავლებელს)</span>
+              <span id="exam-email-word-count" class="text-[10px] text-slate-400 font-medium">0 სიტყვა (რეკომენდებული: 20-30)</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              დაწერეთ ელ-ფოსტა ქალბატონ მიულერს (Frau Müller): აცნობეთ, რომ ავად ხართ (krank), ვერ მიდიხართ გაკვეთილზე, ითხოვეთ საშინაო დავალება (Hausaufgabe) და დაემშვიდობეთ თავაზიანად.
+            </p>
+            <textarea id="exam-email-input" rows="4" oninput="window.DeutschApp.updateExamEmailCount(this.value)" placeholder="Sehr geehrte Frau Müller, leider kann ich morgen nicht kommen..." class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-500 font-mono text-xs focus:outline-none focus:border-emerald-400"></textarea>
+            
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <button type="button" onclick="window.DeutschApp.checkExamEmail()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition active:scale-95 shadow">
+                წერილის შეფასება (Rubrik) ✓
+              </button>
+              <div id="exam-email-feedback" class="text-xs font-bold text-slate-300"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     html += `
           <div class="flex justify-center pt-4">
@@ -3402,35 +3583,116 @@ ${escapeHtml(item.text_de)}
     const pct = Math.round((score / total) * 100);
     const passed = userData.examPassed || (pct >= 60);
 
+    // Calculate module breakdown
+    const modScores = {
+      hoeren: { score: 0, total: 0, name: 'Hörverstehen (მოსმენა)', icon: '🎧' },
+      lesen: { score: 0, total: 0, name: 'Lesen & Grammatik (კითხვა)', icon: '📖' },
+      satzbau: { score: 0, total: 0, name: 'Satzbau & Syntax (სინტაქსი)', icon: '🧩' },
+      schreiben: { score: 0, total: 0, name: 'Schreiben (წერა & ანკეტა)', icon: '✍️' }
+    };
+
+    questions.forEach(q => {
+      const m = q.module || 'lesen';
+      if (!modScores[m]) modScores[m] = { score: 0, total: 0, name: m, icon: '📝' };
+      modScores[m].total += 1;
+      if (state.examUserAnswers && state.examUserAnswers[q.id] === q.answer) {
+        modScores[m].score += 1;
+      }
+    });
+
     let html = `
       <div class="max-w-3xl mx-auto space-y-8 animate-fadeIn pb-16">
+        <!-- Hero Result Card -->
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 text-center space-y-5 shadow-lg">
           <div class="text-7xl">${passed ? '🏆' : '📝'}</div>
           <h1 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
-            ${passed ? 'გილოცავთ! თქვენ წარმატებით ჩააბარეთ A1 სადიაგნოსტიკო გამოცდა!' : 'გამოცდა ვერ ჩაბარდა'}
+            ${passed ? 'გილოცავთ! თქვენ წარმატებით ჩააბარეთ A1 კომპლექსური გამოცდა!' : 'გამოცდა ვერ ჩაბარდა'}
           </h1>
           <div class="text-5xl font-black ${passed ? 'text-emerald-600' : 'text-rose-600'}">
             ${score} / ${total} (${pct}%)
           </div>
           <p class="text-xs md:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
             ${passed
-              ? 'თქვენ მიაღწიეთ გერმანული ენის A1 დონის სასერტიფიკატო სტანდარტს! ქვემოთ შეგიძლიათ იხილოთ და ამობეჭდოთ თქვენი ოფიციალური აკადემიური სერტიფიკატი.'
+              ? 'გილოცავთ! თქვენ წარმატებით დაადასტურეთ A1 დონის კომპეტენციები (Hören, Lesen, Satzbau, Schreiben). ქვემოთ მოცემულია თქვენი ოფიციალური საგამოცდო შეფასების უწყისი.'
               : 'სამწუხაროდ 60%-იანი ბარიერი ვერ გადაილახა. გირჩევთ კიდევ ერთხელ გაიმეოროთ გაკვეთილები და სცადოთ ხელახლა.'}
           </p>
 
-          <div class="flex justify-center gap-3">
+          <!-- 4 Competencies Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left pt-2">
+            ${Object.keys(modScores).map(k => {
+              const item = modScores[k];
+              const mPct = item.total > 0 ? Math.round((item.score / item.total) * 100) : 0;
+              return `
+                <div class="p-3.5 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-200 dark:border-slate-600">
+                  <div class="flex items-center gap-1.5 text-xs font-bold text-slate-500 mb-1">
+                    <span>${item.icon}</span>
+                    <span class="truncate">${item.name}</span>
+                  </div>
+                  <div class="text-lg font-black text-slate-900 dark:text-white">
+                    ${item.score} / ${item.total}
+                  </div>
+                  <div class="text-[11px] font-bold ${mPct >= 60 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+                    ${mPct}% ${mPct >= 60 ? '✓' : '⚠️'}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="flex justify-center gap-3 pt-2">
             <button onclick="window.DeutschApp.retakeExam()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 font-extrabold text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
               🔄 ხელახლა ჩაბარება
             </button>
             ${passed ? `
               <button onclick="window.DeutschApp.printCertificate()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2">
-                <span>🖨️ სერტიფიკატის ბეჭდვა / PDF</span>
+                <span>🖨️ შეფასების ბეჭდვა / PDF</span>
               </button>
             ` : ''}
           </div>
         </div>
 
         ${passed ? renderCertificateHtml({ showInput: true }) : ''}
+
+        <!-- Question-by-Question Detailed Review -->
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm space-y-4">
+          <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <span>📝</span> დავალებების დეტალური ანალიზი და განმარტებები:
+          </h3>
+          <div class="space-y-4 text-xs">
+            ${questions.map((q) => {
+              const userAns = state.examUserAnswers ? state.examUserAnswers[q.id] : undefined;
+              const isCorrect = userAns === q.answer;
+              return `
+                <div class="p-4 rounded-2xl border ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20' : 'border-rose-200 dark:border-rose-900/40 bg-rose-50/30 dark:bg-rose-950/20'} space-y-2">
+                  <div class="flex items-center justify-between font-bold">
+                    <span class="text-slate-500">დავალება #${q.id} • ${q.module.toUpperCase()}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black ${isCorrect ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-300'}">
+                      ${isCorrect ? 'სწორია ✓ (+1)' : 'შეცდომა ✕ (0)'}
+                    </span>
+                  </div>
+                  <div class="font-extrabold text-slate-900 dark:text-white text-sm">
+                    ${escapeHtml(q.question)}
+                  </div>
+                  <div class="space-y-1 pt-1">
+                    <div class="${isCorrect ? 'text-emerald-700 dark:text-emerald-400 font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'}">
+                      თქვენი პასუხი: ${userAns !== undefined ? escapeHtml(q.options[userAns] || 'არ იყო არჩეული') : 'არ იყო არჩეული'}
+                    </div>
+                    ${!isCorrect ? `
+                      <div class="text-emerald-700 dark:text-emerald-300 font-bold">
+                        სწორი პასუხი: ${escapeHtml(q.options[q.answer])}
+                      </div>
+                    ` : ''}
+                  </div>
+                  ${q.explanation ? `
+                    <div class="p-2.5 rounded-xl bg-blue-50/60 dark:bg-slate-700/40 border border-blue-100 dark:border-blue-900/30 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+                      💡 <strong>განმარტება:</strong> ${escapeHtml(q.explanation)}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
 
         <!-- Examination Attempt History -->
         ${(userData.examHistory && userData.examHistory.length) ? `
@@ -3443,7 +3705,7 @@ ${escapeHtml(item.text_de)}
                 <div class="py-2.5 flex items-center justify-between">
                   <span class="font-extrabold text-slate-700 dark:text-slate-200">მცდელობა #${h.attempt} • ${h.localDate || (h.date ? h.date.split('T')[0] : '')}</span>
                   <div class="flex items-center gap-3">
-                    <span class="font-black text-slate-900 dark:text-white">${h.score} / ${h.total || 25} (${h.pct}%)</span>
+                    <span class="font-black text-slate-900 dark:text-white">${h.score} / ${h.total || total} (${h.pct}%)</span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-black ${h.passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'}">
                       ${h.passed ? 'ჩაბარებულია' : 'ვერ ჩაბარდა'}
                     </span>
@@ -3541,7 +3803,7 @@ ${escapeHtml(item.text_de)}
                 <strong class="text-white text-sm">${escapeHtml(userData.learnerName || 'საქართველოს გერმანული ენის სტუდენტი')}</strong>
               </div>
               <div class="flex items-center gap-3">
-                <span class="text-slate-400">შედეგი: <strong class="text-emerald-400">${userData.examScore !== null ? Math.round((userData.examScore / ((window.GERMAN_A1_DATA.final_exam_questions || []).length || 25)) * 100) : 100}%</strong></span>
+                <span class="text-slate-400">შედეგი: <strong class="text-emerald-400">${userData.examScore !== null ? Math.round((userData.examScore / ((window.GERMAN_A1_DATA.final_exam_questions || []).length || 26)) * 100) : 100}%</strong></span>
                 <span class="text-slate-400">•</span>
                 <span class="text-slate-400">თარიღი: <strong class="text-white">${userData.examDate || new Date().toLocaleDateString('ka-GE')}</strong></span>
               </div>
@@ -3553,8 +3815,8 @@ ${escapeHtml(item.text_de)}
               <div class="flex items-center gap-3">
                 <span class="text-4xl opacity-50">🎓</span>
                 <div>
-                  <h2 class="text-lg font-black text-slate-900 dark:text-white">A1 დამამთავრებელი სერტიფიკატი (დაბლოკილია)</h2>
-                  <p class="text-xs text-slate-500">სერტიფიკატის მისაღებად ჩააბარეთ შემაჯამებელი A1 გამოცდა (მინიმუმ 60% შედეგით)</p>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">A1 შემაჯამებელი გამოცდა (დაბლოკილია / ჩასაბარებელია)</h2>
+                  <p class="text-xs text-slate-500">გაიარეთ 4-მოდულიანი კომპლექსური გამოცდა: Hören, Lesen, Satzbau და Schreiben (გამსვლელი ბარიერი: 60%)</p>
                 </div>
               </div>
               <button onclick="window.DeutschApp.setTab('exam')" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-md transition flex items-center gap-1.5 active:scale-95">
@@ -3677,7 +3939,7 @@ ${escapeHtml(item.text_de)}
                   <li>✓ SM-2 ინტერვალური გამეორება</li>
                   <li>✓ der / die / das ტრენერი (431)</li>
                   <li>✓ Satzbau სინტაქსი</li>
-                  <li>✓ სადიაგნოსტიკო სერტიფიკატი</li>
+                  <li>✓ A1 შემაჯამებელი გამოცდა (4 მოდული)</li>
                 </ul>
               </div>
               <button onclick="window.DeutschApp.closeProModal()" class="w-full py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95">
@@ -4674,9 +4936,77 @@ ${escapeHtml(item.text_de)}
       if (el) el.textContent = name || 'საქართველოს გერმანული ენის სტუდენტი';
     },
 
-    // Exam Handlers (Fixed Defect 8.5)
+    // Exam Handlers (Stage 10 Multi-Skill CEFR A1 Examination)
     onExamAnswer: function (qId, ansIdx) {
       state.examUserAnswers[qId] = ansIdx;
+    },
+    setExamFilterModule: function (mod) {
+      state.examFilterModule = mod;
+      renderExam(document.getElementById('main-content'));
+    },
+    toggleAudioTranscript: function (qId) {
+      const el = document.getElementById('audio-transcript-' + qId);
+      if (el) el.classList.toggle('hidden');
+    },
+    checkExamFormular: function () {
+      const nachname = (document.getElementById('exam-form-nachname') ? document.getElementById('exam-form-nachname').value : '').trim().toLowerCase();
+      const vorname = (document.getElementById('exam-form-vorname') ? document.getElementById('exam-form-vorname').value : '').trim().toLowerCase();
+      const stadt = (document.getElementById('exam-form-stadt') ? document.getElementById('exam-form-stadt').value : '').trim().toLowerCase();
+      const plz = (document.getElementById('exam-form-plz') ? document.getElementById('exam-form-plz').value : '').trim();
+      const beruf = (document.getElementById('exam-form-beruf') ? document.getElementById('exam-form-beruf').value : '').trim().toLowerCase();
+
+      const feedback = document.getElementById('exam-form-feedback');
+      if (!nachname || !vorname || !stadt || !plz || !beruf) {
+        if (feedback) feedback.innerHTML = '<span class="text-amber-400">⚠️ გთხოვთ შეავსოთ ყველა ველი.</span>';
+        return;
+      }
+
+      let correct = 0;
+      if (nachname === 'meier') correct++;
+      if (vorname === 'lukas') correct++;
+      if (stadt === 'berlin') correct++;
+      if (plz === '10623') correct++;
+      if (beruf.indexOf('programm') !== -1) correct++;
+
+      if (feedback) {
+        if (correct === 5) {
+          feedback.innerHTML = '<span class="text-emerald-400">✓ შესანიშნავია! ყველა ველი (5/5) სწორად არის შევსებული!</span>';
+        } else {
+          feedback.innerHTML = `<span class="text-amber-400">⚠️ სწორია: ${correct}/5 ველი. გადაამოწმეთ ქალაქი, ინდექსი და სახელები.</span>`;
+        }
+      }
+    },
+    updateExamEmailCount: function (text) {
+      const words = (text || '').trim().split(/\s+/).filter(Boolean);
+      const counter = document.getElementById('exam-email-word-count');
+      if (counter) counter.textContent = `${words.length} სიტყვა (რეკომენდებული: 20-30)`;
+    },
+    checkExamEmail: function () {
+      const text = (document.getElementById('exam-email-input') ? document.getElementById('exam-email-input').value : '').toLowerCase();
+      const feedback = document.getElementById('exam-email-feedback');
+      if (!text || text.length < 10) {
+        if (feedback) feedback.innerHTML = '<span class="text-amber-400">⚠️ გთხოვთ დაწეროთ წერილი შეფასებამდე.</span>';
+        return;
+      }
+
+      const hasAnrede = (text.indexOf('sehr geehrte') !== -1 || text.indexOf('liebe frau müller') !== -1 || text.indexOf('guten tag') !== -1);
+      const hasGrund = (text.indexOf('krank') !== -1 || text.indexOf('kann nicht') !== -1 || text.indexOf('nicht kommen') !== -1);
+      const hasAufgabe = (text.indexOf('hausaufgabe') !== -1 || text.indexOf('aufgabe') !== -1 || text.indexOf('schicken') !== -1 || text.indexOf('woche') !== -1);
+      const hasGruss = (text.indexOf('mit freundlichen grüßen') !== -1 || text.indexOf('viele grüße') !== -1 || text.indexOf('herzliche grüße') !== -1 || text.indexOf('grüße') !== -1);
+
+      let score = 0;
+      if (hasAnrede) score++;
+      if (hasGrund) score++;
+      if (hasAufgabe) score++;
+      if (hasGruss) score++;
+
+      if (feedback) {
+        if (score >= 3) {
+          feedback.innerHTML = `<span class="text-emerald-400">✓ რუბრიკა: ${score}/4 პუნქტი დაკმაყოფილებულია! A1 სტანდარტი მიღწეულია.</span>`;
+        } else {
+          feedback.innerHTML = `<span class="text-amber-400">⚠️ რუბრიკა: ${score}/4 პუნქტი. დაამატეთ თავაზიანი მიმართვა, მიზეზი (krank) ან დამშვიდობება.</span>`;
+        }
+      }
     },
     submitExam: function () {
       const questions = window.GERMAN_A1_DATA.final_exam_questions || [];
@@ -4689,9 +5019,21 @@ ${escapeHtml(item.text_de)}
       }
 
       let score = 0;
+      const modules = {
+        hoeren: { score: 0, total: 0 },
+        lesen: { score: 0, total: 0 },
+        satzbau: { score: 0, total: 0 },
+        schreiben: { score: 0, total: 0 }
+      };
+
       questions.forEach(q => {
+        const modKey = q.module || 'lesen';
+        if (!modules[modKey]) modules[modKey] = { score: 0, total: 0 };
+        modules[modKey].total += 1;
+
         if (state.examUserAnswers[q.id] === q.answer) {
           score += 1;
+          modules[modKey].score += 1;
         }
       });
 
@@ -4700,6 +5042,7 @@ ${escapeHtml(item.text_de)}
 
       state.examScore = score;
       state.examSubmitted = true;
+      state.examModuleBreakdown = modules;
 
       userData.examHistory = userData.examHistory || [];
       const attemptRecord = {
@@ -4709,7 +5052,8 @@ ${escapeHtml(item.text_de)}
         score: score,
         total: total,
         pct: pct,
-        passed: passed
+        passed: passed,
+        modules: modules
       };
       userData.examHistory.push(attemptRecord);
       userData.examScore = score;
@@ -4718,7 +5062,7 @@ ${escapeHtml(item.text_de)}
 
       if (passed) {
         playChime('fanfare');
-        grantRewardXP('exam_first_passing_score', 100, `სადიაგნოსტიკო გამოცდა წარმატებით ჩაბარდა (${score}/${total}, ${pct}%)!`);
+        grantRewardXP('exam_first_passing_score', 100, `A1 კომპლექსური გამოცდა წარმატებით ჩაბარდა (${score}/${total}, ${pct}%)!`);
       } else {
         playChime('wrong');
         showToast(`გამოცდა არ ჩაითვალა: ${score}/${total} (${pct}%). მინიმალური ზღვარია 60%.`);
@@ -4732,6 +5076,8 @@ ${escapeHtml(item.text_de)}
       state.examSubmitted = false;
       state.examUserAnswers = {};
       state.examScore = 0;
+      state.examFilterModule = 'all';
+      state.examModuleBreakdown = null;
       renderExam(document.getElementById('main-content'));
     },
 

@@ -81,8 +81,8 @@
     </div>
   </div>
 
-  <script src="../js/data.js?v=stage10_p4_2"></script>
-  <script src="../js/app.js?v=stage10_p4_2"></script>
+  <script src="../js/data.js?v=stage10_multiskill_exam"></script>
+  <script src="../js/app.js?v=stage10_multiskill_exam"></script>
 
   <script>
     async function runSafariBrowserSuite() {
@@ -248,6 +248,17 @@
       const certRendered = Boolean(certModalArea && certModalArea.innerHTML.indexOf('ABSCHLUSSZERTIFIKAT') !== -1);
       app.closeCertificateModal();
       logItem(certRendered, "13. Official CEFR A1 Abschlusszertifikat Generator & Modal Preview");
+
+      // 14. Multi-Skill CEFR A1 Exam & Modular Integrity
+      app.setTab('exam');
+      await sleep(100);
+      app.setExamFilterModule('hoeren');
+      await sleep(50);
+      const examEl = document.getElementById('main-content');
+      const hasHoeren = examEl && examEl.innerHTML.indexOf('Modul 1: Hören') !== -1;
+      const noPromisedCert = examEl && examEl.innerHTML.indexOf('📜 Deutsch A1 Pro კურსის სერტიფიკატი') === -1;
+      app.setExamFilterModule('all');
+      logItem(Boolean(hasHoeren && noPromisedCert), "14. Multi-Skill CEFR A1 Exam & Honest Assessment (Hören, Lesen, Satzbau, Schreiben)");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });
