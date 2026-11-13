@@ -363,6 +363,21 @@
       if (curZahlen) app.guessZahlen(curZahlen.correct);
       await sleep(100);
       logItem(app.state.zahlenScore === initZahlenScore + 1, "23. Zahlen, Uhrzeit & Datum Trainer (Numbers, Clock & Dates)");
+
+      // 24. Fehlerbuch (Mistake Notebook & Smart Review)
+      const zNow = app.state.zahlenCurrentDrill;
+      if (zNow) {
+        const wrongZ = zNow.options.find(o => o !== zNow.correct);
+        app.guessZahlen(wrongZ);
+      }
+      await sleep(50);
+      app.setTrainerMode('fehlerbuch');
+      await sleep(50);
+      const uMistake = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+      const hasMistake = Array.isArray(uMistake.mistakes) && uMistake.mistakes.length > 0;
+      if (zNow) app.guessFehlerbuch(zNow.correct);
+      await sleep(50);
+      logItem(hasMistake && document.getElementById('main-content').innerHTML.indexOf('Fehlerbuch') !== -1, "24. Fehlerbuch (Mistake Notebook & Smart Review)");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });

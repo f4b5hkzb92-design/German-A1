@@ -423,6 +423,22 @@ def main():
                 name: 'setZahlenFilter filters drills by uhrzeit category',
                 ok: app.state.zahlenFilterType === 'uhrzeit' && app.state.zahlenCurrentDrill && app.state.zahlenCurrentDrill.category === 'uhrzeit'
             });
+
+            // Test 20: Fehlerbuch (Mistake Notebook)
+            const curZ = app.state.zahlenCurrentDrill;
+            const wrongOpt = curZ.options.find(o => o !== curZ.correct);
+            app.guessZahlen(wrongOpt);
+            const uAfterMistake = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+            const mistakeLogged = Array.isArray(uAfterMistake.mistakes) && uAfterMistake.mistakes.some(m => m.id === 'zah_' + curZ.id);
+            app.setTrainerMode('fehlerbuch');
+            const fehlerRendered = document.getElementById('main-content').innerHTML.indexOf('Fehlerbuch') !== -1;
+            app.guessFehlerbuch(curZ.correct);
+            const uAfterClear = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+            const mistakeCleared = Array.isArray(uAfterClear.mistakes) && !uAfterClear.mistakes.some(m => m.id === 'zah_' + curZ.id);
+            results.push({
+                name: 'Fehlerbuch records trainer mistakes, renders review view, and clears on mastery',
+                ok: mistakeLogged && fehlerRendered && mistakeCleared
+            });
         } catch (e) {
             results.push({ name: 'Exception in probe: ' + e.toString(), ok: false });
         }

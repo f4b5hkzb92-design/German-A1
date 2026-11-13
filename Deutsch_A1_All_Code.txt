@@ -2001,6 +2001,10 @@ if __name__ == "__main__":
     zahlenFeedback: null,
     zahlenFilterType: 'all', // 'all', 'zahlen', 'uhrzeit', 'datum'
 
+    // Fehlerbuch (Mistake Notebook) state
+    fehlerIndex: 0,
+    fehlerFeedback: null,
+
     // Matching Pairs Game state
     matchCards: [],
     matchFlipped: [],
@@ -2187,6 +2191,7 @@ if __name__ == "__main__":
       weeklyXpHistory: {}, // YYYY-MM-DD -> xp
       streakFreezes: 1,
       streakFrozenDates: [],
+      mistakes: [],
       isPro: true,
       subscriptionTier: 'pro_annual'
     };
@@ -2246,6 +2251,7 @@ if __name__ == "__main__":
         data.weeklyXpHistory = (typeof data.weeklyXpHistory === 'object' && data.weeklyXpHistory !== null && !Array.isArray(data.weeklyXpHistory)) ? data.weeklyXpHistory : {};
         data.streakFreezes = (typeof data.streakFreezes === 'number' && !isNaN(data.streakFreezes)) ? Math.max(0, Math.min(3, data.streakFreezes)) : 1;
         data.streakFrozenDates = Array.isArray(data.streakFrozenDates) ? data.streakFrozenDates : [];
+        data.mistakes = Array.isArray(data.mistakes) ? data.mistakes : [];
         data.isPro = true;
 
         // Versioned Writing Drafts Safe Recovery (Stage 9.1: Draft Persistence)
@@ -4229,6 +4235,32 @@ if __name__ == "__main__":
     state.zahlenFeedback = null;
   }
 
+  function recordMistake(entry) {
+    if (!entry || !entry.id) return;
+    if (!Array.isArray(userData.mistakes)) userData.mistakes = [];
+    const idx = userData.mistakes.findIndex(m => m.id === entry.id);
+    if (idx !== -1) {
+      const existing = userData.mistakes[idx];
+      existing.chosen = entry.chosen;
+      existing.count = (existing.count || 1) + 1;
+      existing.timestamp = Date.now();
+      userData.mistakes.splice(idx, 1);
+      userData.mistakes.unshift(existing);
+    } else {
+      userData.mistakes.unshift(Object.assign({ count: 1, timestamp: Date.now() }, entry));
+    }
+    if (userData.mistakes.length > 100) {
+      userData.mistakes = userData.mistakes.slice(0, 100);
+    }
+    saveUserData();
+  }
+
+  function clearMistake(id) {
+    if (!Array.isArray(userData.mistakes)) return;
+    userData.mistakes = userData.mistakes.filter(m => m.id !== id);
+    saveUserData();
+  }
+
   function initMatchingGame() {
     const dict = window.GERMAN_A1_DATA.dictionary || [];
     if (dict.length < 5) return;
@@ -4745,6 +4777,105 @@ if __name__ == "__main__":
     `;
   }
 
+  function renderFehlerbuchView() {
+    const mistakes = Array.isArray(userData.mistakes) ? userData.mistakes : [];
+    const activeDrill = mistakes.length > 0 ? mistakes[state.fehlerIndex % mistakes.length] : null;
+
+    if (mistakes.length === 0) {
+      return `
+        <div class="space-y-6 animate-fadeIn pb-16">
+          <div class="text-center space-y-1">
+            <span class="inline-block px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-xs font-black tracking-wider uppercase">
+              Fehlerbuch • შეცდომების რვეული
+            </span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">შეცდომების გამეორება</h2>
+          </div>
+          <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-10 text-center shadow-sm space-y-3">
+            <div class="text-5xl">🎉</div>
+            <h3 class="text-xl font-black text-slate-900 dark:text-white">შესანიშნავია! შეცდომების რვეული ცარიელია</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto">როდესაც ტრენერებში (der/die/das, Plural, Verben, Kasus, Trennbare, Zahlen) შეცდომას დაუშვებთ, ის ავტომატურად შეინახება აქ გამეორებისთვის.</p>
+          </div>
+        </div>
+      `;
+    }
+
+    const opts = Array.isArray(activeDrill.options) && activeDrill.options.length > 0 ? activeDrill.options : [activeDrill.correct];
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-xs font-black tracking-wider uppercase">
+            Fehlerbuch • ${mistakes.length} გამოსასწორებელი პუნქტი
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">შეცდომების რვეული & სავარჯიშო</h2>
+          <p class="text-xs text-slate-500 font-medium">უპასუხეთ სწორად, რომ წაიშალოს სიიდან და მიიღოთ +10 XP</p>
+        </div>
+
+        <!-- Active Mistake Retry Card -->
+        <div class="bg-gradient-to-br from-rose-900 via-slate-900 to-slate-950 text-white rounded-3xl p-7 text-center shadow-lg space-y-3">
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30">
+              ${escapeHtml(activeDrill.category || 'A1')}
+            </span>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-white/10 text-amber-300">
+              შეცდომების რაოდენობა: ${activeDrill.count || 1}x
+            </span>
+          </div>
+          <h3 class="text-xl md:text-2xl font-black tracking-wide text-white">
+            ${escapeHtml(activeDrill.prompt)}
+          </h3>
+          ${activeDrill.audio_text ? `
+            <div class="pt-1 flex justify-center">
+              <button onclick="window.DeutschApp.speak('${activeDrill.audio_text.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+                <span>🔊 მოუსმინე</span>
+              </button>
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          ${opts.map(opt => `
+            <button onclick="window.DeutschApp.guessFehlerbuch('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-rose-500 font-black text-sm md:text-base text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="fehler-feedback" class="min-h-[44px] text-center font-bold text-xs md:text-sm">
+          ${state.fehlerFeedback || ''}
+        </div>
+
+        <!-- Saved Mistakes List -->
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">შენახული შეცდომები (${mistakes.length})</h3>
+            <button onclick="window.DeutschApp.clearAllMistakes()" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-rose-100 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-rose-700 transition">
+              ყველას გასუფთავება
+            </button>
+          </div>
+          <div class="space-y-2.5 max-h-80 overflow-y-auto">
+            ${mistakes.map(m => `
+              <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 flex items-start justify-between gap-3">
+                <div class="space-y-1 text-left">
+                  <div class="text-xs font-black text-slate-400 uppercase">${escapeHtml(m.category)}</div>
+                  <div class="text-sm font-black text-slate-900 dark:text-white">${escapeHtml(m.prompt)}</div>
+                  <div class="text-xs font-bold">
+                    <span class="text-rose-500 line-through mr-2">${escapeHtml(m.chosen)}</span>
+                    <span class="text-emerald-600 dark:text-emerald-400">✓ ${escapeHtml(m.correct)}</span>
+                  </div>
+                  ${m.rule_ka ? `<p class="text-xs text-slate-500">${escapeHtml(m.rule_ka)}</p>` : ''}
+                </div>
+                <button onclick="window.DeutschApp.removeMistake('${escapeHtml(m.id)}')" class="shrink-0 px-2.5 py-1 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-black hover:bg-emerald-200 transition">
+                  ✓ ვისწავლე
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderArticleTrainer(container) {
     if (!container) container = document.getElementById('main-content');
     if (!container) return;
@@ -4774,6 +4905,9 @@ if __name__ == "__main__":
         <button onclick="window.DeutschApp.setTrainerMode('matching')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'matching' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'}">
           🧩 Wort-Paare
         </button>
+        <button onclick="window.DeutschApp.setTrainerMode('fehlerbuch')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'fehlerbuch' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-rose-600'}">
+          📓 Fehlerbuch (${(userData.mistakes || []).length})
+        </button>
       </div>
     `;
 
@@ -4799,6 +4933,10 @@ if __name__ == "__main__":
     }
     if (mode === 'matching') {
       container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderMatchingGameView()}</div>`;
+      return;
+    }
+    if (mode === 'fehlerbuch') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderFehlerbuchView()}</div>`;
       return;
     }
 
@@ -7619,6 +7757,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.trainerStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'art_' + word.word,
+          category: 'der / die / das',
+          prompt: word.word + (word.meaning ? ` (${word.meaning})` : ''),
+          chosen: chosenArticle,
+          correct: word.article,
+          options: ['der', 'die', 'das'],
+          rule_ka: `სწორი არტიკლი: ${word.article} ${word.word}`,
+          audio_text: `${word.article} ${word.word}`
+        });
         if (feedbackEl) {
           feedbackEl.innerHTML = `<span class="text-rose-600 animate-fadeIn font-black text-base">✗ არასწორია! სწორია: <strong class="text-lg uppercase underline">${word.article}</strong> ${word.word}</span>`;
         }
@@ -7656,6 +7804,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.pluralStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'pl_' + item.word,
+          category: 'Plural',
+          prompt: `${item.article} ${item.word}`,
+          chosen: chosen,
+          correct: item.plural,
+          options: item.options,
+          rule_ka: item.rule_explanation || '',
+          audio_text: item.plural
+        });
         state.pluralFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(item.plural)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(item.rule_explanation)}</span></span>`;
       }
 
@@ -7689,6 +7847,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.verbStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'verb_' + drill.id,
+          category: 'Verben',
+          prompt: `${drill.infinitive}: ${drill.sentence}`,
+          chosen: chosen,
+          correct: drill.correct,
+          options: drill.options,
+          rule_ka: drill.rule || '',
+          audio_text: drill.sentence.replace('_______', drill.correct)
+        });
         state.verbFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule)}</span></span>`;
       }
 
@@ -7729,6 +7897,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.caseStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'case_' + drill.id,
+          category: 'Kasus',
+          prompt: drill.sentence,
+          chosen: chosen,
+          correct: drill.correct,
+          options: drill.options,
+          rule_ka: drill.rule_ka || '',
+          audio_text: drill.sentence.replace('_______', drill.correct)
+        });
         state.caseFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
       }
 
@@ -7769,6 +7947,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.trennbarStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'trenn_' + drill.id,
+          category: 'Trennbare Verben',
+          prompt: drill.sentence,
+          chosen: chosen,
+          correct: drill.correct,
+          options: drill.options,
+          rule_ka: drill.rule_ka || '',
+          audio_text: drill.full_sentence || drill.sentence.replace('_______', drill.correct)
+        });
         state.trennbarFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
       }
 
@@ -7808,6 +7996,16 @@ ${escapeHtml(item.text_de)}
       } else {
         state.zahlenStreak = 0;
         playChime('wrong');
+        recordMistake({
+          id: 'zah_' + drill.id,
+          category: 'Zahlen & Zeit',
+          prompt: `${drill.prompt_display} — ${drill.prompt_ka}`,
+          chosen: chosen,
+          correct: drill.correct,
+          options: drill.options,
+          rule_ka: drill.rule_ka || '',
+          audio_text: drill.audio_text || drill.correct
+        });
         state.zahlenFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
       }
 
@@ -7821,6 +8019,40 @@ ${escapeHtml(item.text_de)}
 
     nextZahlenDrill: function () {
       pickNextZahlenDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Fehlerbuch (Mistake Notebook)
+    guessFehlerbuch: function (chosen) {
+      const mistakes = Array.isArray(userData.mistakes) ? userData.mistakes : [];
+      if (mistakes.length === 0) return;
+      const drill = mistakes[state.fehlerIndex % mistakes.length];
+      if (!drill) return;
+
+      if (chosen === drill.correct) {
+        playChime('success');
+        grantRewardXP('fehler_' + drill.id, 10);
+        if (drill.audio_text) speakGerman(drill.audio_text);
+        clearMistake(drill.id);
+        state.fehlerFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ შესანიშნავია! „${escapeHtml(drill.correct)}“ (+10 XP) — წაიშალა რვეულიდან!</span>`;
+        state.fehlerIndex = 0;
+      } else {
+        playChime('wrong');
+        state.fehlerFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong>${drill.rule_ka ? `<br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span>` : ''}</span>`;
+      }
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    removeMistake: function (id) {
+      clearMistake(id);
+      state.fehlerFeedback = null;
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    clearAllMistakes: function () {
+      userData.mistakes = [];
+      saveUserData();
+      state.fehlerFeedback = null;
       renderArticleTrainer(document.getElementById('main-content'));
     },
 
@@ -9239,6 +9471,21 @@ ${escapeHtml(item.text_de)}
       if (curZahlen) app.guessZahlen(curZahlen.correct);
       await sleep(100);
       logItem(app.state.zahlenScore === initZahlenScore + 1, "23. Zahlen, Uhrzeit & Datum Trainer (Numbers, Clock & Dates)");
+
+      // 24. Fehlerbuch (Mistake Notebook & Smart Review)
+      const zNow = app.state.zahlenCurrentDrill;
+      if (zNow) {
+        const wrongZ = zNow.options.find(o => o !== zNow.correct);
+        app.guessZahlen(wrongZ);
+      }
+      await sleep(50);
+      app.setTrainerMode('fehlerbuch');
+      await sleep(50);
+      const uMistake = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+      const hasMistake = Array.isArray(uMistake.mistakes) && uMistake.mistakes.length > 0;
+      if (zNow) app.guessFehlerbuch(zNow.correct);
+      await sleep(50);
+      logItem(hasMistake && document.getElementById('main-content').innerHTML.indexOf('Fehlerbuch') !== -1, "24. Fehlerbuch (Mistake Notebook & Smart Review)");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });
