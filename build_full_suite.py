@@ -530,7 +530,7 @@ grammar_tables = {
 }
 
 from data_grammar_checks import GRAMMAR_CHECKS
-from data_upgrades import PLURAL_TRAINER_WORDS, VERB_CONJUGATIONS_DATA, A1_MINI_STORIES
+from data_upgrades import PLURAL_TRAINER_WORDS, VERB_CONJUGATIONS_DATA, A1_MINI_STORIES, PREPOSITION_CASES_DATA
 
 for lesson in ALL_DEEP_LESSONS:
     for sec in lesson.get("grammar_sections", []):
@@ -548,6 +548,7 @@ master_data = {
     "article_trainer_words": article_trainer_words,
     "plural_trainer_words": PLURAL_TRAINER_WORDS,
     "verb_conjugations": VERB_CONJUGATIONS_DATA,
+    "preposition_cases": PREPOSITION_CASES_DATA,
     "mini_stories": A1_MINI_STORIES,
     "sentence_builders": sentence_builders,
     "final_exam_questions": final_exam_questions,

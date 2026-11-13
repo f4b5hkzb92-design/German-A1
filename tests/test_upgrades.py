@@ -75,6 +75,16 @@ def main():
         check(len(st.get("paragraphs", [])) >= 2, f"Story '{st.get('title_de')}' has >= 2 paragraphs (got {len(st.get('paragraphs', []))})")
         check(len(st.get("quiz", [])) == 3, f"Story '{st.get('title_de')}' has exactly 3 comprehension check questions (got {len(st.get('quiz', []))})")
 
+    # Preposition & Case dataset
+    cases = data.get("preposition_cases", [])
+    check(len(cases) == 40, f"Preposition & Case Trainer contains exactly 40 drills (got {len(cases)})")
+    case_types = set(c.get("type") for c in cases)
+    check(case_types == {"dativ", "akkusativ", "wechsel"}, f"All 3 A1 case categories represented (found {case_types})")
+
+    for idx, c in enumerate(cases[:5]):
+        check(bool(c.get("sentence") and c.get("correct") and c.get("rule_ka")), f"Case Drill #{c.get('id', idx)} has complete sentence and rule")
+        check(c.get("correct") in c.get("options", []), f"Case Drill #{c.get('id', idx)} options contain correct answer")
+
     # -------------------------------------------------------------
     # 2. Runtime Behavior & Interactive Verification (OSA / JSC)
     # -------------------------------------------------------------
@@ -198,6 +208,37 @@ def main():
             results.push({
                 name: 'guessVerb correct increments score and streak',
                 ok: app.state.verbScore === initialVerbScore + 1 && app.state.verbStreak === 1
+            });
+
+            // Test 5b: Kasus & Preposition Trainer Mode
+            app.setTrainerMode('cases');
+            const caseItem = app.state.caseCurrentDrill;
+            const initialCaseScore = app.state.caseScore;
+            const caseEl = document.getElementById('main-content');
+            results.push({
+                name: 'setTrainerMode switches to Kasus & Preposition Trainer view',
+                ok: app.state.trainerActiveMode === 'cases' && caseEl.innerHTML.indexOf('Kasus: ბრუნვები & წინდებულები') !== -1
+            });
+
+            // Test 5c: Kasus Guess Correct
+            app.guessCase(caseItem.correct);
+            results.push({
+                name: 'guessCase correct increments score and streak',
+                ok: app.state.caseScore === initialCaseScore + 1 && app.state.caseStreak === 1
+            });
+
+            // Test 5d: Kasus Guess Incorrect
+            app.guessCase('fake_wrong_case');
+            results.push({
+                name: 'guessCase incorrect resets streak to 0',
+                ok: app.state.caseStreak === 0
+            });
+
+            // Test 5e: Kasus Filter Change
+            app.setCaseFilter('dativ');
+            results.push({
+                name: 'setCaseFilter filters drills by Dativ',
+                ok: app.state.caseFilterType === 'dativ' && app.state.caseCurrentDrill.type === 'dativ'
             });
 
             // Test 6: Matching Game Initialization

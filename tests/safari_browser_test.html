@@ -305,6 +305,17 @@
       const uAfterStory = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{"xp":0}');
       const storyCompleted = (uAfterStory.completedStories || []).includes('story_1');
       logItem(storyCompleted && app.state.storyScore === 3, "18. Kurzgeschichten A1 Mini-Story Reading & Comprehension Check");
+
+      // 19. Kasus & Preposition Trainer (Hub Mode 4)
+      app.setTab('article-trainer');
+      await sleep(100);
+      app.setTrainerMode('cases');
+      await sleep(100);
+      const curCase = app.state.caseCurrentDrill;
+      const initialCaseScore = app.state.caseScore;
+      if (curCase) app.guessCase(curCase.correct);
+      await sleep(100);
+      logItem(app.state.caseScore === initialCaseScore + 1, "19. Kasus & Preposition Trainer (Akkusativ, Dativ & Wechselpräpositionen)");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });

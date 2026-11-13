@@ -1583,3 +1583,459 @@ A1_MINI_STORIES = [
         ]
     }
 ]
+
+# ==============================================================================
+# 4. PREPOSITION & CASE TRAINER DATASET (40 A1 Drills)
+# Topics:
+# - Dativ Prepositions: mit, nach, aus, zu, bei, von, seit
+# - Akkusativ Prepositions: für, ohne, durch, um, gegen
+# - Wechselpräpositionen (in, auf, an, neben, unter, vor): Wo? (Dativ) vs. Wohin? (Akkusativ)
+# ==============================================================================
+PREPOSITION_CASES_DATA = [
+    # --- 1. DATIV PREPOSITIONS (15 drills) ---
+    {
+        "id": 1,
+        "type": "dativ",
+        "preposition": "mit",
+        "sentence": "Ich fahre jeden Morgen mit _______ zur Arbeit.",
+        "correct": "dem Bus",
+        "options": ["dem Bus", "den Bus", "der Bus", "des Busses"],
+        "translation_ka": "ყოველ დილით ავტობუსით მივდივარ სამსახურში.",
+        "rule_ka": "წინდებული „mit“ ყოველთვის მოითხოვს მიცემით ბრუნვას (Dativ): der Bus -> dem Bus.",
+        "hint": "mit + Dativ (der -> dem)"
+    },
+    {
+        "id": 2,
+        "type": "dativ",
+        "preposition": "mit",
+        "sentence": "Er spricht am Telefon mit _______ .",
+        "correct": "der Lehrerin",
+        "options": ["die Lehrerin", "der Lehrerin", "den Lehrerin", "einer Lehrerin"],
+        "translation_ka": "ის ტელეფონით ელაპარაკება მასწავლებელ ქალს.",
+        "rule_ka": "„mit“ მოითხოვს Dativ-ს. მდედრობითი სქესის არტიკლი die Dativ-ში ხდება der: die Lehrerin -> der Lehrerin.",
+        "hint": "mit + Dativ (die -> der)"
+    },
+    {
+        "id": 3,
+        "type": "dativ",
+        "preposition": "mit",
+        "sentence": "Wir fahren am Wochenende mit _______ ans Meer.",
+        "correct": "dem Auto",
+        "options": ["das Auto", "dem Auto", "den Auto", "des Autos"],
+        "translation_ka": "შაბათ-კვირას მანქანით მივდივართ ზღვაზე.",
+        "rule_ka": "საშუალო სქესის არტიკლი das Dativ-ში ხდება dem: das Auto -> dem Auto.",
+        "hint": "mit + Dativ (das -> dem)"
+    },
+    {
+        "id": 4,
+        "type": "dativ",
+        "preposition": "mit",
+        "sentence": "Nico geht heute Abend mit _______ ins Kino.",
+        "correct": "seinen Freunden",
+        "options": ["seine Freunde", "seinen Freunden", "seiner Freunde", "seinem Freund"],
+        "translation_ka": "ნიკო დღეს საღამოს მეგობრებთან ერთად მიდის კინოში.",
+        "rule_ka": "მრავლობით რიცხვში Dativ იღებს -n დაბოლოებას როგორც არტიკლზე/ნაცვალსახელზე, ისე არსებით სახელზე: die Freunde -> seinen Freunden.",
+        "hint": "mit + Dativ Plural (die -> den ...-n)"
+    },
+    {
+        "id": 5,
+        "type": "dativ",
+        "preposition": "nach",
+        "sentence": "Nach _______ gehe ich direkt nach Hause.",
+        "correct": "dem Unterricht",
+        "options": ["der Unterricht", "den Unterricht", "dem Unterricht", "des Unterrichts"],
+        "translation_ka": "გაკვეთილის შემდეგ პირდაპირ სახლში მივდივარ.",
+        "rule_ka": "წინდებული „nach“ (შემდეგ/კენ) მართავს Dativ-ს: der Unterricht -> dem Unterricht.",
+        "hint": "nach + Dativ (der -> dem)"
+    },
+    {
+        "id": 6,
+        "type": "dativ",
+        "preposition": "nach",
+        "sentence": "Nach _______ kocht Lukas eine Suppe.",
+        "correct": "der Arbeit",
+        "options": ["die Arbeit", "der Arbeit", "den Arbeit", "einer Arbeit"],
+        "translation_ka": "სამუშაოს შემდეგ ლუკასი სუპს ამზადებს.",
+        "rule_ka": "„nach“ მოითხოვს Dativ-ს: die Arbeit -> der Arbeit.",
+        "hint": "nach + Dativ (die -> der)"
+    },
+    {
+        "id": 7,
+        "type": "dativ",
+        "preposition": "aus",
+        "sentence": "Frau Meier kommt ursprünglich aus _______ .",
+        "correct": "der Schweiz",
+        "options": ["die Schweiz", "der Schweiz", "den Schweiz", "in die Schweiz"],
+        "translation_ka": "ქალბატონი მაიერი წარმოშობით შვეიცარიიდან არის.",
+        "rule_ka": "წინდებული „aus“ (დან) მართავს Dativ-ს: die Schweiz (მდედრ.) -> aus der Schweiz.",
+        "hint": "aus + Dativ (die -> der)"
+    },
+    {
+        "id": 8,
+        "type": "dativ",
+        "preposition": "aus",
+        "sentence": "Der Chef kommt gerade aus _______ .",
+        "correct": "dem Büro",
+        "options": ["das Büro", "den Büro", "dem Büro", "des Büros"],
+        "translation_ka": "უფროსი ახლახან გამოვიდა ოფისიდან.",
+        "rule_ka": "„aus“ მოითხოვს Dativ-ს: das Büro -> aus dem Büro.",
+        "hint": "aus + Dativ (das -> dem)"
+    },
+    {
+        "id": 9,
+        "type": "dativ",
+        "preposition": "zu",
+        "sentence": "Ich fühle mich nicht gut, ich gehe zum (zu _______ ) Arzt.",
+        "correct": "dem",
+        "options": ["dem", "den", "der", "des"],
+        "translation_ka": "თავს კარგად ვერ ვგრძნობ, ექიმთან მივდივარ (zum = zu dem).",
+        "rule_ka": "წინდებული „zu“ (კენ/თან) მართავს Dativ-ს: zu + dem = zum.",
+        "hint": "zu + Dativ (der -> dem -> zum)"
+    },
+    {
+        "id": 10,
+        "type": "dativ",
+        "preposition": "zu",
+        "sentence": "Am Sonntag fahre ich zu _______ Mutter.",
+        "correct": "meiner",
+        "options": ["meine", "meiner", "meinen", "meinem"],
+        "translation_ka": "კვირას დედაჩემთან მივდივარ.",
+        "rule_ka": "„zu“ მოითხოვს Dativ-ს: die Mutter -> zu meiner Mutter.",
+        "hint": "zu + Dativ (die -> meiner)"
+    },
+    {
+        "id": 11,
+        "type": "dativ",
+        "preposition": "zu",
+        "sentence": "Wie komme ich zu _______ Bahnhof?",
+        "correct": "dem",
+        "options": ["dem", "den", "der", "das"],
+        "translation_ka": "როგორ მივიდე სადგურამდე? (zum Bahnhof)",
+        "rule_ka": "der Bahnhof Dativ-ში ხდება dem Bahnhof (zu + dem = zum).",
+        "hint": "zu + Dativ (der -> dem)"
+    },
+    {
+        "id": 12,
+        "type": "dativ",
+        "preposition": "bei",
+        "sentence": "Ich wohne seit zwei Monaten bei _______ Familie.",
+        "correct": "einer",
+        "options": ["eine", "einer", "einem", "einen"],
+        "translation_ka": "უკვე ორი თვეა ერთ ოჯახთან ვცხოვრობ.",
+        "rule_ka": "წინდებული „bei“ (თან/დროს) მართავს Dativ-ს: die Familie -> bei einer Familie.",
+        "hint": "bei + Dativ (die -> einer)"
+    },
+    {
+        "id": 13,
+        "type": "dativ",
+        "preposition": "bei",
+        "sentence": "Mein Onkel arbeitet bei _______ Firma Siemens.",
+        "correct": "der",
+        "options": ["die", "der", "den", "dem"],
+        "translation_ka": "ბიძაჩემი ფირმა Siemens-ში მუშაობს.",
+        "rule_ka": "„bei“ მოითხოვს Dativ-ს: die Firma -> bei der Firma.",
+        "hint": "bei + Dativ (die -> der)"
+    },
+    {
+        "id": 14,
+        "type": "dativ",
+        "preposition": "von",
+        "sentence": "Das ist das neue Fahrrad von _______ Bruder.",
+        "correct": "meinem",
+        "options": ["mein", "meinen", "meinem", "meiner"],
+        "translation_ka": "ეს ჩემი ძმის ახალი ველოსიპედია.",
+        "rule_ka": "წინდებული „von“ (-ის/დან) მართავს Dativ-ს: der Bruder -> von meinem Bruder.",
+        "hint": "von + Dativ (der -> meinem)"
+    },
+    {
+        "id": 15,
+        "type": "dativ",
+        "preposition": "seit",
+        "sentence": "Wir lernen seit _______ Jahr fleißig Deutsch.",
+        "correct": "einem",
+        "options": ["ein", "einen", "einem", "einer"],
+        "translation_ka": "უკვე ერთი წელია ბეჯითად ვსწავლობთ გერმანულს.",
+        "rule_ka": "წინდებული „seit“ (დროიდან/უკვე) მართავს Dativ-ს: das Jahr -> seit einem Jahr.",
+        "hint": "seit + Dativ (das -> einem)"
+    },
+
+    # --- 2. AKKUSATIV PREPOSITIONS (12 drills) ---
+    {
+        "id": 16,
+        "type": "akkusativ",
+        "preposition": "für",
+        "sentence": "Dieses schöne Buch ist für _______ Vater.",
+        "correct": "meinen",
+        "options": ["mein", "meinen", "meinem", "meiner"],
+        "translation_ka": "ეს ლამაზი წიგნი მამაჩემისთვისაა.",
+        "rule_ka": "წინდებული „für“ (თვის) ყოველთვის მოითხოვს ბრალდებით ბრუნვას (Akkusativ): der Vater -> meinen Vater.",
+        "hint": "für + Akkusativ (der -> meinen)"
+    },
+    {
+        "id": 17,
+        "type": "akkusativ",
+        "preposition": "für",
+        "sentence": "Ich habe Blumen für _______ Mutter gekauft.",
+        "correct": "meine",
+        "options": ["meine", "meiner", "meinen", "meinem"],
+        "translation_ka": "ყვავილები დედაჩემისთვის ვიყიდე.",
+        "rule_ka": "„für“ მოითხოვს Akkusativ-ს. მდედრობითი სქესი Akkusativ-ში უცვლელია: die Mutter -> meine Mutter.",
+        "hint": "für + Akkusativ (die -> meine)"
+    },
+    {
+        "id": 18,
+        "type": "akkusativ",
+        "preposition": "für",
+        "sentence": "Das ist ein Geschenk für _______ Kind.",
+        "correct": "das",
+        "options": ["das", "dem", "den", "des"],
+        "translation_ka": "ეს საჩუქარია ბავშვისთვის.",
+        "rule_ka": "საშუალო სქესი Akkusativ-ში უცვლელია: das Kind -> für das Kind.",
+        "hint": "für + Akkusativ (das -> das)"
+    },
+    {
+        "id": 19,
+        "type": "akkusativ",
+        "preposition": "ohne",
+        "sentence": "Ich trinke meinen Kaffee immer ohne _______ .",
+        "correct": "Zucker",
+        "options": ["Zucker", "dem Zucker", "einem Zucker", "Zuckers"],
+        "translation_ka": "ყავას ყოველთვის უშაქროდ (შაქრის გარეშე) ვსვამ.",
+        "rule_ka": "წინდებული „ohne“ (გარეშე) მართავს Akkusativ-ს (ხშირად გამოიყენება არტიკლის გარეშე).",
+        "hint": "ohne + Akkusativ"
+    },
+    {
+        "id": 20,
+        "type": "akkusativ",
+        "preposition": "ohne",
+        "sentence": "Ohne _______ Pass darf man nicht reisen.",
+        "correct": "einen",
+        "options": ["ein", "einen", "einem", "einer"],
+        "translation_ka": "პასპორტის გარეშე მოგზაურობა არ შეიძლება.",
+        "rule_ka": "„ohne“ მოითხოვს Akkusativ-ს: der Pass (მამრ.) -> einen Pass.",
+        "hint": "ohne + Akkusativ (der -> einen)"
+    },
+    {
+        "id": 21,
+        "type": "akkusativ",
+        "preposition": "ohne",
+        "sentence": "Er geht nie ohne _______ Brille aus dem Haus.",
+        "correct": "seine",
+        "options": ["seine", "seiner", "seinem", "seinen"],
+        "translation_ka": "ის სახლიდან სათვალის გარეშე არასდროს გადის.",
+        "rule_ka": "die Brille (მდედრ.) Akkusativ-ში: ohne seine Brille.",
+        "hint": "ohne + Akkusativ (die -> seine)"
+    },
+    {
+        "id": 22,
+        "type": "akkusativ",
+        "preposition": "durch",
+        "sentence": "Wir gehen jeden Sonntag spazieren durch _______ Park.",
+        "correct": "den",
+        "options": ["der", "den", "dem", "des"],
+        "translation_ka": "ყოველ კვირას პარკში (პარკის გავლით) ვსეირნობთ.",
+        "rule_ka": "წინდებული „durch“ (გავლით/მეშვეობით) მართავს Akkusativ-ს: der Park -> durch den Park.",
+        "hint": "durch + Akkusativ (der -> den)"
+    },
+    {
+        "id": 23,
+        "type": "akkusativ",
+        "preposition": "durch",
+        "sentence": "Der Zug fährt durch _______ Tunnel.",
+        "correct": "einen langen",
+        "options": ["ein langer", "einen langen", "einem langen", "eines langen"],
+        "translation_ka": "მატარებელი გადის გრძელ გვირაბში.",
+        "rule_ka": "„durch“ მოითხოვს Akkusativ-ს: der Tunnel -> einen langen Tunnel.",
+        "hint": "durch + Akkusativ (der -> einen)"
+    },
+    {
+        "id": 24,
+        "type": "akkusativ",
+        "preposition": "um",
+        "sentence": "Die Familie sitzt gemütlich um _______ Tisch.",
+        "correct": "den",
+        "options": ["der", "den", "dem", "des"],
+        "translation_ka": "ოჯახი მყუდროდ ზის მაგიდის ირგვლივ.",
+        "rule_ka": "წინდებული „um“ (ირგვლივ) მართავს Akkusativ-ს: der Tisch -> um den Tisch.",
+        "hint": "um + Akkusativ (der -> den)"
+    },
+    {
+        "id": 25,
+        "type": "akkusativ",
+        "preposition": "um",
+        "sentence": "Die Bäckerei ist gleich um _______ Ecke.",
+        "correct": "die",
+        "options": ["die", "der", "den", "dem"],
+        "translation_ka": "საცხობი პირდაპირ კუთხეშია (კუთხეს რომ მოუხვევთ).",
+        "rule_ka": "„um“ მოითხოვს Akkusativ-ს: die Ecke -> um die Ecke.",
+        "hint": "um + Akkusativ (die -> die)"
+    },
+    {
+        "id": 26,
+        "type": "akkusativ",
+        "preposition": "gegen",
+        "sentence": "Bayern München spielt heute gegen _______ BVB Dortmund.",
+        "correct": "den",
+        "options": ["der", "den", "dem", "des"],
+        "translation_ka": "ბაიერნი დღეს დორტმუნდის ბორუსიის წინააღმდეგ თამაშობს.",
+        "rule_ka": "წინდებული „gegen“ (წინააღმდეგ) მართავს Akkusativ-ს: der BVB -> gegen den BVB.",
+        "hint": "gegen + Akkusativ (der -> den)"
+    },
+    {
+        "id": 27,
+        "type": "akkusativ",
+        "preposition": "gegen",
+        "sentence": "Haben Sie ein Medikament gegen _______ Kopfschmerzen?",
+        "correct": "die",
+        "options": ["die", "der", "den", "dem"],
+        "translation_ka": "გაქვთ წამალი თავის ტკივილის წინააღმდეგ?",
+        "rule_ka": "„gegen“ მოითხოვს Akkusativ-ს: die Kopfschmerzen (მრავლ.) -> gegen die Kopfschmerzen.",
+        "hint": "gegen + Akkusativ (Plural -> die)"
+    },
+
+    # --- 3. WECHSELPRAEPOSITIONEN (Wo? Dativ vs. Wohin? Akkusativ) (13 drills) ---
+    {
+        "id": 28,
+        "type": "wechsel",
+        "preposition": "in",
+        "sentence": "Wo ist Peter? - Er ist im (in _______ ) Supermarkt.",
+        "correct": "dem",
+        "options": ["dem", "den", "der", "das"],
+        "translation_ka": "სად არის პეტერი? - ის სუპერმარკეტშია (im = in dem).",
+        "rule_ka": "შეკითხვაზე „Wo?“ (სად? სტატიკური მდებარეობა) Wechselpräposition მოითხოვს Dativ-ს: in + dem = im.",
+        "hint": "Wo? -> Dativ (der -> dem -> im)"
+    },
+    {
+        "id": 29,
+        "type": "wechsel",
+        "preposition": "in",
+        "sentence": "Wohin geht Peter? - Er geht in _______ Supermarkt.",
+        "correct": "den",
+        "options": ["der", "den", "dem", "im"],
+        "translation_ka": "სად (საით) მიდის პეტერი? - ის მიდის სუპერმარკეტში.",
+        "rule_ka": "შეკითხვაზე „Wohin?“ (სად? მიმართულება/მოძრაობა) Wechselpräposition მოითხოვს Akkusativ-ს: in + den Supermarkt.",
+        "hint": "Wohin? -> Akkusativ (der -> den)"
+    },
+    {
+        "id": 30,
+        "type": "wechsel",
+        "preposition": "in",
+        "sentence": "Wo wohnst du? - Ich wohne in _______ Stadtmitte.",
+        "correct": "der",
+        "options": ["die", "der", "den", "in die"],
+        "translation_ka": "სად ცხოვრობ? - ქალაქის ცენტრში ვცხოვრობ.",
+        "rule_ka": "Wo? (სად?) -> Dativ: die Stadtmitte (მდედრ.) Dativ-ში ხდება der: in der Stadtmitte.",
+        "hint": "Wo? -> Dativ (die -> der)"
+    },
+    {
+        "id": 31,
+        "type": "wechsel",
+        "preposition": "in",
+        "sentence": "Wohin fährst du am Samstag? - Ich fahre in _______ Stadt.",
+        "correct": "die",
+        "options": ["die", "der", "den", "in der"],
+        "translation_ka": "სად მიდიხარ შაბათს? - ქალაქში მივდივარ.",
+        "rule_ka": "Wohin? (საით?) -> Akkusativ: die Stadt (მდედრ.) Akkusativ-ში უცვლელია: in die Stadt.",
+        "hint": "Wohin? -> Akkusativ (die -> die)"
+    },
+    {
+        "id": 32,
+        "type": "wechsel",
+        "preposition": "in",
+        "sentence": "Die Dokumente liegen in _______ Regal.",
+        "correct": "dem",
+        "options": ["das", "dem", "den", "des"],
+        "translation_ka": "დოკუმენტები თაროზე დევს (Wo? -> Regal-ში).",
+        "rule_ka": "Wo? (სად დევს?) -> Dativ: das Regal -> in dem (im) Regal.",
+        "hint": "Wo? -> Dativ (das -> dem)"
+    },
+    {
+        "id": 33,
+        "type": "wechsel",
+        "preposition": "auf",
+        "sentence": "Wo liegt die Zeitung? - Sie liegt auf _______ Tisch.",
+        "correct": "dem",
+        "options": ["der", "den", "dem", "das"],
+        "translation_ka": "სად დევს გაზეთი? - ის მაგიდაზე დევს.",
+        "rule_ka": "Wo? (სად? მაგიდაზე დევს) -> Dativ: der Tisch -> auf dem Tisch.",
+        "hint": "Wo? -> Dativ (der -> dem)"
+    },
+    {
+        "id": 34,
+        "type": "wechsel",
+        "preposition": "auf",
+        "sentence": "Wohin legst du das Handy? - Ich lege es auf _______ Tisch.",
+        "correct": "den",
+        "options": ["der", "den", "dem", "das"],
+        "translation_ka": "სად დებ ტელეფონს? - მაგიდაზე ვდებ.",
+        "rule_ka": "Wohin? (საით? ვდებ) -> Akkusativ: der Tisch -> auf den Tisch.",
+        "hint": "Wohin? -> Akkusativ (der -> den)"
+    },
+    {
+        "id": 35,
+        "type": "wechsel",
+        "preposition": "auf",
+        "sentence": "Wir kaufen am Samstag frisches Obst auf _______ Markt.",
+        "correct": "dem",
+        "options": ["der", "den", "dem", "das"],
+        "translation_ka": "შაბათს ბაზარზე ვყიდულობთ ახალ ხილს.",
+        "rule_ka": "Wo? (სად ვყიდულობთ? ბაზარზე) -> Dativ: der Markt -> auf dem Markt.",
+        "hint": "Wo? -> Dativ (der -> dem)"
+    },
+    {
+        "id": 36,
+        "type": "wechsel",
+        "preposition": "an",
+        "sentence": "Der ICE-Zug steht schon an _______ Bahnsteig 4.",
+        "correct": "dem",
+        "options": ["der", "den", "dem", "das"],
+        "translation_ka": "სწრაფი მატარებელი უკვე მე-4 ბაქანთან დგას.",
+        "rule_ka": "Wo? (სად დგას? ბაქანთან) -> Dativ: der Bahnsteig -> an dem (am) Bahnsteig.",
+        "hint": "Wo? -> Dativ (der -> dem -> am)"
+    },
+    {
+        "id": 37,
+        "type": "wechsel",
+        "preposition": "an",
+        "sentence": "Ich hänge das neue Foto an _______ Wand.",
+        "correct": "die",
+        "options": ["die", "der", "den", "dem"],
+        "translation_ka": "ახალ ფოტოს კედელზე ვკიდებ.",
+        "rule_ka": "Wohin? (საით ვკიდებ? მოქმედება) -> Akkusativ: die Wand -> an die Wand.",
+        "hint": "Wohin? -> Akkusativ (die -> die)"
+    },
+    {
+        "id": 38,
+        "type": "wechsel",
+        "preposition": "neben",
+        "sentence": "Maria sitzt in der Schule neben _______ Freundin.",
+        "correct": "ihrer",
+        "options": ["ihre", "ihrer", "ihrem", "ihren"],
+        "translation_ka": "მარია სკოლაში თავის მეგობარ გოგოს გვერდით ზის.",
+        "rule_ka": "Wo? (სად ზის? გვერდით) -> Dativ: die Freundin (მდედრ.) -> neben ihrer Freundin.",
+        "hint": "Wo? -> Dativ (die -> ihrer)"
+    },
+    {
+        "id": 39,
+        "type": "wechsel",
+        "preposition": "unter",
+        "sentence": "Die kleine Katze schläft unter _______ Bett.",
+        "correct": "dem",
+        "options": ["das", "dem", "den", "des"],
+        "translation_ka": "პატარა კატას საწოლის ქვეშ სძინავს.",
+        "rule_ka": "Wo? (სად სძინავს?) -> Dativ: das Bett -> unter dem Bett.",
+        "hint": "Wo? -> Dativ (das -> dem)"
+    },
+    {
+        "id": 40,
+        "type": "wechsel",
+        "preposition": "vor",
+        "sentence": "Wir treffen uns um 19 Uhr vor _______ Kino.",
+        "correct": "dem",
+        "options": ["das", "dem", "den", "des"],
+        "translation_ka": "19:00 საათზე კინოთეატრის წინ ვხვდებით.",
+        "rule_ka": "Wo? (სად ვხვდებით?) -> Dativ: das Kino -> vor dem Kino.",
+        "hint": "Wo? -> Dativ (das -> dem)"
+    }
+]
+

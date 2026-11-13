@@ -59,6 +59,14 @@
     verbCurrentDrill: null,
     verbFeedback: null,
 
+    // Preposition & Case Trainer state
+    caseIndex: 0,
+    caseScore: 0,
+    caseStreak: 0,
+    caseCurrentDrill: null,
+    caseFeedback: null,
+    caseFilterType: 'all', // 'all', 'dativ', 'akkusativ', 'wechsel'
+
     // Matching Pairs Game state
     matchCards: [],
     matchFlipped: [],
@@ -2159,12 +2167,13 @@
   }
 
   // ==========================================================================
-  // TAB 4: PRACTICE TRAINERS HUB (ARTICLES • PLURALS • VERBS • MATCHING)
+  // TAB 4: PRACTICE TRAINERS HUB (ARTICLES • PLURALS • VERBS • KASUS • MATCHING)
   // ==========================================================================
   function initArticleTrainer() {
     if (!state.trainerCurrentWord) pickNextTrainerWord();
     if (!state.pluralCurrentWord) pickNextPluralWord();
     if (!state.verbCurrentDrill) pickNextVerbDrill();
+    if (!state.caseCurrentDrill) pickNextCaseDrill();
     if (state.matchCards.length === 0) initMatchingGame();
   }
 
@@ -2189,6 +2198,20 @@
     state.verbIndex = (state.verbIndex + 1) % list.length;
     state.verbCurrentDrill = list[state.verbIndex];
     state.verbFeedback = null;
+  }
+
+  function pickNextCaseDrill() {
+    const all = window.GERMAN_A1_DATA.preposition_cases || [];
+    let list = all;
+    if (state.caseFilterType !== 'all') {
+      list = all.filter(d => d.type === state.caseFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (list.length === 0) return;
+
+    state.caseIndex = (state.caseIndex + 1) % list.length;
+    state.caseCurrentDrill = list[state.caseIndex];
+    state.caseFeedback = null;
   }
 
   function initMatchingGame() {
@@ -2412,7 +2435,6 @@
               } else {
                 cardClass += "bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 text-slate-800 dark:text-slate-100 active:scale-95";
               }
-
               return `
                 <div onclick="window.DeutschApp.onMatchCardClick(${idx})" class="${cardClass}">
                   <span class="text-[9px] font-bold uppercase tracking-wider block opacity-70 mb-1">
@@ -2428,6 +2450,101 @@
     `;
   }
 
+  function renderCaseTrainerView() {
+    const all = window.GERMAN_A1_DATA.preposition_cases || [];
+    let list = all;
+    if (state.caseFilterType !== 'all') {
+      list = all.filter(d => d.type === state.caseFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (!state.caseCurrentDrill && list.length > 0) {
+      state.caseCurrentDrill = list[state.caseIndex % list.length];
+    }
+    const drill = state.caseCurrentDrill;
+    if (!drill) return `<div class="p-8 text-center text-slate-500">მონაცემები არ არის.</div>`;
+
+    const sampleAudio = drill.sentence.replace('_______', drill.correct);
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 ბრუნვები & წინდებულები • 40 სავარჯიშო წესებით
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Kasus: ბრუნვები & წინდებულები</h2>
+          <p class="text-xs text-slate-500 font-medium">შეარჩიეთ სწორი არტიკლი/ნაცვალსახელი წინდებულის მოთხოვნის მიხედვით (Akkusativ, Dativ, Wechsel)</p>
+        </div>
+
+        <!-- Filter Sub-Tabs -->
+        <div class="flex flex-wrap gap-2 justify-center text-xs font-bold">
+          <button onclick="window.DeutschApp.setCaseFilter('all')" class="px-3.5 py-1.5 rounded-xl transition ${state.caseFilterType === 'all' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            ყველა (40)
+          </button>
+          <button onclick="window.DeutschApp.setCaseFilter('dativ')" class="px-3.5 py-1.5 rounded-xl transition ${state.caseFilterType === 'dativ' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Dativ (mit, nach, aus, zu...)
+          </button>
+          <button onclick="window.DeutschApp.setCaseFilter('akkusativ')" class="px-3.5 py-1.5 rounded-xl transition ${state.caseFilterType === 'akkusativ' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Akkusativ (für, ohne, durch...)
+          </button>
+          <button onclick="window.DeutschApp.setCaseFilter('wechsel')" class="px-3.5 py-1.5 rounded-xl transition ${state.caseFilterType === 'wechsel' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Wechsel (Wo? / Wohin?)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 shadow-sm text-center">
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
+            <span class="text-2xl font-black text-purple-600 dark:text-purple-400">${state.caseScore}</span>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
+            <span class="text-2xl font-black text-amber-500">🔥 ${state.caseStreak}</span>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-7 text-center shadow-lg space-y-3">
+          <div class="flex items-center justify-center gap-2">
+            <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-400/30">
+              წინდებული: ${escapeHtml(drill.preposition)}
+            </span>
+            <span class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30">
+              ${escapeHtml(drill.hint)}
+            </span>
+          </div>
+
+          <h3 class="text-2xl md:text-3xl font-black tracking-wide text-white">
+            ${escapeHtml(drill.sentence)}
+          </h3>
+
+          <p class="text-xs text-slate-300 italic font-medium">
+            ${escapeHtml(drill.translation_ka)}
+          </p>
+
+          <div class="pt-1 flex justify-center gap-2">
+            <button onclick="window.DeutschApp.speak('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🔊 1.0x</span>
+            </button>
+            <button onclick="window.DeutschApp.speakSlow('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🐢 0.7x</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          ${drill.options.map(opt => `
+            <button onclick="window.DeutschApp.guessCase('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-500 font-black text-lg text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="case-feedback" class="min-h-[50px] text-center font-bold text-xs md:text-sm">
+          ${state.caseFeedback || ''}
+        </div>
+      </div>
+    `;
+  }
+
   function renderArticleTrainer(container) {
     if (!container) container = document.getElementById('main-content');
     if (!container) return;
@@ -2435,7 +2552,7 @@
     const mode = state.trainerActiveMode || 'articles';
 
     const navBar = `
-      <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black max-w-2xl mx-auto mb-6">
+      <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black max-w-3xl mx-auto mb-6">
         <button onclick="window.DeutschApp.setTrainerMode('articles')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'articles' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-blue-600'}">
           🛡️ der / die / das (431)
         </button>
@@ -2444,6 +2561,9 @@
         </button>
         <button onclick="window.DeutschApp.setTrainerMode('verbs')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'verbs' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-amber-600'}">
           ⚡ Verben (50)
+        </button>
+        <button onclick="window.DeutschApp.setTrainerMode('cases')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'cases' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-purple-600'}">
+          🎯 Kasus (40)
         </button>
         <button onclick="window.DeutschApp.setTrainerMode('matching')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'matching' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'}">
           🧩 Wort-Paare
@@ -2457,6 +2577,10 @@
     }
     if (mode === 'verbs') {
       container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderVerbTrainerView()}</div>`;
+      return;
+    }
+    if (mode === 'cases') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderCaseTrainerView()}</div>`;
       return;
     }
     if (mode === 'matching') {
@@ -5010,6 +5134,46 @@ ${escapeHtml(item.text_de)}
 
     nextVerbDrill: function () {
       pickNextVerbDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Preposition & Case Trainer
+    setCaseFilter: function (filterType) {
+      state.caseFilterType = filterType;
+      state.caseIndex = 0;
+      pickNextCaseDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    guessCase: function (chosen) {
+      const drill = state.caseCurrentDrill;
+      if (!drill) return;
+      const feedbackEl = document.getElementById('case-feedback');
+
+      if (chosen === drill.correct) {
+        state.caseScore += 1;
+        state.caseStreak += 1;
+        playChime('success');
+        grantRewardXP('case_' + drill.id, 5);
+        const fullSentence = drill.sentence.replace('_______', drill.correct);
+        speakGerman(fullSentence);
+        state.caseFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ სწორია! „${escapeHtml(fullSentence)}“<br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      } else {
+        state.caseStreak = 0;
+        playChime('wrong');
+        state.caseFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      }
+
+      if (feedbackEl) feedbackEl.innerHTML = state.caseFeedback;
+
+      setTimeout(() => {
+        pickNextCaseDrill();
+        renderArticleTrainer(document.getElementById('main-content'));
+      }, 1600);
+    },
+
+    nextCaseDrill: function () {
+      pickNextCaseDrill();
       renderArticleTrainer(document.getElementById('main-content'));
     },
 
