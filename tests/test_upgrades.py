@@ -94,6 +94,16 @@ def main():
     for idx, d in enumerate(diktat[:5]):
         check(bool(d.get("audio_text") and d.get("expected") and d.get("prompt_ka") and d.get("explanation")), f"Diktat #{d.get('id', idx)} has complete audio, expected answer, prompt, and explanation")
 
+    # Trennbare Verben & Satzklammer dataset
+    trennbar = data.get("trennbare_verben", [])
+    check(len(trennbar) == 35, f"Trennbare Verben Trainer contains exactly 35 drills (got {len(trennbar)})")
+    trennbar_types = set(t.get("type") for t in trennbar)
+    check(trennbar_types == {"praesens", "modal", "imperativ_perfekt"}, f"All 3 Trennbare Verben categories represented (found {trennbar_types})")
+
+    for idx, t in enumerate(trennbar[:5]):
+        check(bool(t.get("infinitive") and t.get("sentence") and t.get("correct") and t.get("rule_ka")), f"Trennbare Drill #{t.get('id', idx)} has complete sentence and rule")
+        check(t.get("correct") in t.get("options", []), f"Trennbare Drill #{t.get('id', idx)} options contain correct answer")
+
     # -------------------------------------------------------------
     # 2. Runtime Behavior & Interactive Verification (OSA / JSC)
     # -------------------------------------------------------------
@@ -344,6 +354,43 @@ def main():
             results.push({
                 name: 'exportUserDataJSON creates valid JSON backup with user progress',
                 ok: typeof exportedJSON === 'string' && parsedExport && parsedExport.xp >= 0 && Array.isArray(parsedExport.completedDiktat)
+            });
+
+            // Test 17: Trennbare Verben Trainer Mode & Guess
+            app.setTab('article-trainer');
+            app.setTrainerMode('trennbare');
+            const trennDrill = app.state.trennbarCurrentDrill;
+            results.push({
+                name: 'setTrainerMode switches to Trennbare Verben Trainer view',
+                ok: app.state.trainerActiveMode === 'trennbare' && trennDrill !== null && document.getElementById('main-content').innerHTML.indexOf('Trennbare Verben') !== -1
+            });
+
+            const prevTrennScore = app.state.trennbarScore;
+            app.guessTrennbare(trennDrill.correct);
+            results.push({
+                name: 'guessTrennbare correct increments score and streak',
+                ok: app.state.trennbarScore === prevTrennScore + 1 && app.state.trennbarStreak === 1
+            });
+
+            app.setTrennbareFilter('modal');
+            results.push({
+                name: 'setTrennbareFilter filters drills by modal category',
+                ok: app.state.trennbarFilterType === 'modal' && app.state.trennbarCurrentDrill && app.state.trennbarCurrentDrill.type === 'modal'
+            });
+
+            // Test 18: Weekly Goal & Streak Freeze System
+            app.setTab('profile');
+            app.setDailyXpGoal(100);
+            const uAfterGoal = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+            const freezeRes = app.buyStreakFreeze();
+            const uAfterFreeze = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+            results.push({
+                name: 'Weekly Goal & Streak Freeze update dailyXpGoal and track dailyXpEarned',
+                ok: uAfterGoal.dailyXpGoal === 100 && typeof uAfterGoal.dailyXpEarned === 'number' && uAfterGoal.dailyXpEarned > 0 && document.getElementById('main-content').innerHTML.indexOf('Streak Freeze') !== -1
+            });
+            results.push({
+                name: 'buyStreakFreeze spends 50 XP when available or enforces XP threshold safely',
+                ok: (uAfterGoal.xp >= 50) ? (freezeRes === true && uAfterFreeze.streakFreezes === 2 && uAfterFreeze.xp === uAfterGoal.xp - 50) : (freezeRes === false)
             });
         } catch (e) {
             results.push({ name: 'Exception in probe: ' + e.toString(), ok: false });

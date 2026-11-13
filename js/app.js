@@ -67,6 +67,14 @@
     caseFeedback: null,
     caseFilterType: 'all', // 'all', 'dativ', 'akkusativ', 'wechsel'
 
+    // Trennbare Verben Trainer state
+    trennbarIndex: 0,
+    trennbarScore: 0,
+    trennbarStreak: 0,
+    trennbarCurrentDrill: null,
+    trennbarFeedback: null,
+    trennbarFilterType: 'all', // 'all', 'praesens', 'modal', 'imperativ_perfekt'
+
     // Matching Pairs Game state
     matchCards: [],
     matchFlipped: [],
@@ -194,6 +202,10 @@
 
   function updateDailyStreak(data) {
     const todayStr = getLocalDateString();
+    if (data.dailyXpDate !== todayStr) {
+      data.dailyXpDate = todayStr;
+      data.dailyXpEarned = 0;
+    }
     if (!data.lastActiveDate) {
       data.lastActiveDate = todayStr;
       data.streak = 1;
@@ -204,6 +216,15 @@
     }
     const diffDays = getCalendarDaysDiff(data.lastActiveDate, todayStr);
     if (diffDays === 1) {
+      data.streak = (data.streak || 0) + 1;
+      data.lastActiveDate = todayStr;
+    } else if (diffDays === 2 && (data.streakFreezes || 0) > 0) {
+      // Protect 1 missed day using a Streak Freeze
+      data.streakFreezes -= 1;
+      data.streakFrozenDates = Array.isArray(data.streakFrozenDates) ? data.streakFrozenDates : [];
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      data.streakFrozenDates.push(getLocalDateString(yesterday));
       data.streak = (data.streak || 0) + 1;
       data.lastActiveDate = todayStr;
     } else if (diffDays > 1) {
@@ -234,6 +255,12 @@
       examDate: null,
       completedStories: [], // story IDs
       completedDiktat: [], // diktat IDs
+      dailyXpGoal: 50,
+      dailyXpEarned: 0,
+      dailyXpDate: getLocalDateString(),
+      weeklyXpHistory: {}, // YYYY-MM-DD -> xp
+      streakFreezes: 1,
+      streakFrozenDates: [],
       isPro: true,
       subscriptionTier: 'pro_annual'
     };
@@ -287,6 +314,12 @@
         data.examDate = typeof data.examDate === 'string' ? data.examDate : null;
         data.completedStories = Array.isArray(data.completedStories) ? data.completedStories : [];
         data.completedDiktat = Array.isArray(data.completedDiktat) ? data.completedDiktat : [];
+        data.dailyXpGoal = (typeof data.dailyXpGoal === 'number' && [20, 50, 100, 150].includes(data.dailyXpGoal)) ? data.dailyXpGoal : 50;
+        data.dailyXpEarned = (typeof data.dailyXpEarned === 'number' && !isNaN(data.dailyXpEarned)) ? Math.max(0, data.dailyXpEarned) : 0;
+        data.dailyXpDate = (typeof data.dailyXpDate === 'string') ? data.dailyXpDate : getLocalDateString();
+        data.weeklyXpHistory = (typeof data.weeklyXpHistory === 'object' && data.weeklyXpHistory !== null && !Array.isArray(data.weeklyXpHistory)) ? data.weeklyXpHistory : {};
+        data.streakFreezes = (typeof data.streakFreezes === 'number' && !isNaN(data.streakFreezes)) ? Math.max(0, Math.min(3, data.streakFreezes)) : 1;
+        data.streakFrozenDates = Array.isArray(data.streakFrozenDates) ? data.streakFrozenDates : [];
         data.isPro = true;
 
         // Versioned Writing Drafts Safe Recovery (Stage 9.1: Draft Persistence)
@@ -335,6 +368,23 @@
     saveUserData();
   }
 
+  function recordDailyXpProgress(amount) {
+    const todayStr = getLocalDateString();
+    if (userData.dailyXpDate !== todayStr) {
+      userData.dailyXpDate = todayStr;
+      userData.dailyXpEarned = 0;
+    }
+    const prevEarned = userData.dailyXpEarned || 0;
+    const goal = userData.dailyXpGoal || 50;
+    userData.dailyXpEarned = prevEarned + amount;
+    userData.weeklyXpHistory = userData.weeklyXpHistory || {};
+    userData.weeklyXpHistory[todayStr] = (userData.weeklyXpHistory[todayStr] || 0) + amount;
+
+    if (prevEarned < goal && userData.dailyXpEarned >= goal) {
+      showToast(`🎯 დღიური მიზანი (${goal} XP) შესრულებულია!`);
+    }
+  }
+
   // --- Idempotent Reward Management (Fixes Priority 0 Defect 1: XP Exploits) ---
   function grantRewardXP(rewardKey, amount, successMessage) {
     userData.claimedRewards = userData.claimedRewards || {};
@@ -350,6 +400,7 @@
 
     userData.claimedRewards[rewardKey] = new Date().toISOString();
     userData.xp = (userData.xp || 0) + amount;
+    recordDailyXpProgress(amount);
     saveUserData();
     playChime('success');
     showToast((successMessage ? successMessage + ' ' : '') + `+${amount} XP! ⭐`);
@@ -359,6 +410,7 @@
 
   function addXP(amount) {
     userData.xp = (userData.xp || 0) + amount;
+    recordDailyXpProgress(amount);
     saveUserData();
     playChime('success');
     showToast(`+${amount} XP! ⭐`);
@@ -2223,6 +2275,20 @@
     state.caseFeedback = null;
   }
 
+  function pickNextTrennbareDrill() {
+    const all = window.GERMAN_A1_DATA.trennbare_verben || [];
+    let list = all;
+    if (state.trennbarFilterType !== 'all') {
+      list = all.filter(d => d.type === state.trennbarFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (list.length === 0) return;
+
+    state.trennbarIndex = (state.trennbarIndex + 1) % list.length;
+    state.trennbarCurrentDrill = list[state.trennbarIndex];
+    state.trennbarFeedback = null;
+  }
+
   function initMatchingGame() {
     const dict = window.GERMAN_A1_DATA.dictionary || [];
     if (dict.length < 5) return;
@@ -2554,6 +2620,101 @@
     `;
   }
 
+  function renderTrennbareTrainerView() {
+    const all = window.GERMAN_A1_DATA.trennbare_verben || [];
+    let list = all;
+    if (state.trennbarFilterType !== 'all') {
+      list = all.filter(d => d.type === state.trennbarFilterType);
+    }
+    if (list.length === 0) list = all;
+    if (!state.trennbarCurrentDrill && list.length > 0) {
+      state.trennbarCurrentDrill = list[state.trennbarIndex % list.length];
+    }
+    const drill = state.trennbarCurrentDrill;
+    if (!drill) return `<div class="p-8 text-center text-slate-500">მონაცემები არ არის.</div>`;
+
+    const sampleAudio = drill.full_sentence || drill.sentence.replace('_______', drill.correct);
+
+    return `
+      <div class="space-y-6 animate-fadeIn pb-16">
+        <div class="text-center space-y-1">
+          <span class="inline-block px-3 py-1 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 rounded-full text-xs font-black tracking-wider uppercase">
+            A1 თავსართმოცილებადი ზმნები & Satzklammer • 35 სავარჯიშო
+          </span>
+          <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Trennbare Verben: ზმნური ჩარჩო</h2>
+          <p class="text-xs text-slate-500 font-medium">ისწავლეთ ზმნის თავსართის გაყოფა აწმყოში, მოდალურ ზმნებში, ბრძანებითსა და Perfekt-ში</p>
+        </div>
+
+        <!-- Filter Sub-Tabs -->
+        <div class="flex flex-wrap gap-2 justify-center text-xs font-bold">
+          <button onclick="window.DeutschApp.setTrennbareFilter('all')" class="px-3.5 py-1.5 rounded-xl transition ${state.trennbarFilterType === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            ყველა (35)
+          </button>
+          <button onclick="window.DeutschApp.setTrennbareFilter('praesens')" class="px-3.5 py-1.5 rounded-xl transition ${state.trennbarFilterType === 'praesens' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Präsens (15)
+          </button>
+          <button onclick="window.DeutschApp.setTrennbareFilter('modal')" class="px-3.5 py-1.5 rounded-xl transition ${state.trennbarFilterType === 'modal' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Modalverben (10)
+          </button>
+          <button onclick="window.DeutschApp.setTrennbareFilter('imperativ_perfekt')" class="px-3.5 py-1.5 rounded-xl transition ${state.trennbarFilterType === 'imperativ_perfekt' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}">
+            Imperativ & Perfekt (10)
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-4 shadow-sm text-center">
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სწორი პასუხები</span>
+            <span class="text-2xl font-black text-rose-600 dark:text-rose-400">${state.trennbarScore}</span>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 block uppercase">სერია (Streak)</span>
+            <span class="text-2xl font-black text-amber-500">🔥 ${state.trennbarStreak}</span>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-rose-900 via-slate-900 to-slate-950 text-white rounded-3xl p-7 text-center shadow-lg space-y-3">
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="text-xs font-extrabold uppercase px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-400/30">
+              ზმნა: <strong class="text-amber-300">${escapeHtml(drill.prefix)}</strong>${escapeHtml(drill.stem)}
+            </span>
+            <span class="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30">
+              ${escapeHtml(drill.hint)}
+            </span>
+          </div>
+
+          <h3 class="text-2xl md:text-3xl font-black tracking-wide text-white">
+            ${escapeHtml(drill.sentence)}
+          </h3>
+
+          <p class="text-xs text-slate-300 italic font-medium">
+            ${escapeHtml(drill.translation_ka)}
+          </p>
+
+          <div class="pt-1 flex justify-center gap-2">
+            <button onclick="window.DeutschApp.speak('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🔊 1.0x</span>
+            </button>
+            <button onclick="window.DeutschApp.speakSlow('${sampleAudio.replace(/'/g, "\\'")}', this)" class="inline-flex items-center gap-1 px-3 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition">
+              <span>🐢 0.7x</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          ${drill.options.map(opt => `
+            <button onclick="window.DeutschApp.guessTrennbare('${escapeHtml(opt)}')" class="p-4 rounded-2xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-2 border-slate-200 dark:border-slate-700 hover:border-rose-500 font-black text-base md:text-lg text-slate-800 dark:text-white shadow-sm active:scale-95 transition text-center">
+              ${escapeHtml(opt)}
+            </button>
+          `).join('')}
+        </div>
+
+        <div id="trennbar-feedback" class="min-h-[50px] text-center font-bold text-xs md:text-sm">
+          ${state.trennbarFeedback || ''}
+        </div>
+      </div>
+    `;
+  }
+
   function renderArticleTrainer(container) {
     if (!container) container = document.getElementById('main-content');
     if (!container) return;
@@ -2561,7 +2722,7 @@
     const mode = state.trainerActiveMode || 'articles';
 
     const navBar = `
-      <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black max-w-3xl mx-auto mb-6">
+      <div class="flex flex-wrap gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-black max-w-4xl mx-auto mb-6">
         <button onclick="window.DeutschApp.setTrainerMode('articles')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'articles' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-blue-600'}">
           🛡️ der / die / das (431)
         </button>
@@ -2573,6 +2734,9 @@
         </button>
         <button onclick="window.DeutschApp.setTrainerMode('cases')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'cases' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-purple-600'}">
           🎯 Kasus (40)
+        </button>
+        <button onclick="window.DeutschApp.setTrainerMode('trennbare')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'trennbare' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-rose-600'}">
+          ✂️ Trennbare (35)
         </button>
         <button onclick="window.DeutschApp.setTrainerMode('matching')" class="flex-1 py-2.5 px-2 rounded-xl transition text-center ${mode === 'matching' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-300 hover:text-emerald-600'}">
           🧩 Wort-Paare
@@ -2590,6 +2754,10 @@
     }
     if (mode === 'cases') {
       container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderCaseTrainerView()}</div>`;
+      return;
+    }
+    if (mode === 'trennbare') {
+      container.innerHTML = `<div class="max-w-2xl mx-auto">${navBar}${renderTrennbareTrainerView()}</div>`;
       return;
     }
     if (mode === 'matching') {
@@ -4635,6 +4803,31 @@ ${escapeHtml(item.text_de)}
     const mistakesCount = (userData.mistakeWords || []).length;
     const diktatCount = (userData.completedDiktat || []).length;
 
+    const todayStr = getLocalDateString();
+    const dailyGoal = userData.dailyXpGoal || 50;
+    const dailyEarned = (userData.dailyXpDate === todayStr) ? (userData.dailyXpEarned || 0) : 0;
+    const dailyPct = Math.min(100, Math.round((dailyEarned / Math.max(1, dailyGoal)) * 100));
+    const freezesCount = typeof userData.streakFreezes === 'number' ? userData.streakFreezes : 1;
+    const frozenDates = userData.streakFrozenDates || [];
+    const weeklyHistory = userData.weeklyXpHistory || {};
+
+    const last7Days = [];
+    const kaWeekdays = ['კვ', 'ორ', 'სამ', 'ოთხ', 'ხუთ', 'პარ', 'შაბ'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dStr = getLocalDateString(d);
+      const dayXp = weeklyHistory[dStr] || (dStr === todayStr ? dailyEarned : 0);
+      last7Days.push({
+        dateStr: dStr,
+        label: kaWeekdays[d.getDay()],
+        xp: dayXp,
+        isToday: i === 0,
+        isFrozen: frozenDates.includes(dStr)
+      });
+    }
+    const maxWeekXp = Math.max(dailyGoal, ...last7Days.map(x => x.xp), 1);
+
     let html = `
       <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-16">
         <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 shadow-sm">
@@ -4675,6 +4868,84 @@ ${escapeHtml(item.text_de)}
             <div class="p-4 rounded-2xl bg-purple-50 dark:bg-slate-700/40">
               <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase block mb-1">ნასწავლი სიტყვები</span>
               <span class="text-2xl font-black text-slate-900 dark:text-white">${masteredCount} / 734 🔤</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Goal & Streak Freeze System -->
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <span>🎯</span> დღიური მიზანი, კვირის გრაფიკი & Streak Freeze
+              </h2>
+              <p class="text-xs text-slate-500">აირჩიეთ დღიური XP გეგმა და დაიცავით სერია გაყინვის ბარათებით</p>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/60 p-1 rounded-xl text-xs font-black">
+              ${[20, 50, 100, 150].map(g => `
+                <button onclick="window.DeutschApp.setDailyXpGoal(${g})" class="px-3 py-1.5 rounded-lg transition ${dailyGoal === g ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:text-blue-600'}">
+                  ${g} XP
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <!-- Daily Progress & 7-Day Chart -->
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-black">
+                  <span class="text-slate-700 dark:text-slate-300">დღევანდელი პროგრესი</span>
+                  <span class="${dailyEarned >= dailyGoal ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}">
+                    ${dailyEarned} / ${dailyGoal} XP (${dailyPct}%) ${dailyEarned >= dailyGoal ? '✓' : ''}
+                  </span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500 ${dailyEarned >= dailyGoal ? 'bg-emerald-500' : 'bg-blue-600'}" style="width: ${dailyPct}%"></div>
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">ბოლო 7 დღის აქტივობა:</span>
+                <div class="grid grid-cols-7 gap-2 items-end h-20 pt-2">
+                  ${last7Days.map(day => {
+                    const barPct = Math.max(8, Math.round((day.xp / maxWeekXp) * 100));
+                    return `
+                      <div class="flex flex-col items-center gap-1 h-full justify-end" title="${day.dateStr}: ${day.xp} XP">
+                        <div class="w-full max-w-[28px] rounded-t-lg transition-all ${day.isFrozen ? 'bg-cyan-400' : (day.xp >= dailyGoal ? 'bg-emerald-500' : (day.isToday ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'))}" style="height: ${barPct}%"></div>
+                        <span class="text-[10px] font-black ${day.isToday ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}">
+                          ${day.isFrozen ? '❄️' : day.label}
+                        </span>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Streak Freeze Card -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-slate-900 border border-cyan-200 dark:border-cyan-800/40 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <span class="text-3xl">❄️</span>
+                  <div>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Streak Freeze (სერიის დაცვა)</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">ავტომატურად იცავს სერიას 1 გამოტოვებული დღისგან</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-black text-xs">
+                  ${freezesCount} / 3
+                </span>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-cyan-200/60 dark:border-cyan-800/30">
+                <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                  ${freezesCount >= 3 ? 'მაქსიმალური მარაგი შევსებულია ✓' : 'შეიძინეთ დამატებითი დაცვა 50 XP-ით'}
+                </span>
+                <button onclick="window.DeutschApp.buyStreakFreeze()" ${freezesCount >= 3 || (userData.xp || 0) < 50 ? 'disabled' : ''} class="px-3.5 py-2 rounded-xl text-xs font-black transition ${freezesCount >= 3 || (userData.xp || 0) < 50 ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow active:scale-95'}">
+                  ❄️ დამატება (50 XP)
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -5434,6 +5705,46 @@ ${escapeHtml(item.text_de)}
 
     nextCaseDrill: function () {
       pickNextCaseDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    // Trennbare Verben & Satzklammer Trainer
+    setTrennbareFilter: function (filterType) {
+      state.trennbarFilterType = filterType;
+      state.trennbarIndex = 0;
+      pickNextTrennbareDrill();
+      renderArticleTrainer(document.getElementById('main-content'));
+    },
+
+    guessTrennbare: function (chosen) {
+      const drill = state.trennbarCurrentDrill;
+      if (!drill) return;
+      const feedbackEl = document.getElementById('trennbar-feedback');
+
+      if (chosen === drill.correct) {
+        state.trennbarScore += 1;
+        state.trennbarStreak += 1;
+        playChime('success');
+        grantRewardXP('trennbar_' + drill.id, 5);
+        const fullSentence = drill.full_sentence || drill.sentence.replace('_______', drill.correct);
+        speakGerman(fullSentence);
+        state.trennbarFeedback = `<span class="text-emerald-600 animate-fadeIn font-black text-sm">✓ სწორია! „${escapeHtml(fullSentence)}“<br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      } else {
+        state.trennbarStreak = 0;
+        playChime('wrong');
+        state.trennbarFeedback = `<span class="text-rose-600 animate-fadeIn font-black text-sm">✗ არასწორია! სწორია: <strong class="underline">${escapeHtml(drill.correct)}</strong><br><span class="text-xs font-normal text-slate-500">${escapeHtml(drill.rule_ka)}</span></span>`;
+      }
+
+      if (feedbackEl) feedbackEl.innerHTML = state.trennbarFeedback;
+
+      setTimeout(() => {
+        pickNextTrennbareDrill();
+        renderArticleTrainer(document.getElementById('main-content'));
+      }, 1600);
+    },
+
+    nextTrennbareDrill: function () {
+      pickNextTrennbareDrill();
       renderArticleTrainer(document.getElementById('main-content'));
     },
 
@@ -6384,6 +6695,39 @@ ${escapeHtml(item.text_de)}
         }
       };
       reader.readAsText(file);
+    },
+
+    // Weekly Goal & Streak Freeze Handlers
+    setDailyXpGoal: function (goal) {
+      if (![20, 50, 100, 150].includes(goal)) return;
+      userData.dailyXpGoal = goal;
+      saveUserData();
+      showToast(`დღიური მიზანი განახლდა: ${goal} XP/დღეში 🎯`);
+      if (state.currentTab === 'profile') {
+        renderProfile(document.getElementById('main-content'));
+      }
+    },
+
+    buyStreakFreeze: function () {
+      const currentFreezes = typeof userData.streakFreezes === 'number' ? userData.streakFreezes : 0;
+      if (currentFreezes >= 3) {
+        showToast('მაქსიმუმ 3 Streak Freeze შეგიძლიათ გქონდეთ ❄️');
+        return false;
+      }
+      if ((userData.xp || 0) < 50) {
+        showToast('საჭიროა მინიმუმ 50 XP Streak Freeze-ის შესაძენად.');
+        return false;
+      }
+      userData.xp -= 50;
+      userData.streakFreezes = currentFreezes + 1;
+      saveUserData();
+      updateHeaderStats();
+      playChime('success');
+      showToast('Streak Freeze დაემატა! სერია დაცულია ❄️');
+      if (state.currentTab === 'profile') {
+        renderProfile(document.getElementById('main-content'));
+      }
+      return true;
     },
 
     // Profile & Reset (Fixed Defect 8.6 & Stage 9.1 Drafts Purge)

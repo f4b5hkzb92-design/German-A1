@@ -331,6 +331,28 @@
       const backupJSON = app.exportUserDataJSON();
       const backupValid = typeof backupJSON === 'string' && backupJSON.length > 50;
       logItem(Boolean(diktatPassed && backupValid), "20. Hör-Diktat Lab & Profile JSON Backup Sync System");
+
+      // 21. Trennbare Verben & Satzklammer Trainer (Hub Mode 5)
+      app.setTab('article-trainer');
+      await sleep(100);
+      app.setTrainerMode('trennbare');
+      await sleep(100);
+      const curTrenn = app.state.trennbarCurrentDrill;
+      const initTrennScore = app.state.trennbarScore;
+      if (curTrenn) app.guessTrennbare(curTrenn.correct);
+      await sleep(100);
+      logItem(app.state.trennbarScore === initTrennScore + 1, "21. Trennbare Verben & Satzklammer Trainer (Präsens, Modals & Perfekt)");
+
+      // 22. Weekly Goal & Streak Freeze System
+      app.setTab('profile');
+      await sleep(100);
+      app.setDailyXpGoal(100);
+      await sleep(50);
+      const uGoal = JSON.parse(localStorage.getItem('deutsch_a1_pro_v3') || '{}');
+      const freezeBtnWorked = (uGoal.xp >= 50) ? app.buyStreakFreeze() : true;
+      await sleep(50);
+      const profileHtml = document.getElementById('main-content').innerHTML;
+      logItem(Boolean(uGoal.dailyXpGoal === 100 && freezeBtnWorked && profileHtml.indexOf('Streak Freeze') !== -1), "22. Weekly Goal, 7-Day Activity Chart & Streak Freeze System");
       } catch (suiteErr) {
         failed++;
         testDetails.push({ ok: false, title: "Critical suite error: " + suiteErr.message });

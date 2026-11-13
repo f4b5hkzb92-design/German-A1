@@ -16828,6 +16828,673 @@ window.GERMAN_A1_DATA = {
       "hint": "Wo? -> Dativ (das -> dem)"
     }
   ],
+  "trennbare_verben": [
+    {
+      "id": 1,
+      "type": "praesens",
+      "infinitive": "einkaufen",
+      "prefix": "ein",
+      "stem": "kaufen",
+      "sentence": "Ich _______ heute im Supermarkt _______ .",
+      "correct": "kaufe ... ein",
+      "options": [
+        "kaufe ... ein",
+        "einkaufe ... —",
+        "kaufen ... ein",
+        "ein ... kaufe"
+      ],
+      "full_sentence": "Ich kaufe heute im Supermarkt ein.",
+      "translation_ka": "დღეს სუპერმარკეტში ვყიდულობ პროდუქტებს.",
+      "rule_ka": "აწმყოში (Präsens) თავსართმოცილებადი ზმნა „einkaufen“ იყოფა: ფუძე (kaufe) მე-2 ადგილზეა, თავსართი (ein) — ბოლოში.",
+      "hint": "einkaufen (ich)"
+    },
+    {
+      "id": 2,
+      "type": "praesens",
+      "infinitive": "aufstehen",
+      "prefix": "auf",
+      "stem": "stehen",
+      "sentence": "Er _______ jeden Tag um sieben Uhr _______ .",
+      "correct": "steht ... auf",
+      "options": [
+        "steht ... auf",
+        "aufsteht ... —",
+        "stehen ... auf",
+        "auf ... steht"
+      ],
+      "full_sentence": "Er steht jeden Tag um sieben Uhr auf.",
+      "translation_ka": "ის ყოველდღე შვიდ საათზე დგება.",
+      "rule_ka": "„aufstehen“ (ადგომა) მესამე პირში (er) იუღლება როგორც „steht“, ხოლო თავსართი „auf“ გადადის ბოლოში.",
+      "hint": "aufstehen (er)"
+    },
+    {
+      "id": 3,
+      "type": "praesens",
+      "infinitive": "anrufen",
+      "prefix": "an",
+      "stem": "rufen",
+      "sentence": "Maria _______ ihre Mutter am Abend _______ .",
+      "correct": "ruft ... an",
+      "options": [
+        "ruft ... an",
+        "anruft ... —",
+        "rufe ... an",
+        "an ... ruft"
+      ],
+      "full_sentence": "Maria ruft ihre Mutter am Abend an.",
+      "translation_ka": "მარია საღამოს დედამისს ურეკავს.",
+      "rule_ka": "„anrufen“ (დარეკვა) იყოფა: ფუძე „ruft“ მე-2 ადგილზე დგება, თავსართი „an“ კი წინადადების ბოლოს.",
+      "hint": "anrufen (sie)"
+    },
+    {
+      "id": 4,
+      "type": "praesens",
+      "infinitive": "fernsehen",
+      "prefix": "fern",
+      "stem": "sehen",
+      "sentence": "Du _______ am Wochenende oft _______ .",
+      "correct": "siehst ... fern",
+      "options": [
+        "siehst ... fern",
+        "fernsiehst ... —",
+        "seht ... fern",
+        "sieht ... fern"
+      ],
+      "full_sentence": "Du siehst am Wochenende oft fern.",
+      "translation_ka": "შენ შაბათ-კვირას ხშირად უყურებ ტელევიზორს.",
+      "rule_ka": "„fernsehen“ ძლიერი ზმნაა (e -> ie du/er-ში): du siehst ... fern.",
+      "hint": "fernsehen (du: e -> ie)"
+    },
+    {
+      "id": 5,
+      "type": "praesens",
+      "infinitive": "mitkommen",
+      "prefix": "mit",
+      "stem": "kommen",
+      "sentence": "Wir _______ morgen ins Kino _______ .",
+      "correct": "kommen ... mit",
+      "options": [
+        "kommen ... mit",
+        "mitkommen ... —",
+        "kommt ... mit",
+        "mit ... kommen"
+      ],
+      "full_sentence": "Wir kommen morgen ins Kino mit.",
+      "translation_ka": "ჩვენ ხვალ კინოში მოვდივართ (თქვენთან ერთად).",
+      "rule_ka": "„mitkommen“ (გაყოლა/წამოსვლა): wir ფორმაა „kommen“, თავსართი „mit“ — ბოლოში.",
+      "hint": "mitkommen (wir)"
+    },
+    {
+      "id": 6,
+      "type": "praesens",
+      "infinitive": "abfahren",
+      "prefix": "ab",
+      "stem": "fahren",
+      "sentence": "Der Zug _______ um 10:15 Uhr _______ .",
+      "correct": "fährt ... ab",
+      "options": [
+        "fährt ... ab",
+        "abfahrt ... —",
+        "fahrt ... ab",
+        "ab ... fährt"
+      ],
+      "full_sentence": "Der Zug fährt um 10:15 Uhr ab.",
+      "translation_ka": "მატარებელი 10:15 საათზე გადის.",
+      "rule_ka": "„abfahren“ (გამგზავრება) მესამე პირში იცვლის ხმოვანს (a -> ä): fährt ... ab.",
+      "hint": "abfahren (der Zug = er: a -> ä)"
+    },
+    {
+      "id": 7,
+      "type": "praesens",
+      "infinitive": "ankommen",
+      "prefix": "an",
+      "stem": "kommen",
+      "sentence": "Der Bus _______ pünktlich in Berlin _______ .",
+      "correct": "kommt ... an",
+      "options": [
+        "kommt ... an",
+        "ankommt ... —",
+        "kommen ... an",
+        "an ... kommt"
+      ],
+      "full_sentence": "Der Bus kommt pünktlich in Berlin an.",
+      "translation_ka": "ავტობუსი დროულად ჩამოდის ბერლინში.",
+      "rule_ka": "„ankommen“ (ჩამოსვლა): ფუძე „kommt“ მე-2 ადგილზე, თავსართი „an“ ბოლოში.",
+      "hint": "ankommen (der Bus)"
+    },
+    {
+      "id": 8,
+      "type": "praesens",
+      "infinitive": "zumachen",
+      "prefix": "zu",
+      "stem": "machen",
+      "sentence": "Ich _______ jetzt das Fenster _______ .",
+      "correct": "mache ... zu",
+      "options": [
+        "mache ... zu",
+        "zumache ... —",
+        "macht ... zu",
+        "zu ... mache"
+      ],
+      "full_sentence": "Ich mache jetzt das Fenster zu.",
+      "translation_ka": "მე ახლა ფანჯარას ვხურავ.",
+      "rule_ka": "„zumachen“ (დახურვა): ich mache ... zu.",
+      "hint": "zumachen (ich)"
+    },
+    {
+      "id": 9,
+      "type": "praesens",
+      "infinitive": "aufmachen",
+      "prefix": "auf",
+      "stem": "machen",
+      "sentence": "Der Supermarkt _______ um acht Uhr _______ .",
+      "correct": "macht ... auf",
+      "options": [
+        "macht ... auf",
+        "aufmacht ... —",
+        "machen ... auf",
+        "auf ... macht"
+      ],
+      "full_sentence": "Der Supermarkt macht um acht Uhr auf.",
+      "translation_ka": "სუპერმარკეტი რვა საათზე იღება.",
+      "rule_ka": "„aufmachen“ (გაღება): der Supermarkt (er) -> macht ... auf.",
+      "hint": "aufmachen (es/er)"
+    },
+    {
+      "id": 10,
+      "type": "praesens",
+      "infinitive": "ausgehen",
+      "prefix": "aus",
+      "stem": "gehen",
+      "sentence": "Am Samstag _______ wir mit Freunden _______ .",
+      "correct": "gehen ... aus",
+      "options": [
+        "gehen ... aus",
+        "ausgehen ... —",
+        "geht ... aus",
+        "aus ... gehen"
+      ],
+      "full_sentence": "Am Samstag gehen wir mit Freunden aus.",
+      "translation_ka": "შაბათს მეგობრებთან ერთად გავდივართ (სასეირნოდ/კაფეში).",
+      "rule_ka": "„ausgehen“ (გასვლა გასართობად): ინვერსიის დროსაც ზმნა მე-2 ადგილზეა (gehen wir), თავსართი „aus“ — ბოლოში.",
+      "hint": "ausgehen (wir)"
+    },
+    {
+      "id": 11,
+      "type": "praesens",
+      "infinitive": "einladen",
+      "prefix": "ein",
+      "stem": "laden",
+      "sentence": "Lukas _______ dich zur Party _______ .",
+      "correct": "lädt ... ein",
+      "options": [
+        "lädt ... ein",
+        "ladet ... ein",
+        "einlädt ... —",
+        "ein ... lädt"
+      ],
+      "full_sentence": "Lukas lädt dich zur Party ein.",
+      "translation_ka": "ლუკასი წვეულებაზე გპატიჟებს.",
+      "rule_ka": "„einladen“ (დაპატიჟება) ძლიერი ზმნაა (a -> ä, მე-3 პირში t არ ემატება): er lädt ... ein.",
+      "hint": "einladen (er: a -> ä)"
+    },
+    {
+      "id": 12,
+      "type": "praesens",
+      "infinitive": "vorbereiten",
+      "prefix": "vor",
+      "stem": "bereiten",
+      "sentence": "Wir _______ das Abendessen _______ .",
+      "correct": "bereiten ... vor",
+      "options": [
+        "bereiten ... vor",
+        "vorbereiten ... —",
+        "bereitet ... vor",
+        "vor ... bereiten"
+      ],
+      "full_sentence": "Wir bereiten das Abendessen vor.",
+      "translation_ka": "ჩვენ ვახშამს ვამზადებთ.",
+      "rule_ka": "„vorbereiten“ (მომზადება): თავსართი „vor“ მოცილებადია და გადადის წინადადების ბოლოში.",
+      "hint": "vorbereiten (wir)"
+    },
+    {
+      "id": 13,
+      "type": "praesens",
+      "infinitive": "zurückkommen",
+      "prefix": "zurück",
+      "stem": "kommen",
+      "sentence": "Wann _______ du aus Deutschland _______ ?",
+      "correct": "kommst ... zurück",
+      "options": [
+        "kommst ... zurück",
+        "zurückkommst ... —",
+        "kommt ... zurück",
+        "zurück ... kommst"
+      ],
+      "full_sentence": "Wann kommst du aus Deutschland zurück?",
+      "translation_ka": "როდის ბრუნდები გერმანიიდან?",
+      "rule_ka": "კითხვით წინადადებაშიც ფუძე მე-2 ადგილზეა (kommst), თავსართი „zurück“ კი ბოლოში.",
+      "hint": "zurückkommen (du)"
+    },
+    {
+      "id": 14,
+      "type": "praesens",
+      "infinitive": "aufräumen",
+      "prefix": "auf",
+      "stem": "räumen",
+      "sentence": "Ihr _______ heute das Wohnzimmer _______ .",
+      "correct": "räumt ... auf",
+      "options": [
+        "räumt ... auf",
+        "aufräumt ... —",
+        "räumen ... auf",
+        "auf ... räumt"
+      ],
+      "full_sentence": "Ihr räumt heute das Wohnzimmer auf.",
+      "translation_ka": "თქვენ დღეს მისაღებ ოთახს ალაგებთ.",
+      "rule_ka": "„aufräumen“ (დალაგება) ihr პირში იღებს -t დაბოლოებას: räumt ... auf.",
+      "hint": "aufräumen (ihr)"
+    },
+    {
+      "id": 15,
+      "type": "praesens",
+      "infinitive": "mitbringen",
+      "prefix": "mit",
+      "stem": "bringen",
+      "sentence": "Ich _______ morgen einen Kuchen _______ .",
+      "correct": "bringe ... mit",
+      "options": [
+        "bringe ... mit",
+        "mitbringe ... —",
+        "bringst ... mit",
+        "mit ... bringe"
+      ],
+      "full_sentence": "Ich bringe morgen einen Kuchen mit.",
+      "translation_ka": "ხვალ ნამცხვარს წამოვიღებ.",
+      "rule_ka": "„mitbringen“ (თან წამოღება): ich bringe ... mit.",
+      "hint": "mitbringen (ich)"
+    },
+    {
+      "id": 16,
+      "type": "modal",
+      "infinitive": "einkaufen",
+      "prefix": "ein",
+      "stem": "kaufen",
+      "sentence": "Ich muss heute im Supermarkt _______ .",
+      "correct": "einkaufen",
+      "options": [
+        "einkaufen",
+        "kaufe ein",
+        "ein kaufen",
+        "eingekauft"
+      ],
+      "full_sentence": "Ich muss heute im Supermarkt einkaufen.",
+      "translation_ka": "დღეს სუპერმარკეტში უნდა ვიყიდო პროდუქტები.",
+      "rule_ka": "როცა წინადადებაში მოდალური ზმნაა (muss), თავსართმოცილებადი ზმნა აღარ იყოფა — სრული ინფინიტივი (einkaufen) დგება ბოლოში!",
+      "hint": "muss + Infinitiv (არ იყოფა!)"
+    },
+    {
+      "id": 17,
+      "type": "modal",
+      "infinitive": "aufstehen",
+      "prefix": "auf",
+      "stem": "stehen",
+      "sentence": "Morgen will ich früh _______ .",
+      "correct": "aufstehen",
+      "options": [
+        "aufstehen",
+        "stehe auf",
+        "auf stehen",
+        "aufgestanden"
+      ],
+      "full_sentence": "Morgen will ich früh aufstehen.",
+      "translation_ka": "ხვალ ადრე მინდა ადგომა.",
+      "rule_ka": "მოდალური ზმნა „will“ მე-2 ადგილზეა, ხოლო თავსართიანი ზმნა „aufstehen“ შეურწყმელად რჩება ბოლოში.",
+      "hint": "will + Infinitiv"
+    },
+    {
+      "id": 18,
+      "type": "modal",
+      "infinitive": "anrufen",
+      "prefix": "an",
+      "stem": "rufen",
+      "sentence": "Kannst du mich bitte später _______ ?",
+      "correct": "anrufen",
+      "options": [
+        "anrufen",
+        "rufst an",
+        "an rufen",
+        "angerufen"
+      ],
+      "full_sentence": "Kannst du mich bitte später anrufen?",
+      "translation_ka": "შეგიძლია მოგვიანებით დამირეკო?",
+      "rule_ka": "კითხვით წინადადებაში „Kannst“ I ადგილზეა, ბოლოში კი სრული ინფინიტივი „anrufen“.",
+      "hint": "kannst + Infinitiv"
+    },
+    {
+      "id": 19,
+      "type": "modal",
+      "infinitive": "fernsehen",
+      "prefix": "fern",
+      "stem": "sehen",
+      "sentence": "Die Kinder dürfen am Abend nicht _______ .",
+      "correct": "fernsehen",
+      "options": [
+        "fernsehen",
+        "sehen fern",
+        "fern sehen",
+        "ferngesehen"
+      ],
+      "full_sentence": "Die Kinder dürfen am Abend nicht fernsehen.",
+      "translation_ka": "ბავშვებს საღამოს ტელევიზორის ყურების უფლება არ აქვთ.",
+      "rule_ka": "მოდალურ ზმნასთან „dürfen“ ინფინიტივი „fernsehen“ არ იყოფა და ერთად იწერება ბოლოში.",
+      "hint": "dürfen + Infinitiv"
+    },
+    {
+      "id": 20,
+      "type": "modal",
+      "infinitive": "mitkommen",
+      "prefix": "mit",
+      "stem": "kommen",
+      "sentence": "Möchtest du ins Restaurant _______ ?",
+      "correct": "mitkommen",
+      "options": [
+        "mitkommen",
+        "kommst mit",
+        "mit kommen",
+        "mitgekommen"
+      ],
+      "full_sentence": "Möchtest du ins Restaurant mitkommen?",
+      "translation_ka": "გინდა რესტორანში წამოსვლა?",
+      "rule_ka": "„möchtest“ + სრული ინფინიტივი „mitkommen“ წინადადების ბოლოში.",
+      "hint": "möchtest + Infinitiv"
+    },
+    {
+      "id": 21,
+      "type": "modal",
+      "infinitive": "aufräumen",
+      "prefix": "auf",
+      "stem": "räumen",
+      "sentence": "Du sollst dein Zimmer sofort _______ .",
+      "correct": "aufräumen",
+      "options": [
+        "aufräumen",
+        "räumst auf",
+        "auf räumen",
+        "aufgeräumt"
+      ],
+      "full_sentence": "Du sollst dein Zimmer sofort aufräumen.",
+      "translation_ka": "შენი ოთახი დაუყოვნებლივ უნდა დაალაგო.",
+      "rule_ka": "„sollst“ მოდალური ზმნაა — ბოლოში დგება სრული ინფინიტივი „aufräumen“.",
+      "hint": "sollst + Infinitiv"
+    },
+    {
+      "id": 22,
+      "type": "modal",
+      "infinitive": "zumachen",
+      "prefix": "zu",
+      "stem": "machen",
+      "sentence": "Es ist kalt. Wir müssen die Tür _______ .",
+      "correct": "zumachen",
+      "options": [
+        "zumachen",
+        "machen zu",
+        "zu machen",
+        "zugemacht"
+      ],
+      "full_sentence": "Es ist kalt. Wir müssen die Tür zumachen.",
+      "translation_ka": "ცივა. კარი უნდა დავხუროთ.",
+      "rule_ka": "„müssen“ + „zumachen“ (Satzklammer — ზმნური ჩარჩო).",
+      "hint": "müssen + Infinitiv"
+    },
+    {
+      "id": 23,
+      "type": "modal",
+      "infinitive": "mitbringen",
+      "prefix": "mit",
+      "stem": "bringen",
+      "sentence": "Darf ich meine Schwester zur Party _______ ?",
+      "correct": "mitbringen",
+      "options": [
+        "mitbringen",
+        "bringe mit",
+        "mit bringen",
+        "mitgebracht"
+      ],
+      "full_sentence": "Darf ich meine Schwester zur Party mitbringen?",
+      "translation_ka": "შეიძლება ჩემი და წვეულებაზე წამოვიყვანო?",
+      "rule_ka": "„Darf“ + სრული ინფინიტივი „mitbringen“ ბოლოში.",
+      "hint": "darf + Infinitiv"
+    },
+    {
+      "id": 24,
+      "type": "modal",
+      "infinitive": "abholen",
+      "prefix": "ab",
+      "stem": "holen",
+      "sentence": "Ich kann dich um 18 Uhr vom Bahnhof _______ .",
+      "correct": "abholen",
+      "options": [
+        "abholen",
+        "hole ab",
+        "ab holen",
+        "abgeholt"
+      ],
+      "full_sentence": "Ich kann dich um 18 Uhr vom Bahnhof abholen.",
+      "translation_ka": "18 საათზე სადგურიდან შემიძლია წაგიყვანო (დაგხვდე).",
+      "rule_ka": "„kann“ მე-2 ადგილზე, „abholen“ (გამოვლა/დახვედრა) შეურწყმელად ბოლოში.",
+      "hint": "kann + Infinitiv"
+    },
+    {
+      "id": 25,
+      "type": "modal",
+      "infinitive": "ausfüllen",
+      "prefix": "aus",
+      "stem": "füllen",
+      "sentence": "Sie müssen dieses Formular _______ .",
+      "correct": "ausfüllen",
+      "options": [
+        "ausfüllen",
+        "füllen aus",
+        "aus füllen",
+        "ausgefüllt"
+      ],
+      "full_sentence": "Sie müssen dieses Formular ausfüllen.",
+      "translation_ka": "ეს ფორმულარი უნდა შეავსოთ.",
+      "rule_ka": "„müssen“ + „ausfüllen“ (შევსება) ბოლოში.",
+      "hint": "müssen + Infinitiv"
+    },
+    {
+      "id": 26,
+      "type": "imperativ_perfekt",
+      "infinitive": "aufräumen",
+      "prefix": "auf",
+      "stem": "räumen",
+      "sentence": "_______ bitte dein Zimmer _______ ! (du)",
+      "correct": "Räum ... auf",
+      "options": [
+        "Räum ... auf",
+        "Aufräum ... —",
+        "Räumt ... auf",
+        "Auf ... räum"
+      ],
+      "full_sentence": "Räum bitte dein Zimmer auf!",
+      "translation_ka": "გთხოვ, დაალაგე შენი ოთახი!",
+      "rule_ka": "ბრძანებითში (Imperativ du) თავსართი ისევ იყოფა და გადადის ბოლოში: Räum ... auf!",
+      "hint": "Imperativ (du): Räum ... auf!"
+    },
+    {
+      "id": 27,
+      "type": "imperativ_perfekt",
+      "infinitive": "aufmachen",
+      "prefix": "auf",
+      "stem": "machen",
+      "sentence": "_______ Sie bitte das Fenster _______ !",
+      "correct": "Machen ... auf",
+      "options": [
+        "Machen ... auf",
+        "Aufmachen ... —",
+        "Macht ... auf",
+        "Auf ... machen"
+      ],
+      "full_sentence": "Machen Sie bitte das Fenster auf!",
+      "translation_ka": "გთხოვთ, გააღეთ ფანჯარა!",
+      "rule_ka": "თავაზიან ბრძანებითში (Sie): Machen Sie ... auf!",
+      "hint": "Imperativ (Sie): Machen Sie ... auf!"
+    },
+    {
+      "id": 28,
+      "type": "imperativ_perfekt",
+      "infinitive": "anrufen",
+      "prefix": "an",
+      "stem": "rufen",
+      "sentence": "_______ mich heute Abend _______ ! (du)",
+      "correct": "Ruf ... an",
+      "options": [
+        "Ruf ... an",
+        "Anruf ... —",
+        "Rufen ... an",
+        "An ... ruf"
+      ],
+      "full_sentence": "Ruf mich heute Abend an!",
+      "translation_ka": "დამირეკე დღეს საღამოს!",
+      "rule_ka": "ბრძანებითში (du): Ruf ... an!",
+      "hint": "Imperativ (du)"
+    },
+    {
+      "id": 29,
+      "type": "imperativ_perfekt",
+      "infinitive": "einkaufen",
+      "prefix": "ein",
+      "stem": "kaufen",
+      "sentence": "Ich habe gestern Obst und Gemüse _______ .",
+      "correct": "eingekauft",
+      "options": [
+        "eingekauft",
+        "geeinkauft",
+        "einkauft",
+        "kauft ein"
+      ],
+      "full_sentence": "Ich habe gestern Obst und Gemüse eingekauft.",
+      "translation_ka": "გუშინ ხილი და ბოსტნეული ვიყიდე.",
+      "rule_ka": "Perfekt დროში თავსართმოცილებად ზმნებში „-ge-“ ჩაისმება თავსართსა და ფუძეს შორის: ein + ge + kauft = eingekauft!",
+      "hint": "Perfekt: ein + ge + kauft"
+    },
+    {
+      "id": 30,
+      "type": "imperativ_perfekt",
+      "infinitive": "aufstehen",
+      "prefix": "auf",
+      "stem": "stehen",
+      "sentence": "Ich bin heute um sechs Uhr _______ .",
+      "correct": "aufgestanden",
+      "options": [
+        "aufgestanden",
+        "geaufstanden",
+        "aufgesteht",
+        "stand auf"
+      ],
+      "full_sentence": "Ich bin heute um sechs Uhr aufgestanden.",
+      "translation_ka": "დღეს ექვს საათზე ავდექი.",
+      "rule_ka": "„aufstehen“ Perfekt-ში ითხოვს „sein“ ზმნას (მოძრაობა/მდგომარეობის შეცვლა) და -ge- შუაში: aufgestanden.",
+      "hint": "Perfekt: bin + aufgestanden"
+    },
+    {
+      "id": 31,
+      "type": "imperativ_perfekt",
+      "infinitive": "anrufen",
+      "prefix": "an",
+      "stem": "rufen",
+      "sentence": "Hast du deinen Freund schon _______ ?",
+      "correct": "angerufen",
+      "options": [
+        "angerufen",
+        "geanrufen",
+        "anruft",
+        "angeruft"
+      ],
+      "full_sentence": "Hast du deinen Freund schon angerufen?",
+      "translation_ka": "უკვე დაურეკე შენს მეგობარს?",
+      "rule_ka": "„anrufen“ ძლიერი ზმნაა -> Partizip II არის „angerufen“ (an + ge + rufen).",
+      "hint": "Perfekt: an + ge + rufen"
+    },
+    {
+      "id": 32,
+      "type": "imperativ_perfekt",
+      "infinitive": "abfahren",
+      "prefix": "ab",
+      "stem": "fahren",
+      "sentence": "Der Zug ist pünktlich _______ .",
+      "correct": "abgefahren",
+      "options": [
+        "abgefahren",
+        "geabfahren",
+        "abgefahrt",
+        "abfahrt"
+      ],
+      "full_sentence": "Der Zug ist pünktlich abgefahren.",
+      "translation_ka": "მატარებელი დროულად გავიდა.",
+      "rule_ka": "„abfahren“ Perfekt-ში: ist + abgefahren (ab + ge + fahren).",
+      "hint": "Perfekt: ist + abgefahren"
+    },
+    {
+      "id": 33,
+      "type": "imperativ_perfekt",
+      "infinitive": "fernsehen",
+      "prefix": "fern",
+      "stem": "sehen",
+      "sentence": "Wir haben gestern zwei Stunden _______ .",
+      "correct": "ferngesehen",
+      "options": [
+        "ferngesehen",
+        "gefernsehen",
+        "ferngeseht",
+        "fernsehen"
+      ],
+      "full_sentence": "Wir haben gestern zwei Stunden ferngesehen.",
+      "translation_ka": "გუშინ ორი საათი ვუყურეთ ტელევიზორს.",
+      "rule_ka": "„fernsehen“ -> Partizip II: ferngesehen (fern + ge + sehen).",
+      "hint": "Perfekt: fern + ge + sehen"
+    },
+    {
+      "id": 34,
+      "type": "imperativ_perfekt",
+      "infinitive": "einladen",
+      "prefix": "ein",
+      "stem": "laden",
+      "sentence": "Anna hat alle Kollegen _______ .",
+      "correct": "eingeladen",
+      "options": [
+        "eingeladen",
+        "geeinladen",
+        "eingeladet",
+        "einladen"
+      ],
+      "full_sentence": "Anna hat alle Kollegen eingeladen.",
+      "translation_ka": "ანამ ყველა კოლეგა დაპატიჟა.",
+      "rule_ka": "„einladen“ -> Partizip II: eingeladen (ein + ge + laden).",
+      "hint": "Perfekt: ein + ge + laden"
+    },
+    {
+      "id": 35,
+      "type": "imperativ_perfekt",
+      "infinitive": "mitbringen",
+      "prefix": "mit",
+      "stem": "bringen",
+      "sentence": "Was hast du zur Party _______ ?",
+      "correct": "mitgebracht",
+      "options": [
+        "mitgebracht",
+        "gemitbringen",
+        "mitgebringt",
+        "mitbringen"
+      ],
+      "full_sentence": "Was hast du zur Party mitgebracht?",
+      "translation_ka": "რა მოიტანე წვეულებაზე?",
+      "rule_ka": "„bringen“ შერეული ზმნაა (gebracht), ამიტომ „mitbringen“ Perfekt-ში ხდება „mitgebracht“.",
+      "hint": "Perfekt: mit + gebracht"
+    }
+  ],
   "mini_stories": [
     {
       "id": "story_1",
