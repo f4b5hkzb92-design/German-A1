@@ -1,0 +1,12 @@
+{
+  "appId": "ge.deutscha1.app",
+  "appName": "Deutsch A1",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  }
+}

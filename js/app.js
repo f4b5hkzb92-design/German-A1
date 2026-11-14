@@ -5507,11 +5507,33 @@ ${escapeHtml(item.text_de)}
   }
 
   // ==========================================================================
-  // PRO SUBSCRIPTION MODAL (TRANSPARENT STUDY MODE - FIXES BIZ-01)
+  // ==========================================================================
+  // FREEMIUM & MONTHLY SUBSCRIPTION MODAL (5 GEL / MONTH)
   // ==========================================================================
   function openProModal() {
     let container = document.getElementById('modal-container');
     if (!container) return;
+
+    const billing = window.DeutschBilling ? window.DeutschBilling.getSubscriptionSummary() : {
+      active: false,
+      dailyLimit: 20,
+      remainingToday: 20,
+      expiresFormatted: null,
+      plan: { priceLabel: '5 ₾ / თვეში' }
+    };
+
+    const actionButton = billing.active
+      ? `<div class="space-y-2">
+           <div class="w-full py-2 rounded-xl bg-emerald-500 text-white font-black text-xs shadow-md">
+             ✓ გამოწერა აქტიურია ${billing.expiresFormatted ? '(' + billing.expiresFormatted + '-მდე)' : ''}
+           </div>
+           <button onclick="window.DeutschApp.resetFreeTierPreview()" class="w-full py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-[11px] font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400">
+             უფასო რეჟიმის ნახვა (ტესტი)
+           </button>
+         </div>`
+      : `<button onclick="window.DeutschApp.subscribePremium()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95">
+           💎 გააქტიურება • 5 ₾ / თვეში
+         </button>`;
 
     let html = `
       <div class="modal-overlay animate-fadeIn" onclick="if(event.target===this) window.DeutschApp.closeProModal()">
@@ -5521,70 +5543,66 @@ ${escapeHtml(item.text_de)}
 
           <div class="text-center space-y-2 mb-6">
             <span class="inline-block px-3 py-1 bg-amber-400 text-slate-950 rounded-full text-xs font-black tracking-wider uppercase">
-              💎 Deutsch A1 Pro • სასწავლო & დემო რეჟიმი
+              💎 Deutsch A1 Premium
             </span>
             <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">
-              სრული ფუნქციონალი აქტიურია
+              ისწავლეთ შეზღუდვებისა და რეკლამის გარეშე
             </h2>
-            <p class="text-xs text-slate-500 font-medium max-w-md mx-auto">
-              ლოკალურ ვერსიაში ყველა პროფესიონალური ფუნქცია ხელმისაწვდომია უფასოდ სტუდენტებისთვის
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium max-w-md mx-auto">
+              ყოველთვიური გამოწერა მხოლოდ <strong>5 ₾ / თვეში</strong> — მოხსენით რეკლამა და დღიური ლიმიტები სრული ვადით
             </p>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             
-            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-center flex flex-col justify-between">
+            <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-700 text-center flex flex-col justify-between">
               <div>
-                <span class="text-xs font-bold text-slate-400 block mb-1">საბაზისო</span>
-                <div class="text-xl font-black text-slate-900 dark:text-white mb-2">Starter</div>
-                <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 text-left mb-4">
+                <span class="text-xs font-bold text-slate-400 block mb-1">უფასო პაკეტი</span>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mb-3">0 ₾</div>
+                <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-2 text-left mb-4">
                   <li>✓ 10 გაკვეთილის თეორია</li>
-                  <li>✓ საბაზისო ტესტები</li>
-                  <li>✓ Web Audio გაჟღერება</li>
+                  <li>✓ საბაზისო სავარჯიშოები</li>
+                  <li>• დღიური ლიმიტი: ${billing.dailyLimit} მოქმედება/დღეში</li>
+                  <li>• სარეკლამო ბანერები აპლიკაციაში</li>
                 </ul>
               </div>
-              <span class="text-[10px] text-slate-400 block font-bold">უფასო წვდომა</span>
+              <span class="text-[11px] text-slate-400 block font-bold">
+                დარჩენილია დღეს: ${billing.active ? 'ულიმიტო' : billing.remainingToday + ' / ' + billing.dailyLimit}
+              </span>
             </div>
 
-            <div class="p-4 rounded-2xl border-2 border-amber-400 bg-amber-50/40 dark:bg-amber-950/20 text-center flex flex-col justify-between relative pro-glow">
+            <div class="p-5 rounded-2xl border-2 border-amber-400 bg-amber-50/40 dark:bg-amber-950/20 text-center flex flex-col justify-between relative pro-glow">
               <span class="absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-amber-400 text-slate-950 font-black text-[9px] uppercase rounded-full">
-                აქტიური რეჟიმი
+                სრული წვდომა
               </span>
               <div>
-                <span class="text-xs font-black text-amber-700 dark:text-amber-300 block mb-1">PRO Study Mode</span>
-                <div class="text-2xl font-black text-slate-900 dark:text-white mb-2">ყველაფერი ჩართულია</div>
-                <ul class="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 text-left mb-4 font-medium">
-                  <li>✓ 734+ A1 ლექსიკონი</li>
-                  <li>✓ 7 ენობრივი ლაბორატორია</li>
-                  <li>✓ SM-2 ინტერვალური გამეორება</li>
-                  <li>✓ der / die / das ტრენერი (431)</li>
-                  <li>✓ Satzbau სინტაქსი</li>
-                  <li>✓ A1 შემაჯამებელი გამოცდა (4 მოდული)</li>
+                <span class="text-xs font-black text-amber-700 dark:text-amber-300 block mb-1">Premium გამოწერა</span>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mb-3">5 ₾ <span class="text-xs font-bold text-slate-500">/ თვეში</span></div>
+                <ul class="text-xs text-slate-700 dark:text-slate-300 space-y-2 text-left mb-4 font-medium">
+                  <li>✓ რეკლამა სრულად გათიშულია</li>
+                  <li>✓ შეუზღუდავი ტრენერები და აუდიო</li>
+                  <li>✓ 734+ A1 ლექსიკონი და SM-2 გამეორება</li>
+                  <li>✓ 7 ენობრივი ლაბორატორია და A1 გამოცდა</li>
+                  <li>✓ ავტონომიური ოფლაინ-მუშაობა</li>
                 </ul>
               </div>
-              <button onclick="window.DeutschApp.closeProModal()" class="w-full py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95">
-                სწავლის გაგრძელება 🚀
-              </button>
-            </div>
-
-            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-center flex flex-col justify-between">
-              <div>
-                <span class="text-xs font-bold text-purple-600 block mb-1">Future A2</span>
-                <div class="text-xl font-black text-slate-900 dark:text-white mb-2">მომავალი დონე</div>
-                <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 text-left mb-4">
-                  <li>✓ A2.1 & A2.2 მოდულები</li>
-                  <li>✓ გაფართოებული ლაბორატორიები</li>
-                  <li>✓ გერმანული B1 მომზადება</li>
-                </ul>
-              </div>
-              <span class="text-[10px] text-purple-600 font-bold">მომავალში</span>
+              ${actionButton}
             </div>
 
           </div>
 
-          <div class="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300">
-            <span class="font-bold text-slate-800 dark:text-slate-200 block mb-1">ℹ️ გამჭვირვალობის შენიშვნა:</span>
-            <p>ეს არის ადგილობრივი (offline) სასწავლო პლატფორმა. აქ არ ხდება საბანკო ტრანზაქციების შესრულება — ყველა ხელსაწყო სრულიად ღიაა თქვენი განათლებისთვის.</p>
+          <div class="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-2xl border border-slate-100 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <button onclick="window.DeutschApp.restorePremiumPurchases()" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                🔄 შესყიდვის აღდგენა (Restore Purchase)
+              </button>
+              <a href="privacy.html" class="font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 underline">
+                კონფიდენციალურობის პოლიტიკა
+              </a>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+              გამოწერა მოქმედებს 1 თვის განმავლობაში და ავტომატურად განახლდება, სანამ არ გააუქმებთ App Store-ის ან Google Play-ის პარამეტრებიდან.
+            </p>
           </div>
 
         </div>
@@ -5592,6 +5610,33 @@ ${escapeHtml(item.text_de)}
     `;
 
     container.innerHTML = html;
+  }
+
+  async function subscribePremium() {
+    if (!window.DeutschBilling) return;
+    const res = await window.DeutschBilling.subscribeMonthly();
+    if (res && res.ok) {
+      openProModal();
+      showToast('💎 Premium გამოწერა გააქტიურდა! რეკლამა და ლიმიტები მოიხსნა.');
+    }
+  }
+
+  async function restorePremiumPurchases() {
+    if (!window.DeutschBilling) return;
+    const res = await window.DeutschBilling.restorePurchases();
+    openProModal();
+    if (res && res.restored) {
+      showToast('✓ შესყიდვა წარმატებით აღდგა!');
+    } else {
+      showToast('ℹ️ აქტიური გამოწერა ვერ მოიძებნა.');
+    }
+  }
+
+  function resetFreeTierPreview() {
+    if (!window.DeutschBilling) return;
+    window.DeutschBilling.resetToFreeTier();
+    openProModal();
+    showToast('უფასო რეჟიმი ჩაირთო (რეკლამა და დღიური ლიმიტი აქტიურია).');
   }
 
   function closeProModal() {
@@ -5674,9 +5719,12 @@ ${escapeHtml(item.text_de)}
       speakNormal(text, btn);
     },
 
-    // Pro Modal
+    // Pro Modal & Subscriptions
     openProModal,
     closeProModal,
+    subscribePremium,
+    restorePremiumPurchases,
+    resetFreeTierPreview,
 
     // Lessons
     openLesson: function (id) {

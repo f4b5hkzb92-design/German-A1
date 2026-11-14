@@ -2,9 +2,10 @@
 <html lang="ka" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Deutsch A1 • გერმანული ენის სრული სასწავლო პლატფორმა</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🇩🇪</text></svg>">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#2563eb">
   
@@ -157,6 +158,9 @@
     </div>
   </main>
 
+  <!-- Freemium Ad Banner Slot (Hidden automatically for Premium subscribers) -->
+  <div id="ad-banner-slot" class="bg-slate-100 dark:bg-slate-800/90 border-t border-slate-200 dark:border-slate-700 hidden"></div>
+
   <!-- Footer -->
   <footer class="mt-auto bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-8 transition-colors">
     <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
@@ -169,10 +173,13 @@
         დამზადებულია Schritte International Neu, Menschen და Netzwerk A1 საუნივერსიტეტო სტანდარტების მიხედვით.
         მუშაობს ავტონომიურად აუდიო გაჟღერებითა და სრული სასწავლო ფუნქციონალით.
       </p>
-      <div class="pt-2">
+      <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold border border-emerald-200 dark:border-emerald-800">
-          <span>🟢</span> <span>100% ლოკალური და ოფლაინ-მზადყოფნა • ავტონომიური CSS & Web Audio</span>
+          <span>🟢</span> <span>100% ლოკალური და ოფლაინ-მზადყოფნა</span>
         </span>
+        <a href="privacy.html" class="text-[11px] font-bold text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 underline">
+          კონფიდენციალურობის პოლიტიკა (Privacy Policy)
+        </a>
       </div>
     </div>
   </footer>
@@ -182,11 +189,12 @@
 
   <!-- Scripts -->
   <script src="js/data.js"></script>
+  <script src="js/monetization.js"></script>
   <script src="js/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
